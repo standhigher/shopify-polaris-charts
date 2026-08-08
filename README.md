@@ -2,10 +2,9 @@
 
 Reusable React chart components for Shopify App dashboards built with Polaris.
 
-This package provides a lightweight component library foundation for
-Polaris-style chart experiences. Phase 1 chart components will be added in
-later tasks; this scaffold only defines the package entry, build, and test
-tooling.
+This package provides reusable React chart components for Polaris-style chart
+experiences, including card shells, trend charts, donut charts, stacked bar
+charts, and combo charts.
 
 ## Installation
 
@@ -16,10 +15,42 @@ npm install @standhigher/charts react react-dom @shopify/polaris recharts
 ## Basic Usage
 
 ```tsx
-import { packageName } from '@standhigher/charts';
+import { ChartCard, TrendChart } from '@standhigher/charts';
 
-console.log(packageName);
+const data = [
+  { date: '2026-07-20', grossSales: 18342.8 },
+  { date: '2026-07-21', grossSales: 19218.1 }
+];
+
+export function RevenueCard() {
+  return (
+    <ChartCard title="Revenue trend" subtitle="Last 8 days" metric="$172.4K" state="ready">
+      <TrendChart
+        data={data}
+        format="currency"
+        series={[{ id: 'grossSales', label: 'Gross sales', data }]}
+        xFormat="date"
+        xKey="date"
+      />
+    </ChartCard>
+  );
+}
 ```
+
+## Examples and Storybook
+
+Run Storybook locally to view individual component stories and the phase one
+overview for product and design review:
+
+```bash
+npm run storybook
+```
+
+Open `Examples/Phase One Overview` to see `ChartCard`, `TrendChart`,
+`DonutChart`, `StackedBarChart`, and `ComboChart` together with Shopify App
+dashboard-style sample data.
+
+For usage guidance by chart type, see [docs/usage.md](docs/usage.md).
 
 ## Local Development
 
@@ -32,7 +63,7 @@ npm run build
 npm run pack:dry-run
 ```
 
-Storybook scripts are available for later component work:
+Storybook scripts are available for local previews and static verification:
 
 ```bash
 npm run storybook
