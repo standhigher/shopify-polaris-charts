@@ -1,6 +1,6 @@
 {
   "name": "@standhigher/charts",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Reusable React chart components for Shopify Polaris-style dashboards.",
   "license": "MIT",
   "author": "",
