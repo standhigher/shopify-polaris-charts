@@ -1,5 +1,7 @@
 # @standhigher/charts
 
+Language: English | [中文](README.zh-CN.md)
+
 Reusable React chart components for Shopify App dashboards built with Polaris.
 
 This package provides reusable React chart components for Polaris-style chart
@@ -51,6 +53,8 @@ Open `Examples/Phase One Overview` to see `ChartCard`, `TrendChart`,
 dashboard-style sample data.
 
 For usage guidance by chart type, see [docs/usage.md](docs/usage.md).
+For Chinese documentation, see [README.zh-CN.md](README.zh-CN.md) and
+[docs/usage.zh-CN.md](docs/usage.zh-CN.md).
 
 ## Local Development
 

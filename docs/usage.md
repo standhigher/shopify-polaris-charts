@@ -1,5 +1,7 @@
 # Chart Usage Guide
 
+Language: English | [中文](usage.zh-CN.md)
+
 `@standhigher/charts` provides a phase one set of Polaris-style chart primitives for Shopify App dashboards. Use the Storybook overview to compare the components together with realistic dashboard density and static sample data.
 
 ## ChartCard

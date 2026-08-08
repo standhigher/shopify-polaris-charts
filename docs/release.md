@@ -77,12 +77,15 @@ The publish whitelist intentionally includes only:
 
 - `dist`
 - `README.md`
+- `README.zh-CN.md`
 - `LICENSE`
 - `docs/usage.md`
+- `docs/usage.zh-CN.md`
 - npm package metadata included by npm, such as `package.json`
 
-`docs/usage.md` is included because the published README links to
-`docs/usage.md`; excluding it would create a broken documentation link in the
+`README.zh-CN.md`, `docs/usage.md`, and `docs/usage.zh-CN.md` are included
+because the published README links to them for the language switcher and chart
+usage guidance; excluding them would create broken documentation links in the
 npm package. Other repository docs, including this release guide, are not part
 of the published package.
 
@@ -120,6 +123,7 @@ that should not become the default install.
 - Confirm npm registry is `https://registry.npmjs.org/`.
 - Confirm the version has been intentionally bumped for the release.
 - Confirm `npm pack --dry-run` contains only necessary publish files.
-- Confirm `docs/usage.md` remains included while README links to it.
+- Confirm English remains the default README and Chinese docs stay reachable
+  through the language switcher.
 - Confirm no npm token or credential appears in the repository or terminal
   output.
