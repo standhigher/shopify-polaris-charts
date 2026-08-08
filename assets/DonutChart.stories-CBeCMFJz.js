@@ -1,0 +1,9 @@
+import{j as t}from"./jsx-runtime-DnvfWPe3.js";import{D as a}from"./DonutChart-R3YbifHh.js";import{C as n}from"./ChartCard-BLdy_HVq.js";import"./iframe-MpPk-H-V.js";import"./preload-helper-PPVm8Dsz.js";import"./formatters-DrRghmWY.js";import"./index-hWR1rVbd.js";import"./index-CBUtDgrM.js";import"./tooltipContext-SeZHajY1.js";const s=[{status:"Paid",value:642},{status:"Pending",value:87},{status:"Refunded",value:24},{status:"Partially fulfilled",value:58}],o=[{plan:"Shopify Plus",revenue:18640},{plan:"Advanced",revenue:9200},{plan:"Grow",revenue:6840},{plan:"Basic",revenue:3120}],y={title:"Components/DonutChart",component:a},e={render:()=>t.jsx(n,{title:"Order status share",subtitle:"Current month",metric:"811 orders",state:"ready",children:t.jsx(a,{centerLabel:"811 orders",categoryKey:"status",data:s,format:"number",height:300,valueKey:"value"})})},r={render:()=>t.jsx(n,{title:"Plan revenue share",subtitle:"Current month",metric:"$37.8K",state:"ready",children:t.jsx(a,{centerLabel:"$37.8K",categoryKey:"plan",data:o,format:"currency",height:300,valueKey:"revenue"})})};e.parameters={...e.parameters,docs:{...e.parameters?.docs,source:{originalSource:`{
+  render: () => <ChartCard title="Order status share" subtitle="Current month" metric="811 orders" state="ready">
+      <DonutChart centerLabel="811 orders" categoryKey="status" data={orderStatusData} format="number" height={300} valueKey="value" />
+    </ChartCard>
+}`,...e.parameters?.docs?.source}}};r.parameters={...r.parameters,docs:{...r.parameters?.docs,source:{originalSource:`{
+  render: () => <ChartCard title="Plan revenue share" subtitle="Current month" metric="$37.8K" state="ready">
+      <DonutChart centerLabel="$37.8K" categoryKey="plan" data={planShareData} format="currency" height={300} valueKey="revenue" />
+    </ChartCard>
+}`,...r.parameters?.docs?.source}}};const C=["OrderStatus","PlanRevenue"];export{e as OrderStatus,r as PlanRevenue,C as __namedExportsOrder,y as default};
