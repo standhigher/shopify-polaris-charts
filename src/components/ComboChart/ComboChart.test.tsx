@@ -48,7 +48,7 @@ describe('ComboChart', () => {
     );
 
     expect(screen.getByText('138')).toBeVisible();
-    expect(screen.getByText('3.2%')).toBeVisible();
+    expect(screen.getAllByText('3.2%')[0]).toBeVisible();
   });
 
   it('requires all alternate-axis series to share one format', () => {
@@ -107,6 +107,33 @@ describe('ComboChart', () => {
     } finally {
       consoleError.mockRestore();
     }
+  });
+
+  it('treats chart-level and series-level equivalent format options as the same axis', () => {
+    render(
+      <ComboChart
+        data={[{ date: '2026-07-01', revenue: 12430.4, forecastRevenue: 13200, conversionRate: 0.032 }]}
+        xKey="date"
+        format="currency"
+        formatOptions={{ currency: 'USD' }}
+        series={[
+          { id: 'revenue', label: 'Revenue', data: [], type: 'bar' },
+          {
+            id: 'forecastRevenue',
+            label: 'Forecast revenue',
+            data: [],
+            type: 'bar',
+            format: 'currency',
+            formatOptions: { currency: 'USD' }
+          },
+          { id: 'conversionRate', label: 'Conversion rate', data: [], type: 'line', format: 'percent' }
+        ]}
+      />
+    );
+
+    expect(screen.getByText('$12,430.40')).toBeVisible();
+    expect(screen.getByText('$13,200.00')).toBeVisible();
+    expect(screen.getAllByText('3.2%')[0]).toBeVisible();
   });
 
   it('renders an empty state when every combo series value is empty', () => {
