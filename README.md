@@ -24,7 +24,7 @@ const data = [
 
 export function RevenueCard() {
   return (
-    <ChartCard title="Revenue trend" subtitle="Last 8 days" metric="$172.4K" state="ready">
+    <ChartCard title="Revenue trend" subtitle="Sample period" metric="$37.6K" state="ready">
       <TrendChart
         data={data}
         format="currency"
