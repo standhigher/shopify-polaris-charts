@@ -11,5 +11,6 @@ describe('PhaseOneOverview', () => {
     expect(screen.getByText('DonutChart')).toBeVisible();
     expect(screen.getByText('StackedBarChart')).toBeVisible();
     expect(screen.getByText('ComboChart')).toBeVisible();
+    expect(screen.getAllByText('$176.5K')).toHaveLength(2);
   });
 });

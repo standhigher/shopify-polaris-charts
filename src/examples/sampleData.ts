@@ -43,7 +43,7 @@ export const topProductsData = [
 ];
 
 export const overviewMetrics = [
-  { label: 'Gross sales', value: '$172.4K', delta: '+13.8%' },
+  { label: 'Gross sales', value: '$176.5K', delta: '+13.8%' },
   { label: 'Orders', value: '2,758', delta: '+9.6%' },
   { label: 'Conversion rate', value: '4.0%', delta: '+0.4 pts' },
   { label: 'Returning customers', value: '31.7%', delta: '+2.1 pts' }
