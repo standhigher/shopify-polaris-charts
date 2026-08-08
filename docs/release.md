@@ -5,6 +5,10 @@ public scoped package under the `@standhigher` npm scope. The package metadata
 sets `publishConfig.access` to `public`, so publish commands must keep public
 access explicit.
 
+Publishing is prepared for npmjs at `https://registry.npmjs.org/`, not a private
+or mirrored registry. The project `.npmrc` and `publishConfig.registry` both
+point at npmjs so local registry defaults do not redirect the release.
+
 Do not publish unless the npm account has confirmed permission for the
 `@standhigher` scope and the release version and dist-tag have been reviewed.
 This guide prepares the release process only; it does not require running
@@ -15,15 +19,16 @@ This guide prepares the release process only; it does not require running
 - Package name: `@standhigher/charts`
 - Scope: `@standhigher`
 - Access level: public scoped package
-- Publish command: `npm publish --access public`
+- Registry: `https://registry.npmjs.org/`
+- Publish command: `npm publish --access public --registry=https://registry.npmjs.org/`
 
 ## Login
 
 Log in with an npm account that has publish rights to the `@standhigher` scope:
 
 ```bash
-npm login
-npm whoami
+npm login --registry=https://registry.npmjs.org/
+npm whoami --registry=https://registry.npmjs.org/
 ```
 
 Do not commit, paste, or expose npm tokens. Use the interactive npm login flow
@@ -65,7 +70,7 @@ before invoking npm publish.
 Inspect the exact package contents before publishing:
 
 ```bash
-npm pack --dry-run
+npm pack --dry-run --registry=https://registry.npmjs.org/
 ```
 
 The publish whitelist intentionally includes only:
@@ -87,7 +92,7 @@ After login, version review, quality checks, and dry-run review, publish
 manually:
 
 ```bash
-npm publish --access public
+npm publish --access public --registry=https://registry.npmjs.org/
 ```
 
 Do not run this command during release-preparation tasks or dry-run validation.
@@ -97,11 +102,11 @@ Do not run this command during release-preparation tasks or dry-run validation.
 Use dist-tags to control which version npm installs by default:
 
 ```bash
-npm publish --access public --tag next
-npm dist-tag ls @standhigher/charts
-npm dist-tag add @standhigher/charts@<version> latest
-npm dist-tag add @standhigher/charts@<version> next
-npm dist-tag rm @standhigher/charts next
+npm publish --access public --tag next --registry=https://registry.npmjs.org/
+npm dist-tag ls @standhigher/charts --registry=https://registry.npmjs.org/
+npm dist-tag add @standhigher/charts@<version> latest --registry=https://registry.npmjs.org/
+npm dist-tag add @standhigher/charts@<version> next --registry=https://registry.npmjs.org/
+npm dist-tag rm @standhigher/charts next --registry=https://registry.npmjs.org/
 ```
 
 Use `latest` for stable releases and `next` for prerelease or validation builds
@@ -112,6 +117,7 @@ that should not become the default install.
 - Confirm package name is `@standhigher/charts`.
 - Confirm npm account has permission to publish under `@standhigher`.
 - Confirm public access is intentional.
+- Confirm npm registry is `https://registry.npmjs.org/`.
 - Confirm the version has been intentionally bumped for the release.
 - Confirm `npm pack --dry-run` contains only necessary publish files.
 - Confirm `docs/usage.md` remains included while README links to it.

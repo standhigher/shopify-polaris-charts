@@ -89,18 +89,20 @@ npm run storybook
 
 This package is prepared for manual npm publishing as `@standhigher/charts`.
 It uses the `@standhigher` scope and `publishConfig.access` is set to
-`public`, so a real release must be published with public scoped-package access.
+`public`, so a real release must be published with public scoped-package access
+to npmjs at `https://registry.npmjs.org/`.
 
 Before publishing, confirm npm account access to the `@standhigher` scope, then
 run the local release gate:
 
 ```bash
+npm config get registry
 npm run lint
 npm run test
 npm run typecheck
 npm run build
 npm run build-storybook
-npm pack --dry-run
+npm pack --dry-run --registry=https://registry.npmjs.org/
 ```
 
 The `prepublishOnly` script runs the same lint, test, typecheck, build, and
