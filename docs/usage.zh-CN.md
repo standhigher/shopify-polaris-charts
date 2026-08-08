@@ -44,3 +44,5 @@ npm run storybook
 ```
 
 然后打开 `Examples/Phase One Overview` story。
+
+查看详细 props、默认值和适合 AI 阅读的实现指引，请阅读 [api.zh-CN.md](api.zh-CN.md)。

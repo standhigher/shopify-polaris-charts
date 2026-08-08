@@ -33,3 +33,6 @@ npm run storybook
 ```
 
 Then open the `Examples/Phase One Overview` story.
+
+For detailed props, defaults, and AI-readable implementation guidance, see
+[api.md](api.md).

@@ -95,15 +95,18 @@ The publish whitelist intentionally includes only:
 - `README.md`
 - `README.zh-CN.md`
 - `LICENSE`
+- `docs/api.md`
+- `docs/api.zh-CN.md`
 - `docs/usage.md`
 - `docs/usage.zh-CN.md`
 - npm package metadata included by npm, such as `package.json`
 
-`README.zh-CN.md`, `docs/usage.md`, and `docs/usage.zh-CN.md` are included
-because the published README links to them for the language switcher and chart
-usage guidance; excluding them would create broken documentation links in the
-npm package. Other repository docs, including this release guide, are not part
-of the published package.
+`README.zh-CN.md`, `docs/api.md`, `docs/api.zh-CN.md`, `docs/usage.md`, and
+`docs/usage.zh-CN.md` are included because the published README links to them
+for the language switcher, AI-readable API reference, and chart usage guidance;
+excluding them would create broken documentation links in the npm package.
+Other repository docs, including this release guide, are not part of the
+published package.
 
 ## Publish
 

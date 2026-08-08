@@ -52,6 +52,8 @@ npm run storybook
 
 按图表类型查看使用建议，请阅读
 [docs/usage.zh-CN.md](docs/usage.zh-CN.md)。
+查看详细组件 props 和适合 AI 阅读的 API 指南，请阅读
+[docs/api.zh-CN.md](docs/api.zh-CN.md)。
 
 ## 本地开发
 

@@ -12,6 +12,8 @@
   "sideEffects": false,
   "files": [
     "dist",
+    "docs/api.md",
+    "docs/api.zh-CN.md",
     "docs/usage.md",
     "docs/usage.zh-CN.md",
     "README.md",

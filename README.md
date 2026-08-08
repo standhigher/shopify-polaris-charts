@@ -53,6 +53,8 @@ Open `Examples/Phase One Overview` to see `ChartCard`, `TrendChart`,
 dashboard-style sample data.
 
 For usage guidance by chart type, see [docs/usage.md](docs/usage.md).
+For detailed component props and AI-readable API guidance, see
+[docs/api.md](docs/api.md).
 For Chinese documentation, see [README.zh-CN.md](README.zh-CN.md) and
 [docs/usage.zh-CN.md](docs/usage.zh-CN.md).
 
