@@ -4,10 +4,9 @@ export interface ChartDatum {
   label?: string;
   value?: ChartValue;
   date?: string | number | Date;
-  [key: string]: ChartValue;
 }
 
-export interface ChartSeries<TDatum extends ChartDatum = ChartDatum> {
+export interface ChartSeries<TDatum extends object = ChartDatum> {
   id: string;
   label: string;
   data: TDatum[];

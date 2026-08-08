@@ -8,6 +8,12 @@ import {
 import { chartFormatters } from '../index';
 
 describe('chart formatters', () => {
+  it('uses en-US as the default locale for deterministic output', () => {
+    expect(formatChartNumber(1200)).toBe('1,200');
+    expect(formatChartCurrency(1234.5, { currency: 'USD' })).toBe('$1,234.50');
+    expect(formatChartPercent(0.42)).toBe('42%');
+  });
+
   it('formats zero without treating it as empty', () => {
     expect(formatChartNumber(0)).toBe('0');
     expect(formatChartCurrency(0, { currency: 'USD' })).toBe('$0.00');

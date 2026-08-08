@@ -33,6 +33,8 @@ export interface ChartValueFormatOptions
 
 type NullableChartValue = string | number | Date | null | undefined;
 
+const DEFAULT_LOCALE = 'en-US';
+
 const isNullish = (value: NullableChartValue): value is null | undefined =>
   value === null || value === undefined;
 
@@ -44,7 +46,7 @@ export function formatChartNumber(
     return '';
   }
 
-  return new Intl.NumberFormat(options.locale, {
+  return new Intl.NumberFormat(options.locale ?? DEFAULT_LOCALE, {
     maximumFractionDigits: options.maximumFractionDigits ?? (options.notation === 'compact' ? 1 : 2),
     minimumFractionDigits: options.minimumFractionDigits,
     notation: options.notation
@@ -59,7 +61,7 @@ export function formatChartCurrency(
     return '';
   }
 
-  return new Intl.NumberFormat(options.locale, {
+  return new Intl.NumberFormat(options.locale ?? DEFAULT_LOCALE, {
     currency: options.currency ?? 'USD',
     maximumFractionDigits: options.maximumFractionDigits,
     minimumFractionDigits: options.minimumFractionDigits,
@@ -75,7 +77,7 @@ export function formatChartPercent(
     return '';
   }
 
-  return new Intl.NumberFormat(options.locale, {
+  return new Intl.NumberFormat(options.locale ?? DEFAULT_LOCALE, {
     maximumFractionDigits: options.maximumFractionDigits ?? 1,
     minimumFractionDigits: options.minimumFractionDigits,
     style: 'percent'
@@ -90,7 +92,7 @@ export function formatChartDate(
     return '';
   }
 
-  return new Intl.DateTimeFormat(options.locale ?? 'en-US', {
+  return new Intl.DateTimeFormat(options.locale ?? DEFAULT_LOCALE, {
     day: 'numeric',
     month: 'short',
     timeZone: options.timeZone,
