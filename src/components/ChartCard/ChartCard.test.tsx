@@ -60,4 +60,25 @@ describe('ChartCard', () => {
     expect(screen.getByText('Range')).toBeVisible();
     expect(screen.getByText('Chart content')).toBeVisible();
   });
+
+  it('renders zero metric and trend values', () => {
+    render(<ChartCard title="Orders" metric={0} trendLabel={0} state="ready" />);
+
+    expect(screen.getAllByText('0')).toHaveLength(2);
+  });
+
+  it('labels the card with a formatted title node', () => {
+    render(
+      <ChartCard
+        title={
+          <>
+            <span>Sales</span> <span>overview</span>
+          </>
+        }
+        state="ready"
+      />
+    );
+
+    expect(screen.getByRole('region', { name: 'Sales overview' })).toBeVisible();
+  });
 });

@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { chartTheme } from '../../theme';
@@ -133,6 +134,8 @@ function ChartCardState({ errorMessage, state }: Pick<ChartCardProps, 'errorMess
   );
 }
 
+const hasRenderableNode = (node: ReactNode) => node !== null && node !== undefined && node !== false;
+
 export function ChartCard({
   actions,
   children,
@@ -144,19 +147,22 @@ export function ChartCard({
   title,
   trendLabel
 }: ChartCardProps) {
+  const titleId = useId();
   const hasControls = Boolean(actions || filters);
-  const hasMetric = Boolean(metric || trendLabel);
+  const hasMetric = hasRenderableNode(metric) || hasRenderableNode(trendLabel);
 
   return (
-    <section aria-label={typeof title === 'string' ? title : undefined} style={styles.card}>
+    <section aria-labelledby={titleId} role="region" style={styles.card}>
       <div style={styles.header}>
         <div style={styles.meta}>
-          <h3 style={styles.heading}>{title}</h3>
-          {subtitle ? <p style={styles.subtitle}>{subtitle}</p> : null}
+          <h3 id={titleId} style={styles.heading}>
+            {title}
+          </h3>
+          {hasRenderableNode(subtitle) ? <p style={styles.subtitle}>{subtitle}</p> : null}
           {hasMetric ? (
             <div style={styles.metric}>
-              {metric ? <span style={styles.metricValue}>{metric}</span> : null}
-              {trendLabel ? <span style={styles.trend}>{trendLabel}</span> : null}
+              {hasRenderableNode(metric) ? <span style={styles.metricValue}>{metric}</span> : null}
+              {hasRenderableNode(trendLabel) ? <span style={styles.trend}>{trendLabel}</span> : null}
             </div>
           ) : null}
         </div>
