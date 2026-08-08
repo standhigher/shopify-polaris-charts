@@ -163,7 +163,7 @@ export function PhaseOneOverview() {
             <ChartCard
               actions={<span style={styles.badge}>TrendChart</span>}
               filters={<span style={styles.filterPill}>Daily</span>}
-              metric="$172.4K"
+              metric="$176.5K"
               state="ready"
               subtitle="Gross sales and net sales"
               title="Revenue trend"
