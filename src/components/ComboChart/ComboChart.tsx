@@ -160,6 +160,8 @@ const getSeriesFormatOptions = (
   fallback: ChartValueFormatOptions
 ) => series?.formatOptions ?? fallback;
 
+const getFormatKey = (seriesFormat: ChartFormat | undefined, fallback: ChartFormat) => seriesFormat ?? fallback;
+
 function ComboTooltip({
   active,
   format,
@@ -214,7 +216,16 @@ export function ComboChart<TDatum extends object = ChartDatum>({
     ...item,
     color: item.color ?? chartTheme.palette[index % chartTheme.palette.length]
   }));
-  const rightAxisSeries = seriesWithColor.find((item) => item.format && item.format !== format);
+  const alternateFormats = Array.from(
+    new Set(seriesWithColor.map((item) => getFormatKey(item.format, format)).filter((itemFormat) => itemFormat !== format))
+  );
+
+  if (alternateFormats.length > 1) {
+    throw new Error('ComboChart supports one alternate series format. Use the base format plus one secondary format.');
+  }
+
+  const rightAxisFormat = alternateFormats[0];
+  const rightAxisSeries = seriesWithColor.find((item) => getFormatKey(item.format, format) === rightAxisFormat);
   const seriesById = new Map(
     seriesWithColor.map((item) => [item.id, item as unknown as ComboChartSeries<Record<string, unknown>>])
   );
@@ -243,13 +254,17 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                   tick={{ fill: chartTheme.axis.tickColor, fontSize: chartTheme.axis.fontSize }}
                   tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
                 />
-                {rightAxisSeries ? (
+	                {rightAxisSeries ? (
                   <YAxis
                     orientation="right"
                     stroke={chartTheme.axis.lineColor}
                     tick={{ fill: chartTheme.axis.tickColor, fontSize: chartTheme.axis.fontSize }}
                     tickFormatter={(value) =>
-                      formatChartValue(toChartValue(value), rightAxisSeries.format ?? format, rightAxisSeries.formatOptions ?? formatOptions)
+	                      formatChartValue(
+	                        toChartValue(value),
+	                        rightAxisSeries.format ?? format,
+	                        rightAxisSeries.formatOptions ?? formatOptions
+	                      )
                     }
                     yAxisId="right"
                   />
@@ -273,7 +288,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                       key={item.id}
                       name={item.label}
                       radius={[4, 4, 0, 0]}
-                      yAxisId={item.format && item.format !== format ? 'right' : 'left'}
+	                      yAxisId={getFormatKey(item.format, format) === rightAxisFormat ? 'right' : 'left'}
                     />
                   ) : (
                     <Line
@@ -285,7 +300,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                       stroke={item.color}
                       strokeWidth={2}
                       type="monotone"
-                      yAxisId={item.format && item.format !== format ? 'right' : 'left'}
+	                      yAxisId={getFormatKey(item.format, format) === rightAxisFormat ? 'right' : 'left'}
                     />
                   )
                 )}

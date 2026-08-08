@@ -51,6 +51,28 @@ describe('ComboChart', () => {
     expect(screen.getByText('3.2%')).toBeVisible();
   });
 
+  it('requires all alternate-axis series to share one format', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    try {
+      expect(() =>
+        render(
+          <ComboChart
+            data={[{ date: '2026-07-01', orders: 138, revenue: 12430.4, conversionRate: 0.032 }]}
+            xKey="date"
+            series={[
+              { id: 'orders', label: 'Orders', data: [], type: 'bar', format: 'number' },
+              { id: 'revenue', label: 'Revenue', data: [], type: 'bar', format: 'currency' },
+              { id: 'conversionRate', label: 'Conversion rate', data: [], type: 'line', format: 'percent' }
+            ]}
+          />
+        )
+      ).toThrow('ComboChart supports one alternate series format');
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
   it('renders an empty state when every combo series value is empty', () => {
     render(
       <ComboChart
