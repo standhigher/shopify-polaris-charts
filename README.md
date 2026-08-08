@@ -54,18 +54,33 @@ For usage guidance by chart type, see [docs/usage.md](docs/usage.md).
 
 ## Local Development
 
+Install dependencies from the lockfile:
+
 ```bash
-npm install
-npm run test
-npm run test:watch
-npm run typecheck
-npm run build
-npm run pack:dry-run
+npm ci
 ```
 
-Storybook scripts are available for local previews and static verification:
+Run tests during development:
+
+```bash
+npm run test
+npm run test:watch
+```
+
+Run the full local quality gate before opening or updating a PR. These commands
+match the CI workflow:
+
+```bash
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+npm run build-storybook
+npm pack --dry-run
+```
+
+Storybook is also available for local previews:
 
 ```bash
 npm run storybook
-npm run build-storybook
 ```
