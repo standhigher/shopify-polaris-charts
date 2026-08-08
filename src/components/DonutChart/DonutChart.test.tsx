@@ -49,6 +49,41 @@ describe('DonutChart', () => {
     expect(screen.getByText('$18,640.00')).toBeVisible();
   });
 
+  it('coerces finite numeric string values from API data', () => {
+    render(
+      <DonutChart
+        title="Order status share"
+        data={[{ status: 'Paid', value: '642' }]}
+        categoryKey="status"
+        valueKey="value"
+        format="number"
+      />
+    );
+
+    expect(screen.getByText('Paid')).toBeVisible();
+    expect(screen.getByText('642')).toBeVisible();
+  });
+
+  it('uses unique keys for duplicate category labels', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    render(
+      <DonutChart
+        title="Order status share"
+        data={[
+          { status: 'Paid', value: 642 },
+          { status: 'Paid', value: 120 }
+        ]}
+        categoryKey="status"
+        valueKey="value"
+      />
+    );
+
+    expect(consoleError).not.toHaveBeenCalledWith(expect.stringContaining('Encountered two children with the same key'));
+
+    consoleError.mockRestore();
+  });
+
   it('renders an empty state when data is empty', () => {
     render(
       <DonutChart

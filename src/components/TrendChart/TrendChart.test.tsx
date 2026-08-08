@@ -49,6 +49,25 @@ describe('TrendChart', () => {
     expect(screen.getByText('138')).toBeVisible();
   });
 
+  it('renders categorical x values by default', () => {
+    render(
+      <TrendChart
+        title="Orders by cohort"
+        data={[
+          { cohort: 'New customers', orders: 138 },
+          { cohort: 'Returning customers', orders: 246 }
+        ]}
+        xKey="cohort"
+        series={[{ id: 'orders', label: 'Orders', data: [] }]}
+        format="number"
+        height={280}
+      />
+    );
+
+    expect(screen.getByText('New customers')).toBeVisible();
+    expect(screen.getByText('Returning customers')).toBeVisible();
+  });
+
   it('renders an empty state when data is empty', () => {
     render(
       <TrendChart

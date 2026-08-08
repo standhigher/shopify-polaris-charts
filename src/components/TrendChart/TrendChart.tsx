@@ -45,7 +45,7 @@ interface TrendTooltipProps {
   seriesById: Map<string, ChartSeries<Record<string, unknown>>>;
   format: ChartFormat;
   formatOptions: ChartValueFormatOptions;
-  xFormat: ChartFormat;
+  xFormat?: ChartFormat;
   xFormatOptions: ChartValueFormatOptions;
 }
 
@@ -135,6 +135,22 @@ const toChartValue = (value: unknown): ChartValue => {
 const getDatumValue = <TDatum extends object>(datum: TDatum | undefined, key: string) =>
   datum ? (datum as Record<string, unknown>)[key] : undefined;
 
+const formatCategoryValue = (
+  value: string | number | Date | null | undefined,
+  format: ChartFormat | undefined,
+  formatOptions: ChartValueFormatOptions
+) => {
+  if (format) {
+    return formatChartValue(value, format, formatOptions);
+  }
+
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  return value instanceof Date ? value.toISOString() : String(value);
+};
+
 function TrendTooltip({
   active,
   format,
@@ -151,7 +167,7 @@ function TrendTooltip({
 
   return (
     <div style={styles.tooltip}>
-      <div style={styles.tooltipLabel}>{formatChartValue(label, xFormat, xFormatOptions)}</div>
+      <div style={styles.tooltipLabel}>{formatCategoryValue(label, xFormat, xFormatOptions)}</div>
       {payload.map((item) => {
         const id = String(item.dataKey ?? item.name ?? '');
         const series = seriesById.get(id);
@@ -176,7 +192,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
   mode = 'line',
   series,
   title,
-  xFormat = 'date',
+  xFormat,
   xFormatOptions = {},
   xKey
 }: TrendChartProps<TDatum>) {
@@ -197,7 +213,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
       {hasData ? (
         <>
           <div style={{ height, width: '100%' }}>
-            <ResponsiveContainer height="100%" width="100%">
+            <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
               {mode === 'area' ? (
                 <AreaChart data={data}>
                   <CartesianGrid stroke={chartTheme.grid.stroke} strokeDasharray={chartTheme.grid.strokeDasharray} />
@@ -205,7 +221,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                     dataKey={xKey as never}
                     stroke={chartTheme.axis.lineColor}
                     tick={{ fill: chartTheme.axis.tickColor, fontSize: chartTheme.axis.fontSize }}
-                    tickFormatter={(value) => formatChartValue(toChartValue(value), xFormat, xFormatOptions)}
+                    tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
                   />
                   <YAxis
                     stroke={chartTheme.axis.lineColor}
@@ -244,7 +260,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                     dataKey={xKey as never}
                     stroke={chartTheme.axis.lineColor}
                     tick={{ fill: chartTheme.axis.tickColor, fontSize: chartTheme.axis.fontSize }}
-                    tickFormatter={(value) => formatChartValue(toChartValue(value), xFormat, xFormatOptions)}
+                    tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
                   />
                   <YAxis
                     stroke={chartTheme.axis.lineColor}

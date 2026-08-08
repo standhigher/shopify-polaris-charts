@@ -21,7 +21,7 @@ interface DonutTooltipProps {
   active?: boolean;
   payload?: Array<{
     name?: string;
-    value?: string | number | Date | null;
+    value?: number | null;
   }>;
   format: ChartFormat;
   formatOptions: ChartValueFormatOptions;
@@ -112,7 +112,19 @@ const styles: Record<string, CSSProperties> = {
   }
 };
 
-const isPositiveNumber = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && value > 0;
+const toPositiveNumber = (value: unknown) => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  if (typeof value === 'string' && value.trim() !== '') {
+    const numericValue = Number(value);
+
+    return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null;
+  }
+
+  return null;
+};
 
 const toChartValue = (value: unknown): ChartValue => {
   if (value instanceof Date || typeof value === 'string' || typeof value === 'number') {
@@ -157,10 +169,11 @@ export function DonutChart<TDatum extends object = ChartDatum>({
     .map((datum, index) => ({
       ...datum,
       __color: chartTheme.palette[index % chartTheme.palette.length],
+      __key: `${String(getDatumValue(datum, categoryKey) ?? '')}-${index}`,
       __name: String(getDatumValue(datum, categoryKey) ?? ''),
-      __value: getDatumValue(datum, valueKey)
+      __value: toPositiveNumber(getDatumValue(datum, valueKey))
     }))
-    .filter((datum) => isPositiveNumber(datum.__value));
+    .filter((datum): datum is typeof datum & { __value: number } => datum.__value !== null);
   const hasData = slices.length > 0;
 
   return (
@@ -169,7 +182,7 @@ export function DonutChart<TDatum extends object = ChartDatum>({
       {hasData ? (
         <>
           <div style={{ ...styles.chartWrap, height }}>
-            <ResponsiveContainer height="100%" width="100%">
+            <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
               <PieChart>
                 <Pie
                   data={slices}
@@ -182,7 +195,7 @@ export function DonutChart<TDatum extends object = ChartDatum>({
                   strokeWidth={2}
                 >
                   {slices.map((slice) => (
-                    <Cell fill={slice.__color} key={slice.__name} />
+                    <Cell fill={slice.__color} key={slice.__key} />
                   ))}
                 </Pie>
                 <Tooltip content={<DonutTooltip format={format} formatOptions={formatOptions} />} />
@@ -192,7 +205,7 @@ export function DonutChart<TDatum extends object = ChartDatum>({
           </div>
           <div aria-label="Chart legend" style={styles.legend}>
             {slices.map((item) => (
-              <span key={item.__name} style={styles.legendItem}>
+              <span key={item.__key} style={styles.legendItem}>
                 <span aria-hidden="true" style={{ ...styles.marker, background: item.__color }} />
                 <span>{item.__name}</span>
                 <span style={styles.legendValue}>{formatChartValue(toChartValue(item.__value), format, formatOptions)}</span>
