@@ -162,6 +162,16 @@ const getSeriesFormatOptions = (
 
 const getFormatKey = (seriesFormat: ChartFormat | undefined, fallback: ChartFormat) => seriesFormat ?? fallback;
 
+const getFormatOptionsKey = (options: ChartValueFormatOptions | undefined) =>
+  JSON.stringify(
+    Object.entries(options ?? {})
+      .filter(([, value]) => value !== undefined)
+      .sort(([left], [right]) => left.localeCompare(right))
+  );
+
+const getAxisFormatKey = (seriesFormat: ChartFormat | undefined, seriesOptions: ChartValueFormatOptions | undefined, fallback: ChartFormat) =>
+  `${getFormatKey(seriesFormat, fallback)}:${getFormatOptionsKey(seriesOptions)}`;
+
 function ComboTooltip({
   active,
   format,
@@ -216,16 +226,23 @@ export function ComboChart<TDatum extends object = ChartDatum>({
     ...item,
     color: item.color ?? chartTheme.palette[index % chartTheme.palette.length]
   }));
-  const alternateFormats = Array.from(
-    new Set(seriesWithColor.map((item) => getFormatKey(item.format, format)).filter((itemFormat) => itemFormat !== format))
+  const baseAxisFormatKey = getAxisFormatKey(undefined, undefined, format);
+  const alternateAxisFormatKeys = Array.from(
+    new Set(
+      seriesWithColor
+        .map((item) => getAxisFormatKey(item.format, item.formatOptions, format))
+        .filter((itemFormat) => itemFormat !== baseAxisFormatKey)
+    )
   );
 
-  if (alternateFormats.length > 1) {
+  if (alternateAxisFormatKeys.length > 1) {
     throw new Error('ComboChart supports one alternate series format. Use the base format plus one secondary format.');
   }
 
-  const rightAxisFormat = alternateFormats[0];
-  const rightAxisSeries = seriesWithColor.find((item) => getFormatKey(item.format, format) === rightAxisFormat);
+  const rightAxisFormatKey = alternateAxisFormatKeys[0];
+  const rightAxisSeries = seriesWithColor.find(
+    (item) => getAxisFormatKey(item.format, item.formatOptions, format) === rightAxisFormatKey
+  );
   const seriesById = new Map(
     seriesWithColor.map((item) => [item.id, item as unknown as ComboChartSeries<Record<string, unknown>>])
   );
@@ -288,7 +305,9 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                       key={item.id}
                       name={item.label}
                       radius={[4, 4, 0, 0]}
-	                      yAxisId={getFormatKey(item.format, format) === rightAxisFormat ? 'right' : 'left'}
+	                      yAxisId={
+	                        getAxisFormatKey(item.format, item.formatOptions, format) === rightAxisFormatKey ? 'right' : 'left'
+	                      }
                     />
                   ) : (
                     <Line
@@ -300,7 +319,9 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                       stroke={item.color}
                       strokeWidth={2}
                       type="monotone"
-	                      yAxisId={getFormatKey(item.format, format) === rightAxisFormat ? 'right' : 'left'}
+	                      yAxisId={
+	                        getAxisFormatKey(item.format, item.formatOptions, format) === rightAxisFormatKey ? 'right' : 'left'
+	                      }
                     />
                   )
                 )}

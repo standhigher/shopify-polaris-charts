@@ -73,6 +73,42 @@ describe('ComboChart', () => {
     }
   });
 
+  it('requires alternate-axis series to share format options', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    try {
+      expect(() =>
+        render(
+          <ComboChart
+            data={[{ date: '2026-07-01', orders: 138, usdRevenue: 12430.4, eurRevenue: 9820.2 }]}
+            xKey="date"
+            series={[
+              { id: 'orders', label: 'Orders', data: [], type: 'bar', format: 'number' },
+              {
+                id: 'usdRevenue',
+                label: 'USD revenue',
+                data: [],
+                type: 'line',
+                format: 'currency',
+                formatOptions: { currency: 'USD' }
+              },
+              {
+                id: 'eurRevenue',
+                label: 'EUR revenue',
+                data: [],
+                type: 'line',
+                format: 'currency',
+                formatOptions: { currency: 'EUR' }
+              }
+            ]}
+          />
+        )
+      ).toThrow('ComboChart supports one alternate series format');
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
   it('renders an empty state when every combo series value is empty', () => {
     render(
       <ComboChart
