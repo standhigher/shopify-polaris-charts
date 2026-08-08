@@ -84,3 +84,27 @@ Storybook is also available for local previews:
 ```bash
 npm run storybook
 ```
+
+## Release Preparation
+
+This package is prepared for manual npm publishing as `@standhigher/charts`.
+It uses the `@standhigher` scope and `publishConfig.access` is set to
+`public`, so a real release must be published with public scoped-package access.
+
+Before publishing, confirm npm account access to the `@standhigher` scope, then
+run the local release gate:
+
+```bash
+npm run lint
+npm run test
+npm run typecheck
+npm run build
+npm run build-storybook
+npm pack --dry-run
+```
+
+The `prepublishOnly` script runs the same lint, test, typecheck, build, and
+Storybook build checks automatically when `npm publish` is invoked. This
+repository is configured for manual release review; do not publish until the
+package name, scope permissions, version, dry-run package contents, and npm
+dist-tag are intentionally confirmed.

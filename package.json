@@ -8,7 +8,7 @@
   "sideEffects": false,
   "files": [
     "dist",
-    "docs",
+    "docs/usage.md",
     "README.md",
     "LICENSE"
   ],
@@ -29,7 +29,8 @@
     "typecheck": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "pack:dry-run": "npm pack --dry-run"
+    "pack:dry-run": "npm pack --dry-run",
+    "prepublishOnly": "npm run lint && npm run test && npm run typecheck && npm run build && npm run build-storybook"
   },
   "peerDependencies": {
     "@shopify/polaris": ">=12",
