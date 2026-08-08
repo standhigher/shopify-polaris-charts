@@ -4,6 +4,10 @@
   "description": "Reusable React chart components for Shopify Polaris-style dashboards.",
   "license": "MIT",
   "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/standhigher/shopify-polaris-charts.git"
+  },
   "type": "module",
   "sideEffects": false,
   "files": [

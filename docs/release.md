@@ -14,6 +14,22 @@ Do not publish unless the npm account has confirmed permission for the
 This guide prepares the release process only; it does not require running
 `npm publish`.
 
+## Trusted Publishing
+
+The package is prepared for npm Trusted Publishing from GitHub Actions. Configure
+the npm package trusted publisher with these values:
+
+- Publisher: GitHub Actions
+- Organization or user: `standhigher`
+- Repository: `shopify-polaris-charts`
+- Workflow filename: `publish.yml`
+- Environment name: leave empty unless a GitHub Actions environment is added
+- Allowed actions: allow `npm publish`
+
+The workflow at `.github/workflows/publish.yml` only runs when a `v*` tag is
+pushed. The tag must match the package version exactly, such as `v0.1.1` for
+`"version": "0.1.1"`.
+
 ## Package Scope and Access
 
 - Package name: `@standhigher/charts`
@@ -91,8 +107,19 @@ of the published package.
 
 ## Publish
 
-After login, version review, quality checks, and dry-run review, publish
-manually:
+Preferred release path:
+
+```bash
+npm version patch
+git push origin main --follow-tags
+```
+
+The pushed `v*` tag triggers GitHub Actions to publish through npm Trusted
+Publishing. The workflow runs `npm publish --access public`, and the
+`prepublishOnly` script runs lint, test, typecheck, build, and Storybook build.
+
+Manual publishing is still available after login, version review, quality
+checks, and dry-run review:
 
 ```bash
 npm publish --access public --registry=https://registry.npmjs.org/
