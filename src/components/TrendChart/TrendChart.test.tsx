@@ -81,6 +81,26 @@ describe('TrendChart', () => {
     expect(screen.queryByLabelText('Chart legend')).not.toBeInTheDocument();
   });
 
+  it('accepts cartesian presentation options without changing render output', () => {
+    render(
+      <TrendChart
+        data={revenueData}
+        format="currency"
+        xKey="date"
+        series={[{ id: 'grossSales', label: 'Gross sales', data: revenueData }]}
+        margin={{ top: 8, right: 8, bottom: 0, left: -8 }}
+        yAxis={{ domain: [0, 800], ticks: [0, 200, 400, 600, 800], width: 56 }}
+        xAxis={{ axisLine: false, tickLine: false, minTickGap: 0 }}
+        grid={{ horizontal: true, vertical: false, stroke: '#e5e7eb', strokeDasharray: '3 3' }}
+        tooltip={{ cursor: { stroke: '#9ca3af', strokeDasharray: '3 3' } }}
+        line={{ dot: false, activeDot: { r: 3, strokeWidth: 0 } }}
+      />
+    );
+
+    expect(screen.getByText('Gross sales')).toBeVisible();
+    expect(screen.getByText('$12,430.40')).toBeVisible();
+  });
+
   it('renders an empty state when data is empty', () => {
     render(
       <TrendChart

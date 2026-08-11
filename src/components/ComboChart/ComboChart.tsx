@@ -3,7 +3,17 @@ import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, 
 
 import { formatChartValue, type ChartValueFormatOptions } from '../../formatters';
 import { chartTheme } from '../../theme';
-import type { ChartDatum, ChartFormat, ChartSeries, ChartValue } from '../../types';
+import type {
+  CartesianAxisOptions,
+  ChartDatum,
+  ChartFormat,
+  ChartGridOptions,
+  ChartLineOptions,
+  ChartMargin,
+  ChartSeries,
+  ChartTooltipOptions,
+  ChartValue
+} from '../../types';
 
 export type ComboChartSeriesType = 'bar' | 'line';
 
@@ -19,6 +29,12 @@ export interface ComboChartProps<TDatum extends object = ChartDatum> {
   xKey: keyof TDatum & string;
   series: Array<ComboChartSeries<TDatum>>;
   showLegend?: boolean;
+  margin?: ChartMargin;
+  xAxis?: CartesianAxisOptions;
+  yAxis?: CartesianAxisOptions;
+  grid?: ChartGridOptions;
+  tooltip?: ChartTooltipOptions;
+  line?: ChartLineOptions;
   height?: number;
   format?: ChartFormat;
   formatOptions?: ChartValueFormatOptions;
@@ -126,6 +142,20 @@ const styles: Record<string, CSSProperties> = {
 
 const isEmptyValue = (value: unknown) => value === null || value === undefined || value === '';
 
+const defaultActiveDot = { r: 4 };
+
+const resolveAxisTick = (axis?: CartesianAxisOptions) => ({
+  fill: axis?.tickColor ?? chartTheme.axis.tickColor,
+  fontSize: axis?.tickFontSize ?? chartTheme.axis.fontSize
+});
+
+const resolveGridProps = (grid?: ChartGridOptions) => ({
+  horizontal: grid?.horizontal ?? true,
+  stroke: grid?.stroke ?? chartTheme.grid.stroke,
+  strokeDasharray: grid?.strokeDasharray ?? chartTheme.grid.strokeDasharray,
+  vertical: grid?.vertical ?? true
+});
+
 const toChartValue = (value: unknown): ChartValue => {
   if (value instanceof Date || typeof value === 'string' || typeof value === 'number') {
     return value;
@@ -220,12 +250,18 @@ export function ComboChart<TDatum extends object = ChartDatum>({
   emptyMessage = 'No data available',
   format = 'number',
   formatOptions = {},
+  grid,
   height = 280,
+  line,
+  margin,
   series,
   showLegend = true,
   title,
+  tooltip,
   xFormat,
   xFormatOptions = {},
+  xAxis,
+  yAxis,
   xKey
 }: ComboChartProps<TDatum>) {
   const seriesWithColor = series.map((item, index) => ({
@@ -263,25 +299,37 @@ export function ComboChart<TDatum extends object = ChartDatum>({
         <>
           <div style={{ height, width: '100%' }}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
-              <ComposedChart data={data}>
-                <CartesianGrid stroke={chartTheme.grid.stroke} strokeDasharray={chartTheme.grid.strokeDasharray} />
+              <ComposedChart data={data} margin={margin}>
+                <CartesianGrid {...resolveGridProps(grid)} />
                 <XAxis
+                  axisLine={xAxis?.axisLine}
                   dataKey={xKey as never}
+                  interval={xAxis?.interval}
+                  minTickGap={xAxis?.minTickGap}
                   stroke={chartTheme.axis.lineColor}
-                  tick={{ fill: chartTheme.axis.tickColor, fontSize: chartTheme.axis.fontSize }}
+                  tick={resolveAxisTick(xAxis)}
                   tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
+                  tickLine={xAxis?.tickLine}
+                  ticks={xAxis?.ticks}
                 />
                 <YAxis
-                  yAxisId="left"
+                  axisLine={yAxis?.axisLine}
+                  domain={yAxis?.domain}
                   stroke={chartTheme.axis.lineColor}
-                  tick={{ fill: chartTheme.axis.tickColor, fontSize: chartTheme.axis.fontSize }}
+                  tick={resolveAxisTick(yAxis)}
                   tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
+                  tickLine={yAxis?.tickLine}
+                  ticks={yAxis?.ticks}
+                  width={yAxis?.width}
+                  yAxisId="left"
                 />
                 {rightAxisSeries ? (
                   <YAxis
+                    axisLine={yAxis?.axisLine}
+                    domain={yAxis?.domain}
                     orientation="right"
                     stroke={chartTheme.axis.lineColor}
-                    tick={{ fill: chartTheme.axis.tickColor, fontSize: chartTheme.axis.fontSize }}
+                    tick={resolveAxisTick(yAxis)}
                     tickFormatter={(value) =>
                       formatChartValue(
                         toChartValue(value),
@@ -289,10 +337,14 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                         rightAxisSeries.formatOptions ?? formatOptions
                       )
                     }
+                    tickLine={yAxis?.tickLine}
+                    ticks={yAxis?.ticks}
+                    width={yAxis?.width}
                     yAxisId="right"
                   />
                 ) : null}
                 <Tooltip
+                  cursor={tooltip?.cursor}
                   content={
                     <ComboTooltip
                       format={format}
@@ -319,9 +371,9 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                     />
                   ) : (
                     <Line
-                      activeDot={{ r: 4 }}
+                      activeDot={line?.activeDot ?? defaultActiveDot}
                       dataKey={item.id}
-                      dot={false}
+                      dot={line?.dot ?? false}
                       key={item.id}
                       name={item.label}
                       stroke={item.color}

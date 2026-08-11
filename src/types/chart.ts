@@ -50,10 +50,31 @@ export interface ChartGridOptions {
 }
 
 export interface ChartTooltipOptions {
-  cursor?: false | Record<string, unknown>;
+  cursor?: false | ChartTooltipCursorOptions;
+}
+
+export interface ChartTooltipCursorOptions {
+  stroke?: string;
+  strokeDasharray?: string;
+  strokeWidth?: number;
+  fill?: string;
+}
+
+export interface ChartDotOptions {
+  className?: string;
+  cx?: number;
+  cy?: number;
+  r?: number | string;
+  clipDot?: boolean;
+}
+
+export interface ChartActiveDotOptions extends ChartDotOptions {
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
 }
 
 export interface ChartLineOptions {
-  dot?: boolean | Record<string, unknown>;
-  activeDot?: boolean | Record<string, unknown>;
+  dot?: boolean | ChartDotOptions;
+  activeDot?: boolean | ChartActiveDotOptions;
 }

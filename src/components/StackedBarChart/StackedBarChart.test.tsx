@@ -58,6 +58,24 @@ describe('StackedBarChart', () => {
     expect(screen.queryByLabelText('Chart legend')).not.toBeInTheDocument();
   });
 
+  it('accepts cartesian presentation options without changing render output', () => {
+    render(
+      <StackedBarChart
+        data={channelCompositionData}
+        xKey="channel"
+        series={[{ id: 'fulfilled', label: 'Fulfilled', data: channelCompositionData }]}
+        margin={{ left: -8 }}
+        yAxis={{ domain: [0, 300], ticks: [0, 100, 200, 300], width: 56 }}
+        xAxis={{ axisLine: false, tickLine: false, minTickGap: 0 }}
+        grid={{ horizontal: true, vertical: false }}
+        tooltip={{ cursor: { strokeDasharray: '3 3' } }}
+      />
+    );
+
+    expect(screen.getByText('Fulfilled')).toBeVisible();
+    expect(screen.getByText('184')).toBeVisible();
+  });
+
   it('renders an empty state when all stacked values are empty', () => {
     render(
       <StackedBarChart

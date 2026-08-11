@@ -64,6 +64,28 @@ describe('ComboChart', () => {
     expect(screen.queryByLabelText('Chart legend')).not.toBeInTheDocument();
   });
 
+  it('accepts cartesian and line presentation options without changing render output', () => {
+    render(
+      <ComboChart
+        data={orderConversionData}
+        xKey="date"
+        series={[
+          { id: 'orders', label: 'Orders', data: orderConversionData, type: 'bar' },
+          { id: 'conversionRate', label: 'Conversion rate', data: orderConversionData, type: 'line', format: 'percent' }
+        ]}
+        margin={{ left: -8 }}
+        yAxis={{ domain: [0, 200], ticks: [0, 100, 200], width: 56 }}
+        xAxis={{ axisLine: false, tickLine: false, minTickGap: 0 }}
+        grid={{ horizontal: true, vertical: false }}
+        tooltip={{ cursor: { strokeDasharray: '3 3' } }}
+        line={{ dot: false, activeDot: { r: 3 } }}
+      />
+    );
+
+    expect(screen.getByText('Orders')).toBeVisible();
+    expect(screen.getByText('Conversion rate')).toBeVisible();
+  });
+
   it('requires all alternate-axis series to share one format', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
