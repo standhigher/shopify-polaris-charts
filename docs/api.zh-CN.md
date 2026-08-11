@@ -23,9 +23,17 @@ import {
   formatChartValue,
   packageName,
   packageVersion,
+  type CartesianAxisOptions,
+  type ChartActiveDotOptions,
   type ChartDatum,
+  type ChartDotOptions,
   type ChartFormat,
+  type ChartGridOptions,
+  type ChartLineOptions,
+  type ChartMargin,
   type ChartTheme,
+  type ChartTooltipCursorOptions,
+  type ChartTooltipOptions,
   type ChartValueFormatOptions,
   type ChartSeries,
   type ChartState
@@ -71,6 +79,14 @@ import {
 | `ChartSeries` | type | 共享 series 形状。 |
 | `ChartFormat` | type | 值格式 union。 |
 | `ChartState` | type | `ChartCard` 状态 union。 |
+| `ChartMargin` | type | Cartesian 图表 margin 选项。 |
+| `CartesianAxisOptions` | type | Cartesian X/Y 轴展示选项。 |
+| `ChartGridOptions` | type | Cartesian 网格线展示选项。 |
+| `ChartTooltipOptions` | type | Tooltip 展示选项。 |
+| `ChartTooltipCursorOptions` | type | Tooltip cursor 线条选项。 |
+| `ChartLineOptions` | type | 折线和面积图点位选项。 |
+| `ChartDotOptions` | type | 非 active dot 选项。 |
+| `ChartActiveDotOptions` | type | hover active dot 选项。 |
 | `ChartValueFormatOptions` | type | 共享 formatter options。 |
 | `ChartTheme` | type | `chartTheme` 的形状。 |
 
@@ -101,10 +117,69 @@ type ChartState =
   | 'no-permission'
   | 'stale'
   | 'ready';
+
+interface ChartMargin {
+  top?: number;
+  right?: number;
+  bottom?: number;
+  left?: number;
+}
+
+interface CartesianAxisOptions {
+  domain?: [number | 'auto', number | 'auto'];
+  ticks?: Array<number | string>;
+  tickColor?: string;
+  tickFontSize?: number;
+  axisLine?: boolean;
+  tickLine?: boolean;
+  minTickGap?: number;
+  interval?: number | 'preserveStart' | 'preserveEnd' | 'preserveStartEnd';
+  width?: number;
+}
+
+interface ChartGridOptions {
+  horizontal?: boolean;
+  vertical?: boolean;
+  stroke?: string;
+  strokeDasharray?: string;
+}
+
+interface ChartTooltipCursorOptions {
+  stroke?: string;
+  strokeDasharray?: string;
+  strokeWidth?: number;
+  fill?: string;
+}
+
+interface ChartTooltipOptions {
+  cursor?: false | ChartTooltipCursorOptions;
+}
+
+interface ChartDotOptions {
+  className?: string;
+  cx?: number;
+  cy?: number;
+  r?: number | string;
+  clipDot?: boolean;
+}
+
+interface ChartActiveDotOptions extends ChartDotOptions {
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+}
+
+interface ChartLineOptions {
+  dot?: boolean | ChartDotOptions;
+  activeDot?: boolean | ChartActiveDotOptions;
+}
 ```
 
 `ChartSeries.color` 当前是 series 级别颜色，会影响整条线、整组柱子或整个堆叠
 片段。当前公开 API 还不支持逐根柱子或逐个点单独设色。
+
+这些展示选项用于受控微调图表外观，优先于业务侧写 CSS 或修改 DOM；它们映射到
+稳定的 Recharts 概念，但不会开放完整 Recharts escape hatch。
 
 ## 格式化
 
@@ -235,6 +310,13 @@ const chartFormatters = {
 | `data` | `TDatum[]` | Yes | - | 图表级数据源。 |
 | `xKey` | `keyof TDatum & string` | Yes | - | X 轴字段。 |
 | `series` | `Array<ChartSeries<TDatum>>` | Yes | - | 折线或面积图 series 定义。 |
+| `showLegend` | `boolean` | No | `true` | 控制是否渲染组件内置 legend。 |
+| `margin` | `ChartMargin` | No | - | Cartesian 图表的 Recharts margin。 |
+| `xAxis` | `CartesianAxisOptions` | No | - | X 轴展示选项，例如 tick 样式、轴线、刻度线、interval、minTickGap。 |
+| `yAxis` | `CartesianAxisOptions` | No | - | Y 轴展示选项，例如 domain、ticks、width、tick 样式、轴线、刻度线。 |
+| `grid` | `ChartGridOptions` | No | - | 网格线方向和线条样式。 |
+| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip 展示选项，当前支持 `cursor`。 |
+| `line` | `ChartLineOptions` | No | - | 折线和面积图的点位选项。 |
 | `mode` | `'line' \| 'area'` | No | `'line'` | 图表模式。 |
 | `height` | `number` | No | `280` | 图表高度，单位 px。 |
 | `format` | `ChartFormat` | No | `'number'` | Y 轴、tooltip、legend 的值格式。 |
@@ -244,6 +326,24 @@ const chartFormatters = {
 | `emptyMessage` | `ReactNode` | No | `'No data available'` | 无可渲染数据时的空状态内容。 |
 
 AI 生成代码时，应确保 `series[].id` 是 `data` 每项里的真实字段名。
+
+Analytics 风格示例：
+
+```tsx
+<TrendChart
+  data={data}
+  format="currency"
+  grid={{ horizontal: true, vertical: false, stroke: '#e5e7eb', strokeDasharray: '3 3' }}
+  line={{ dot: false, activeDot: { r: 3, strokeWidth: 0 } }}
+  margin={{ top: 8, right: 8, bottom: 0, left: -8 }}
+  series={[{ id: 'grossSales', label: 'Gross sales', data }]}
+  showLegend={false}
+  tooltip={{ cursor: { stroke: '#9ca3af', strokeDasharray: '3 3' } }}
+  xAxis={{ axisLine: false, tickLine: false, minTickGap: 0 }}
+  xKey="date"
+  yAxis={{ domain: [0, 800], ticks: [0, 200, 400, 600, 800], width: 56 }}
+/>;
+```
 
 ## DonutChart
 
@@ -256,6 +356,7 @@ AI 生成代码时，应确保 `series[].id` 是 `data` 每项里的真实字段
 | `categoryKey` | `keyof TDatum & string` | Yes | - | 切片名称和 legend label 字段。 |
 | `valueKey` | `keyof TDatum & string` | Yes | - | 正数值字段。 |
 | `centerLabel` | `ReactNode` | No | - | 环形图中心内容。 |
+| `showLegend` | `boolean` | No | `true` | 控制是否渲染组件内置 legend。 |
 | `height` | `number` | No | `280` | 图表高度，单位 px。 |
 | `format` | `ChartFormat` | No | `'number'` | tooltip 和 legend 的值格式。 |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | 值格式化选项。 |
@@ -273,6 +374,12 @@ AI 生成代码时，应确保 `series[].id` 是 `data` 每项里的真实字段
 | `data` | `TDatum[]` | Yes | - | 图表级数据源。 |
 | `xKey` | `keyof TDatum & string` | Yes | - | X 轴类别字段。 |
 | `series` | `Array<ChartSeries<TDatum>>` | Yes | - | 堆叠片段 series 定义。 |
+| `showLegend` | `boolean` | No | `true` | 控制是否渲染组件内置 legend。 |
+| `margin` | `ChartMargin` | No | - | Cartesian 图表的 Recharts margin。 |
+| `xAxis` | `CartesianAxisOptions` | No | - | X 轴展示选项，例如 tick 样式、轴线、刻度线、interval、minTickGap。 |
+| `yAxis` | `CartesianAxisOptions` | No | - | Y 轴展示选项，例如 domain、ticks、width、tick 样式、轴线、刻度线。 |
+| `grid` | `ChartGridOptions` | No | - | 网格线方向和线条样式。 |
+| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip 展示选项，当前支持 `cursor`。 |
 | `height` | `number` | No | `280` | 图表高度，单位 px。 |
 | `format` | `ChartFormat` | No | `'number'` | Y 轴、tooltip、legend 的值格式。 |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Y 值格式化选项。 |
@@ -304,6 +411,13 @@ interface ComboChartSeries<TDatum extends object = ChartDatum>
 | `data` | `TDatum[]` | Yes | - | 图表级数据源。 |
 | `xKey` | `keyof TDatum & string` | Yes | - | X 轴字段。 |
 | `series` | `Array<ComboChartSeries<TDatum>>` | Yes | - | 柱状和折线 series 定义。 |
+| `showLegend` | `boolean` | No | `true` | 控制是否渲染组件内置 legend。 |
+| `margin` | `ChartMargin` | No | - | Cartesian 图表的 Recharts margin。 |
+| `xAxis` | `CartesianAxisOptions` | No | - | X 轴展示选项，例如 tick 样式、轴线、刻度线、interval、minTickGap。 |
+| `yAxis` | `CartesianAxisOptions` | No | - | Y 轴展示选项，例如 domain、ticks、width、tick 样式、轴线、刻度线。 |
+| `grid` | `ChartGridOptions` | No | - | 网格线方向和线条样式。 |
+| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip 展示选项，当前支持 `cursor`。 |
+| `line` | `ChartLineOptions` | No | - | 仅作用于 line series 的点位选项。 |
 | `height` | `number` | No | `280` | 图表高度，单位 px。 |
 | `format` | `ChartFormat` | No | `'number'` | 基础 Y 轴、tooltip、legend 的值格式。 |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | 基础 Y 值格式化选项。 |

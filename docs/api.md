@@ -24,9 +24,17 @@ import {
   formatChartValue,
   packageName,
   packageVersion,
+  type CartesianAxisOptions,
+  type ChartActiveDotOptions,
   type ChartDatum,
+  type ChartDotOptions,
   type ChartFormat,
+  type ChartGridOptions,
+  type ChartLineOptions,
+  type ChartMargin,
   type ChartTheme,
+  type ChartTooltipCursorOptions,
+  type ChartTooltipOptions,
   type ChartValueFormatOptions,
   type ChartSeries,
   type ChartState
@@ -72,6 +80,14 @@ Runtime peer dependencies:
 | `ChartSeries` | type | Shared series shape. |
 | `ChartFormat` | type | Value format union. |
 | `ChartState` | type | `ChartCard` state union. |
+| `ChartMargin` | type | Cartesian chart margin options. |
+| `CartesianAxisOptions` | type | Cartesian X/Y axis presentation options. |
+| `ChartGridOptions` | type | Cartesian grid presentation options. |
+| `ChartTooltipOptions` | type | Tooltip presentation options. |
+| `ChartTooltipCursorOptions` | type | Tooltip cursor stroke options. |
+| `ChartLineOptions` | type | Line and area dot presentation options. |
+| `ChartDotOptions` | type | Non-active line or area dot options. |
+| `ChartActiveDotOptions` | type | Active hover dot options. |
 | `ChartValueFormatOptions` | type | Shared formatter options. |
 | `ChartTheme` | type | Shape of `chartTheme`. |
 
@@ -136,6 +152,70 @@ type ChartState =
   | 'stale'
   | 'ready';
 ```
+
+### Chart presentation options
+
+```ts
+interface ChartMargin {
+  top?: number;
+  right?: number;
+  bottom?: number;
+  left?: number;
+}
+
+interface CartesianAxisOptions {
+  domain?: [number | 'auto', number | 'auto'];
+  ticks?: Array<number | string>;
+  tickColor?: string;
+  tickFontSize?: number;
+  axisLine?: boolean;
+  tickLine?: boolean;
+  minTickGap?: number;
+  interval?: number | 'preserveStart' | 'preserveEnd' | 'preserveStartEnd';
+  width?: number;
+}
+
+interface ChartGridOptions {
+  horizontal?: boolean;
+  vertical?: boolean;
+  stroke?: string;
+  strokeDasharray?: string;
+}
+
+interface ChartTooltipCursorOptions {
+  stroke?: string;
+  strokeDasharray?: string;
+  strokeWidth?: number;
+  fill?: string;
+}
+
+interface ChartTooltipOptions {
+  cursor?: false | ChartTooltipCursorOptions;
+}
+
+interface ChartDotOptions {
+  className?: string;
+  cx?: number;
+  cy?: number;
+  r?: number | string;
+  clipDot?: boolean;
+}
+
+interface ChartActiveDotOptions extends ChartDotOptions {
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+}
+
+interface ChartLineOptions {
+  dot?: boolean | ChartDotOptions;
+  activeDot?: boolean | ChartActiveDotOptions;
+}
+```
+
+Use these options for controlled presentation tweaks before reaching for custom
+CSS. They map to stable Recharts concepts, but intentionally do not expose a
+full Recharts escape hatch.
 
 ## Formatting
 
@@ -315,6 +395,13 @@ const data = [
 | `data` | `TDatum[]` | Yes | - | Chart-level data source. |
 | `xKey` | `keyof TDatum & string` | Yes | - | Datum field used for the X axis. |
 | `series` | `Array<ChartSeries<TDatum>>` | Yes | - | Line or area series definitions. |
+| `showLegend` | `boolean` | No | `true` | Controls whether the built-in legend below the chart is rendered. |
+| `margin` | `ChartMargin` | No | - | Recharts chart margin for Cartesian charts. |
+| `xAxis` | `CartesianAxisOptions` | No | - | X-axis presentation options such as tick style, axis line, tick line, interval, and min tick gap. |
+| `yAxis` | `CartesianAxisOptions` | No | - | Y-axis presentation options such as domain, ticks, width, tick style, axis line, and tick line. |
+| `grid` | `ChartGridOptions` | No | - | Cartesian grid visibility and stroke options. |
+| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip presentation options. Currently supports `cursor`. |
+| `line` | `ChartLineOptions` | No | - | Line and area dot options. |
 | `mode` | `'line' \| 'area'` | No | `'line'` | Chart renderer mode. |
 | `height` | `number` | No | `280` | Chart viewport height in pixels. |
 | `format` | `ChartFormat` | No | `'number'` | Y-axis, tooltip, and legend value format. |
@@ -330,6 +417,24 @@ const data = [
 - Use `mode="area"` when overall movement should carry more visual weight.
 - Use `series[].color` for series-level color. Individual point colors are not
   supported by this component.
+
+### Analytics-style customization example
+
+```tsx
+<TrendChart
+  data={data}
+  format="currency"
+  grid={{ horizontal: true, vertical: false, stroke: '#e5e7eb', strokeDasharray: '3 3' }}
+  line={{ dot: false, activeDot: { r: 3, strokeWidth: 0 } }}
+  margin={{ top: 8, right: 8, bottom: 0, left: -8 }}
+  series={[{ id: 'grossSales', label: 'Gross sales', data }]}
+  showLegend={false}
+  tooltip={{ cursor: { stroke: '#9ca3af', strokeDasharray: '3 3' } }}
+  xAxis={{ axisLine: false, tickLine: false, minTickGap: 0 }}
+  xKey="date"
+  yAxis={{ domain: [0, 800], ticks: [0, 200, 400, 600, 800], width: 56 }}
+/>;
+```
 
 ## DonutChart
 
@@ -359,6 +464,7 @@ const data = [
 | `categoryKey` | `keyof TDatum & string` | Yes | - | Datum field used for slice names and legend labels. |
 | `valueKey` | `keyof TDatum & string` | Yes | - | Datum field used for positive numeric slice values. |
 | `centerLabel` | `ReactNode` | No | - | Center overlay content inside the donut. |
+| `showLegend` | `boolean` | No | `true` | Controls whether the built-in legend below the chart is rendered. |
 | `height` | `number` | No | `280` | Chart viewport height in pixels. |
 | `format` | `ChartFormat` | No | `'number'` | Tooltip and legend value format. |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for slice values. |
@@ -400,6 +506,12 @@ const data = [
 | `data` | `TDatum[]` | Yes | - | Chart-level data source. |
 | `xKey` | `keyof TDatum & string` | Yes | - | Datum field used for the X axis. |
 | `series` | `Array<ChartSeries<TDatum>>` | Yes | - | Stacked bar series definitions. |
+| `showLegend` | `boolean` | No | `true` | Controls whether the built-in legend below the chart is rendered. |
+| `margin` | `ChartMargin` | No | - | Recharts chart margin for Cartesian charts. |
+| `xAxis` | `CartesianAxisOptions` | No | - | X-axis presentation options such as tick style, axis line, tick line, interval, and min tick gap. |
+| `yAxis` | `CartesianAxisOptions` | No | - | Y-axis presentation options such as domain, ticks, width, tick style, axis line, and tick line. |
+| `grid` | `ChartGridOptions` | No | - | Cartesian grid visibility and stroke options. |
+| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip presentation options. Currently supports `cursor`. |
 | `height` | `number` | No | `280` | Chart viewport height in pixels. |
 | `format` | `ChartFormat` | No | `'number'` | Y-axis, tooltip, and legend value format. |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for Y values. |
@@ -470,6 +582,13 @@ interface ComboChartSeries<TDatum extends object = ChartDatum>
 | `data` | `TDatum[]` | Yes | - | Chart-level data source. |
 | `xKey` | `keyof TDatum & string` | Yes | - | Datum field used for the X axis. |
 | `series` | `Array<ComboChartSeries<TDatum>>` | Yes | - | Bar and line series definitions. |
+| `showLegend` | `boolean` | No | `true` | Controls whether the built-in legend below the chart is rendered. |
+| `margin` | `ChartMargin` | No | - | Recharts chart margin for Cartesian charts. |
+| `xAxis` | `CartesianAxisOptions` | No | - | X-axis presentation options such as tick style, axis line, tick line, interval, and min tick gap. |
+| `yAxis` | `CartesianAxisOptions` | No | - | Y-axis presentation options such as domain, ticks, width, tick style, axis line, and tick line. |
+| `grid` | `ChartGridOptions` | No | - | Cartesian grid visibility and stroke options. |
+| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip presentation options. Currently supports `cursor`. |
+| `line` | `ChartLineOptions` | No | - | Dot options for `line` series only. |
 | `height` | `number` | No | `280` | Chart viewport height in pixels. |
 | `format` | `ChartFormat` | No | `'number'` | Base Y-axis, tooltip, and legend value format. |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for base Y values. |
