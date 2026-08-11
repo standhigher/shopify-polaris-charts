@@ -11,6 +11,7 @@ export interface DonutChartProps<TDatum extends object = ChartDatum> {
   categoryKey: keyof TDatum & string;
   valueKey: keyof TDatum & string;
   centerLabel?: ReactNode;
+  showLegend?: boolean;
   height?: number;
   format?: ChartFormat;
   formatOptions?: ChartValueFormatOptions;
@@ -162,6 +163,7 @@ export function DonutChart<TDatum extends object = ChartDatum>({
   format = 'number',
   formatOptions = {},
   height = 280,
+  showLegend = true,
   title,
   valueKey
 }: DonutChartProps<TDatum>) {
@@ -203,15 +205,17 @@ export function DonutChart<TDatum extends object = ChartDatum>({
             </ResponsiveContainer>
             {centerLabel ? <div style={styles.centerLabel}>{centerLabel}</div> : null}
           </div>
-          <div aria-label="Chart legend" style={styles.legend}>
-            {slices.map((item) => (
-              <span key={item.__key} style={styles.legendItem}>
-                <span aria-hidden="true" style={{ ...styles.marker, background: item.__color }} />
-                <span>{item.__name}</span>
-                <span style={styles.legendValue}>{formatChartValue(toChartValue(item.__value), format, formatOptions)}</span>
-              </span>
-            ))}
-          </div>
+          {showLegend ? (
+            <div aria-label="Chart legend" style={styles.legend}>
+              {slices.map((item) => (
+                <span key={item.__key} style={styles.legendItem}>
+                  <span aria-hidden="true" style={{ ...styles.marker, background: item.__color }} />
+                  <span>{item.__name}</span>
+                  <span style={styles.legendValue}>{formatChartValue(toChartValue(item.__value), format, formatOptions)}</span>
+                </span>
+              ))}
+            </div>
+          ) : null}
         </>
       ) : (
         <div role="status" style={{ ...styles.empty, minHeight: height }}>

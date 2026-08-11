@@ -18,6 +18,7 @@ export interface ComboChartProps<TDatum extends object = ChartDatum> {
   data: TDatum[];
   xKey: keyof TDatum & string;
   series: Array<ComboChartSeries<TDatum>>;
+  showLegend?: boolean;
   height?: number;
   format?: ChartFormat;
   formatOptions?: ChartValueFormatOptions;
@@ -221,6 +222,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
   formatOptions = {},
   height = 280,
   series,
+  showLegend = true,
   title,
   xFormat,
   xFormatOptions = {},
@@ -336,31 +338,33 @@ export function ComboChart<TDatum extends object = ChartDatum>({
               </ComposedChart>
             </ResponsiveContainer>
           </div>
-          <div aria-label="Chart legend" style={styles.legend}>
-            {seriesWithColor.map((item) => {
-              const firstDatum = data.find((datum) => !isEmptyValue(getDatumValue(datum, item.id)));
+          {showLegend ? (
+            <div aria-label="Chart legend" style={styles.legend}>
+              {seriesWithColor.map((item) => {
+                const firstDatum = data.find((datum) => !isEmptyValue(getDatumValue(datum, item.id)));
 
-              return (
-                <span key={item.id} style={styles.legendItem}>
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      ...(item.type === 'line' ? styles.lineMarker : styles.marker),
-                      background: item.color
-                    }}
-                  />
-                  <span>{item.label}</span>
-                  <span style={styles.legendValue}>
-                    {formatChartValue(
-                      toChartValue(getDatumValue(firstDatum, item.id)),
-                      item.format ?? format,
-                      item.formatOptions ?? formatOptions
-                    )}
+                return (
+                  <span key={item.id} style={styles.legendItem}>
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        ...(item.type === 'line' ? styles.lineMarker : styles.marker),
+                        background: item.color
+                      }}
+                    />
+                    <span>{item.label}</span>
+                    <span style={styles.legendValue}>
+                      {formatChartValue(
+                        toChartValue(getDatumValue(firstDatum, item.id)),
+                        item.format ?? format,
+                        item.formatOptions ?? formatOptions
+                      )}
+                    </span>
                   </span>
-                </span>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : null}
         </>
       ) : (
         <div role="status" style={{ ...styles.empty, minHeight: height }}>

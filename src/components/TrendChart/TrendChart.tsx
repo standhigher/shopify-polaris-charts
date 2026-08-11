@@ -22,6 +22,7 @@ export interface TrendChartProps<TDatum extends object = ChartDatum> {
   data: TDatum[];
   xKey: keyof TDatum & string;
   series: Array<ChartSeries<TDatum>>;
+  showLegend?: boolean;
   mode?: TrendMode;
   height?: number;
   format?: ChartFormat;
@@ -191,6 +192,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
   height = 280,
   mode = 'line',
   series,
+  showLegend = true,
   title,
   xFormat,
   xFormatOptions = {},
@@ -294,21 +296,23 @@ export function TrendChart<TDatum extends object = ChartDatum>({
               )}
             </ResponsiveContainer>
           </div>
-          <div aria-label="Chart legend" style={styles.legend}>
-            {seriesWithColor.map((item) => {
-              const firstDatum = data.find((datum) => !isEmptyValue(getDatumValue(datum, item.id)));
+          {showLegend ? (
+            <div aria-label="Chart legend" style={styles.legend}>
+              {seriesWithColor.map((item) => {
+                const firstDatum = data.find((datum) => !isEmptyValue(getDatumValue(datum, item.id)));
 
-              return (
-                <span key={item.id} style={styles.legendItem}>
-                  <span aria-hidden="true" style={{ ...styles.marker, background: item.color }} />
-                  <span>{item.label}</span>
-                  <span style={styles.legendValue}>
-                    {formatChartValue(toChartValue(getDatumValue(firstDatum, item.id)), format, formatOptions)}
+                return (
+                  <span key={item.id} style={styles.legendItem}>
+                    <span aria-hidden="true" style={{ ...styles.marker, background: item.color }} />
+                    <span>{item.label}</span>
+                    <span style={styles.legendValue}>
+                      {formatChartValue(toChartValue(getDatumValue(firstDatum, item.id)), format, formatOptions)}
+                    </span>
                   </span>
-                </span>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : null}
         </>
       ) : (
         <div role="status" style={{ ...styles.empty, minHeight: height }}>

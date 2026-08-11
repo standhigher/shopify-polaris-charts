@@ -45,6 +45,19 @@ describe('StackedBarChart', () => {
     expect(screen.getByText('Point of sale')).toBeVisible();
   });
 
+  it('hides the built-in legend when showLegend is false', () => {
+    render(
+      <StackedBarChart
+        data={channelCompositionData}
+        xKey="channel"
+        series={[{ id: 'fulfilled', label: 'Fulfilled', data: channelCompositionData }]}
+        showLegend={false}
+      />
+    );
+
+    expect(screen.queryByLabelText('Chart legend')).not.toBeInTheDocument();
+  });
+
   it('renders an empty state when all stacked values are empty', () => {
     render(
       <StackedBarChart

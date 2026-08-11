@@ -64,6 +64,14 @@ describe('DonutChart', () => {
     expect(screen.getByText('642')).toBeVisible();
   });
 
+  it('hides the built-in legend when showLegend is false', () => {
+    render(
+      <DonutChart data={orderStatusData} categoryKey="status" valueKey="value" showLegend={false} />
+    );
+
+    expect(screen.queryByLabelText('Chart legend')).not.toBeInTheDocument();
+  });
+
   it('uses unique keys for duplicate category labels', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 

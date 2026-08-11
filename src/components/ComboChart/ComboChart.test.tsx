@@ -51,6 +51,19 @@ describe('ComboChart', () => {
     expect(screen.getAllByText('3.2%')[0]).toBeVisible();
   });
 
+  it('hides the built-in legend when showLegend is false', () => {
+    render(
+      <ComboChart
+        data={orderConversionData}
+        xKey="date"
+        series={[{ id: 'orders', label: 'Orders', data: orderConversionData, type: 'bar' }]}
+        showLegend={false}
+      />
+    );
+
+    expect(screen.queryByLabelText('Chart legend')).not.toBeInTheDocument();
+  });
+
   it('requires all alternate-axis series to share one format', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 

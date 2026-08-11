@@ -68,6 +68,19 @@ describe('TrendChart', () => {
     expect(screen.getByText('Returning customers')).toBeVisible();
   });
 
+  it('hides the built-in legend when showLegend is false', () => {
+    render(
+      <TrendChart
+        data={revenueData}
+        xKey="date"
+        series={[{ id: 'grossSales', label: 'Gross sales', data: revenueData }]}
+        showLegend={false}
+      />
+    );
+
+    expect(screen.queryByLabelText('Chart legend')).not.toBeInTheDocument();
+  });
+
   it('renders an empty state when data is empty', () => {
     render(
       <TrendChart
