@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Storybook demo
+    url: https://standhigher.github.io/shopify-polaris-charts/
+    about: Review component examples and props in the hosted Storybook.
+  - name: npm package
+    url: https://www.npmjs.com/package/@standhigher/charts
+    about: View the published package, versions, and install command.

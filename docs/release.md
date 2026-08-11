@@ -62,8 +62,8 @@ npm version major
 ```
 
 Use `patch` for compatible fixes, `minor` for backwards-compatible features,
-and `major` for breaking changes. The current package is still at `0.0.0`, so
-the first real release should choose an intentional version before publishing.
+and `major` for breaking changes. Before publishing, confirm that the git tag
+matches the package version exactly.
 
 ## Prepublish Gate
 
@@ -94,6 +94,7 @@ The publish whitelist intentionally includes only:
 - `dist`
 - `README.md`
 - `README.zh-CN.md`
+- `CHANGELOG.md`
 - `LICENSE`
 - `docs/api.md`
 - `docs/api.zh-CN.md`
@@ -126,6 +127,12 @@ checks, and dry-run review:
 
 ```bash
 npm publish --access public --registry=https://registry.npmjs.org/
+```
+
+For accounts that use npm Web Auth, prefer:
+
+```bash
+npm publish --access public --registry=https://registry.npmjs.org/ --auth-type=web
 ```
 
 Do not run this command during release-preparation tasks or dry-run validation.

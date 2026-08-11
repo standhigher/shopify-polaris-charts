@@ -1,0 +1,49 @@
+name: Feature request
+description: Suggest a new chart capability or documentation improvement.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. Please describe the dashboard or integration need behind it.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - ChartCard
+        - TrendChart
+        - DonutChart
+        - StackedBarChart
+        - ComboChart
+        - Theme
+        - Formatters
+        - Documentation
+        - Release or package metadata
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user or developer problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API or behavior
+      description: Include prop names, example usage, or Storybook states if you have them.
+      render: tsx
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe any workaround or alternate approach currently being used.
+    validations:
+      required: false

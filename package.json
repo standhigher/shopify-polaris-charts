@@ -1,9 +1,26 @@
 {
   "name": "@standhigher/charts",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Reusable React chart components for Shopify Polaris-style dashboards.",
   "license": "MIT",
-  "author": "",
+  "author": "Standhigher",
+  "homepage": "https://standhigher.github.io/shopify-polaris-charts/",
+  "bugs": {
+    "url": "https://github.com/standhigher/shopify-polaris-charts/issues"
+  },
+  "keywords": [
+    "react",
+    "charts",
+    "recharts",
+    "shopify",
+    "polaris",
+    "shopify-polaris",
+    "dashboard",
+    "analytics",
+    "data-visualization",
+    "typescript",
+    "storybook"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/standhigher/shopify-polaris-charts.git"
@@ -18,6 +35,7 @@
     "docs/usage.zh-CN.md",
     "README.md",
     "README.zh-CN.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "main": "./dist/index.js",

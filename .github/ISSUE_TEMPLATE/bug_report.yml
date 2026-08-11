@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a reproducible problem in @standhigher/charts.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please include enough detail for maintainers to reproduce it.
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      description: Which version of @standhigher/charts are you using?
+      placeholder: 0.2.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: React, Polaris, Recharts, browser, and Node.js versions if relevant.
+      placeholder: React 18, Polaris 12, Recharts 3, Chrome, Node 20
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - ChartCard
+        - TrendChart
+        - DonutChart
+        - StackedBarChart
+        - ComboChart
+        - Theme or formatters
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened?
+      description: Describe the problem and the actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: Describe the behavior you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide a minimal code sample, Storybook story, or steps to reproduce.
+      render: tsx
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or recordings
+      description: Add visuals when the issue is layout, chart rendering, tooltip, legend, or color related.
+    validations:
+      required: false
