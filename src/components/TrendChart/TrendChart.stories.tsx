@@ -66,3 +66,25 @@ export const Area: Story = {
     </ChartCard>
   )
 };
+
+export const AnalyticsStyle: Story = {
+  render: () => (
+    <ChartCard title="Revenue trend" subtitle="Last 7 days" metric="$117.3K" trendLabel="+12.4%" state="ready">
+      <TrendChart
+        data={salesTrendData}
+        format="currency"
+        grid={{ horizontal: true, vertical: false, stroke: '#e5e7eb', strokeDasharray: '3 3' }}
+        height={260}
+        line={{ dot: false, activeDot: { r: 3, strokeWidth: 0 } }}
+        margin={{ top: 8, right: 8, bottom: 0, left: -8 }}
+        series={[{ id: 'grossSales', label: 'Gross sales', data: salesTrendData, color: '#008060' }]}
+        showLegend={false}
+        tooltip={{ cursor: { stroke: '#9ca3af', strokeDasharray: '3 3' } }}
+        xAxis={{ axisLine: false, minTickGap: 0, tickLine: false }}
+        xFormat="date"
+        xKey="date"
+        yAxis={{ domain: [0, 22000], ticks: [0, 5500, 11000, 16500, 22000], width: 64 }}
+      />
+    </ChartCard>
+  )
+};

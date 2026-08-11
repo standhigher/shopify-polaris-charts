@@ -44,3 +44,34 @@ export const OrdersAndConversion: Story = {
     </ChartCard>
   )
 };
+
+export const AnalyticsStyle: Story = {
+  render: () => (
+    <ChartCard title="Orders and conversion" subtitle="Last 7 days" metric="1,225 orders" trendLabel="+11.8%" state="ready">
+      <ComboChart
+        data={orderConversionData}
+        grid={{ horizontal: true, vertical: false, stroke: '#e5e7eb', strokeDasharray: '3 3' }}
+        height={260}
+        line={{ dot: false, activeDot: { r: 3, strokeWidth: 0 } }}
+        margin={{ top: 8, right: 8, bottom: 0, left: -8 }}
+        series={[
+          { id: 'orders', label: 'Orders', data: orderConversionData, type: 'bar', format: 'number', color: '#008060' },
+          {
+            id: 'conversionRate',
+            label: 'Conversion rate',
+            data: orderConversionData,
+            type: 'line',
+            format: 'percent',
+            color: '#2C6ECB'
+          }
+        ]}
+        showLegend={false}
+        tooltip={{ cursor: { stroke: '#9ca3af', strokeDasharray: '3 3' } }}
+        xAxis={{ axisLine: false, minTickGap: 0, tickLine: false }}
+        xFormat="date"
+        xKey="date"
+        yAxis={{ axisLine: false, tickLine: false, width: 48 }}
+      />
+    </ChartCard>
+  )
+};
