@@ -33,8 +33,11 @@ import {
   type ChartLineOptions,
   type ChartMargin,
   type ChartTheme,
+  type ChartTooltipContentProps,
+  type ChartTooltipContentRenderer,
   type ChartTooltipCursorOptions,
   type ChartTooltipOptions,
+  type ChartTooltipPayloadItem,
   type ChartValueFormatOptions,
   type ChartSeries,
   type ChartState
@@ -84,6 +87,9 @@ Runtime peer dependencies:
 | `CartesianAxisOptions` | type | Cartesian X/Y axis presentation options. |
 | `ChartGridOptions` | type | Cartesian grid presentation options. |
 | `ChartTooltipOptions` | type | Tooltip presentation options. |
+| `ChartTooltipContentProps` | type | Context provided to Cartesian custom tooltip content. |
+| `ChartTooltipContentRenderer` | type | Custom Cartesian tooltip component or render function. |
+| `ChartTooltipPayloadItem` | type | Tooltip payload item enriched with its chart series. |
 | `ChartTooltipCursorOptions` | type | Tooltip cursor stroke options. |
 | `ChartLineOptions` | type | Line and area dot presentation options. |
 | `ChartDotOptions` | type | Non-active line or area dot options. |
@@ -189,8 +195,38 @@ interface ChartTooltipCursorOptions {
   fill?: string;
 }
 
-interface ChartTooltipOptions {
+interface ChartTooltipPayloadItem<TDatum, TSeries> {
+  color?: string;
+  data?: TDatum;
+  dataKey?: string;
+  name?: string;
+  series?: TSeries;
+  value?: ChartValue;
+}
+
+interface ChartTooltipContentProps<TDatum, TSeries> {
+  active?: boolean;
+  label?: ChartValue;
+  payload?: Array<ChartTooltipPayloadItem<TDatum, TSeries>>;
+  series: Array<TSeries>;
+  format: ChartFormat;
+  formatOptions: ChartValueFormatOptions;
+  xFormat?: ChartFormat;
+  xFormatOptions: ChartValueFormatOptions;
+  formatLabel: (label: ChartValue, payload?: Array<ChartTooltipPayloadItem<TDatum, TSeries>>) => ReactNode;
+  formatValue: (value: ChartValue, series?: TSeries) => ReactNode;
+}
+
+type ChartTooltipContentRenderer<TDatum, TSeries> =
+  (props: ChartTooltipContentProps<TDatum, TSeries>) => ReactNode;
+
+interface ChartTooltipOptions<TDatum, TSeries> {
   cursor?: false | ChartTooltipCursorOptions;
+  content?: ChartTooltipContentRenderer<TDatum, TSeries>;
+  labelFormatter?: (label: ChartValue, payload?: Array<ChartTooltipPayloadItem<TDatum, TSeries>>) => ReactNode;
+  valueFormatter?: (value: ChartValue, series?: TSeries) => ReactNode;
+  minWidth?: number;
+  className?: string;
 }
 
 interface ChartDotOptions {
@@ -213,9 +249,17 @@ interface ChartLineOptions {
 }
 ```
 
-Use these options for controlled presentation tweaks before reaching for custom
-CSS. They map to stable Recharts concepts, but intentionally do not expose a
-full Recharts escape hatch.
+`content` receives active state, label, payload items enriched with the matching
+series, all series, and chart format configuration. It may be a React component
+or render function. `formatLabel` and `formatValue` let custom content reuse
+the built-in fallback formatting. `ComboChart` payload series retain their own
+`format` and `formatOptions`.
+
+Without `content`, the built-in Polaris-style tooltip remains in use.
+`labelFormatter` changes its label, `valueFormatter` changes each value, and
+`minWidth` and `className` apply to its inner container. These options map to
+stable Recharts concepts, but intentionally do not expose a full Recharts
+escape hatch.
 
 ## Formatting
 
@@ -400,7 +444,7 @@ const data = [
 | `xAxis` | `CartesianAxisOptions` | No | - | X-axis presentation options such as tick style, axis line, tick line, interval, and min tick gap. |
 | `yAxis` | `CartesianAxisOptions` | No | - | Y-axis presentation options such as domain, ticks, width, tick style, axis line, and tick line. |
 | `grid` | `ChartGridOptions` | No | - | Cartesian grid visibility and stroke options. |
-| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip presentation options. Currently supports `cursor`. |
+| `tooltip` | `ChartTooltipOptions<TDatum>` | No | - | Tooltip cursor, default-content formatting and styling, or custom content. |
 | `line` | `ChartLineOptions` | No | - | Line and area dot options. |
 | `mode` | `'line' \| 'area'` | No | `'line'` | Chart renderer mode. |
 | `height` | `number` | No | `280` | Chart viewport height in pixels. |
@@ -433,6 +477,40 @@ const data = [
   xAxis={{ axisLine: false, tickLine: false, minTickGap: 0 }}
   xKey="date"
   yAxis={{ domain: [0, 800], ticks: [0, 200, 400, 600, 800], width: 56 }}
+/>;
+```
+
+### Tooltip customization example
+
+```tsx
+function RevenueTooltip({ active, formatLabel, formatValue, label, payload }) {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div className="analytics-tooltip">
+      <strong>{formatLabel(label)}</strong>
+      {payload.map((item) => (
+        <div key={item.series?.id}>
+          {item.series?.label}: {formatValue(item.value, item.series)}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+<TrendChart
+  data={data}
+  format="currency"
+  series={[{ id: 'grossSales', label: 'Gross sales', data }]}
+  tooltip={{
+    cursor: { stroke: '#9ca3af', strokeDasharray: '3 3' },
+    content: RevenueTooltip,
+    labelFormatter: (label) => `Date: ${label}`,
+    valueFormatter: (value, series) => `${series?.label}: ${value}`,
+    minWidth: 180,
+    className: 'analytics-tooltip'
+  }}
+  xKey="date"
 />;
 ```
 
@@ -511,7 +589,7 @@ const data = [
 | `xAxis` | `CartesianAxisOptions` | No | - | X-axis presentation options such as tick style, axis line, tick line, interval, and min tick gap. |
 | `yAxis` | `CartesianAxisOptions` | No | - | Y-axis presentation options such as domain, ticks, width, tick style, axis line, and tick line. |
 | `grid` | `ChartGridOptions` | No | - | Cartesian grid visibility and stroke options. |
-| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip presentation options. Currently supports `cursor`. |
+| `tooltip` | `ChartTooltipOptions<TDatum>` | No | - | Tooltip cursor, default-content formatting and styling, or custom content. |
 | `height` | `number` | No | `280` | Chart viewport height in pixels. |
 | `format` | `ChartFormat` | No | `'number'` | Y-axis, tooltip, and legend value format. |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for Y values. |
@@ -587,7 +665,7 @@ interface ComboChartSeries<TDatum extends object = ChartDatum>
 | `xAxis` | `CartesianAxisOptions` | No | - | X-axis presentation options such as tick style, axis line, tick line, interval, and min tick gap. |
 | `yAxis` | `CartesianAxisOptions` | No | - | Y-axis presentation options such as domain, ticks, width, tick style, axis line, and tick line. |
 | `grid` | `ChartGridOptions` | No | - | Cartesian grid visibility and stroke options. |
-| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip presentation options. Currently supports `cursor`. |
+| `tooltip` | `ChartTooltipOptions<TDatum, ComboChartSeries<TDatum>>` | No | - | Tooltip cursor, default-content formatting and styling, or custom content with per-series formats. |
 | `line` | `ChartLineOptions` | No | - | Dot options for `line` series only. |
 | `height` | `number` | No | `280` | Chart viewport height in pixels. |
 | `format` | `ChartFormat` | No | `'number'` | Base Y-axis, tooltip, and legend value format. |

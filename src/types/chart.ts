@@ -1,3 +1,7 @@
+import type { ReactNode } from 'react';
+
+import type { ChartValueFormatOptions } from '../formatters';
+
 export type ChartValue = string | number | Date | null | undefined;
 
 export interface ChartDatum {
@@ -49,8 +53,55 @@ export interface ChartGridOptions {
   strokeDasharray?: string;
 }
 
-export interface ChartTooltipOptions {
+export interface ChartTooltipPayloadItem<
+  TDatum extends object = ChartDatum,
+  TSeries extends ChartSeries<TDatum> = ChartSeries<TDatum>
+> {
+  color?: string;
+  data?: TDatum;
+  dataKey?: string;
+  name?: string;
+  series?: TSeries;
+  value?: ChartValue;
+}
+
+export interface ChartTooltipContentProps<
+  TDatum extends object = ChartDatum,
+  TSeries extends ChartSeries<TDatum> = ChartSeries<TDatum>
+> {
+  active?: boolean;
+  label?: ChartValue;
+  payload?: Array<ChartTooltipPayloadItem<TDatum, TSeries>>;
+  series: Array<TSeries>;
+  format: ChartFormat;
+  formatOptions: ChartValueFormatOptions;
+  xFormat?: ChartFormat;
+  xFormatOptions: ChartValueFormatOptions;
+  formatLabel: (
+    label: ChartValue,
+    payload?: Array<ChartTooltipPayloadItem<TDatum, TSeries>>
+  ) => ReactNode;
+  formatValue: (value: ChartValue, series?: TSeries) => ReactNode;
+}
+
+export type ChartTooltipContentRenderer<
+  TDatum extends object = ChartDatum,
+  TSeries extends ChartSeries<TDatum> = ChartSeries<TDatum>
+> = (props: ChartTooltipContentProps<TDatum, TSeries>) => ReactNode;
+
+export interface ChartTooltipOptions<
+  TDatum extends object = ChartDatum,
+  TSeries extends ChartSeries<TDatum> = ChartSeries<TDatum>
+> {
   cursor?: false | ChartTooltipCursorOptions;
+  content?: ChartTooltipContentRenderer<TDatum, TSeries>;
+  labelFormatter?: (
+    label: ChartValue,
+    payload?: Array<ChartTooltipPayloadItem<TDatum, TSeries>>
+  ) => ReactNode;
+  valueFormatter?: (value: ChartValue, series?: TSeries) => ReactNode;
+  minWidth?: number;
+  className?: string;
 }
 
 export interface ChartTooltipCursorOptions {

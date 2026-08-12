@@ -32,8 +32,11 @@ import {
   type ChartLineOptions,
   type ChartMargin,
   type ChartTheme,
+  type ChartTooltipContentProps,
+  type ChartTooltipContentRenderer,
   type ChartTooltipCursorOptions,
   type ChartTooltipOptions,
+  type ChartTooltipPayloadItem,
   type ChartValueFormatOptions,
   type ChartSeries,
   type ChartState
@@ -83,6 +86,9 @@ import {
 | `CartesianAxisOptions` | type | Cartesian X/Y 轴展示选项。 |
 | `ChartGridOptions` | type | Cartesian 网格线展示选项。 |
 | `ChartTooltipOptions` | type | Tooltip 展示选项。 |
+| `ChartTooltipContentProps` | type | Cartesian 自定义 tooltip content 的上下文。 |
+| `ChartTooltipContentRenderer` | type | Cartesian 自定义 tooltip 组件或渲染函数。 |
+| `ChartTooltipPayloadItem` | type | 带有对应 chart series 信息的 tooltip payload 项。 |
 | `ChartTooltipCursorOptions` | type | Tooltip cursor 线条选项。 |
 | `ChartLineOptions` | type | 折线和面积图点位选项。 |
 | `ChartDotOptions` | type | 非 active dot 选项。 |
@@ -151,8 +157,38 @@ interface ChartTooltipCursorOptions {
   fill?: string;
 }
 
-interface ChartTooltipOptions {
+interface ChartTooltipPayloadItem<TDatum, TSeries> {
+  color?: string;
+  data?: TDatum;
+  dataKey?: string;
+  name?: string;
+  series?: TSeries;
+  value?: ChartValue;
+}
+
+interface ChartTooltipContentProps<TDatum, TSeries> {
+  active?: boolean;
+  label?: ChartValue;
+  payload?: Array<ChartTooltipPayloadItem<TDatum, TSeries>>;
+  series: Array<TSeries>;
+  format: ChartFormat;
+  formatOptions: ChartValueFormatOptions;
+  xFormat?: ChartFormat;
+  xFormatOptions: ChartValueFormatOptions;
+  formatLabel: (label: ChartValue, payload?: Array<ChartTooltipPayloadItem<TDatum, TSeries>>) => ReactNode;
+  formatValue: (value: ChartValue, series?: TSeries) => ReactNode;
+}
+
+type ChartTooltipContentRenderer<TDatum, TSeries> =
+  (props: ChartTooltipContentProps<TDatum, TSeries>) => ReactNode;
+
+interface ChartTooltipOptions<TDatum, TSeries> {
   cursor?: false | ChartTooltipCursorOptions;
+  content?: ChartTooltipContentRenderer<TDatum, TSeries>;
+  labelFormatter?: (label: ChartValue, payload?: Array<ChartTooltipPayloadItem<TDatum, TSeries>>) => ReactNode;
+  valueFormatter?: (value: ChartValue, series?: TSeries) => ReactNode;
+  minWidth?: number;
+  className?: string;
 }
 
 interface ChartDotOptions {
@@ -178,8 +214,14 @@ interface ChartLineOptions {
 `ChartSeries.color` 当前是 series 级别颜色，会影响整条线、整组柱子或整个堆叠
 片段。当前公开 API 还不支持逐根柱子或逐个点单独设色。
 
-这些展示选项用于受控微调图表外观，优先于业务侧写 CSS 或修改 DOM；它们映射到
-稳定的 Recharts 概念，但不会开放完整 Recharts escape hatch。
+`content` 可拿到 active 状态、label、带匹配 series 的 payload、全部 series 与图表
+format 配置。它支持 React 组件或渲染函数；自定义内容可调用 `formatLabel` 和
+`formatValue` 复用内置的兜底格式化。`ComboChart` 的 payload series 会保留各自的
+`format` 与 `formatOptions`。
+
+不传 `content` 时仍使用内置 Polaris 风格 tooltip。`labelFormatter` 用于其 label，
+`valueFormatter` 用于每项 value，`minWidth` 和 `className` 作用于其内部容器。这些
+选项映射到稳定的 Recharts 概念，但不会开放完整 Recharts escape hatch。
 
 ## 格式化
 
@@ -315,7 +357,7 @@ const chartFormatters = {
 | `xAxis` | `CartesianAxisOptions` | No | - | X 轴展示选项，例如 tick 样式、轴线、刻度线、interval、minTickGap。 |
 | `yAxis` | `CartesianAxisOptions` | No | - | Y 轴展示选项，例如 domain、ticks、width、tick 样式、轴线、刻度线。 |
 | `grid` | `ChartGridOptions` | No | - | 网格线方向和线条样式。 |
-| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip 展示选项，当前支持 `cursor`。 |
+| `tooltip` | `ChartTooltipOptions<TDatum>` | No | - | Tooltip cursor、默认内容格式化与样式，或自定义内容。 |
 | `line` | `ChartLineOptions` | No | - | 折线和面积图的点位选项。 |
 | `mode` | `'line' \| 'area'` | No | `'line'` | 图表模式。 |
 | `height` | `number` | No | `280` | 图表高度，单位 px。 |
@@ -342,6 +384,40 @@ Analytics 风格示例：
   xAxis={{ axisLine: false, tickLine: false, minTickGap: 0 }}
   xKey="date"
   yAxis={{ domain: [0, 800], ticks: [0, 200, 400, 600, 800], width: 56 }}
+/>;
+```
+
+### Tooltip 定制示例
+
+```tsx
+function RevenueTooltip({ active, formatLabel, formatValue, label, payload }) {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div className="analytics-tooltip">
+      <strong>{formatLabel(label)}</strong>
+      {payload.map((item) => (
+        <div key={item.series?.id}>
+          {item.series?.label}: {formatValue(item.value, item.series)}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+<TrendChart
+  data={data}
+  format="currency"
+  series={[{ id: 'grossSales', label: 'Gross sales', data }]}
+  tooltip={{
+    cursor: { stroke: '#9ca3af', strokeDasharray: '3 3' },
+    content: RevenueTooltip,
+    labelFormatter: (label) => `日期：${label}`,
+    valueFormatter: (value, series) => `${series?.label}: ${value}`,
+    minWidth: 180,
+    className: 'analytics-tooltip'
+  }}
+  xKey="date"
 />;
 ```
 
@@ -379,7 +455,7 @@ Analytics 风格示例：
 | `xAxis` | `CartesianAxisOptions` | No | - | X 轴展示选项，例如 tick 样式、轴线、刻度线、interval、minTickGap。 |
 | `yAxis` | `CartesianAxisOptions` | No | - | Y 轴展示选项，例如 domain、ticks、width、tick 样式、轴线、刻度线。 |
 | `grid` | `ChartGridOptions` | No | - | 网格线方向和线条样式。 |
-| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip 展示选项，当前支持 `cursor`。 |
+| `tooltip` | `ChartTooltipOptions<TDatum>` | No | - | Tooltip cursor、默认内容格式化与样式，或自定义内容。 |
 | `height` | `number` | No | `280` | 图表高度，单位 px。 |
 | `format` | `ChartFormat` | No | `'number'` | Y 轴、tooltip、legend 的值格式。 |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Y 值格式化选项。 |
@@ -416,7 +492,7 @@ interface ComboChartSeries<TDatum extends object = ChartDatum>
 | `xAxis` | `CartesianAxisOptions` | No | - | X 轴展示选项，例如 tick 样式、轴线、刻度线、interval、minTickGap。 |
 | `yAxis` | `CartesianAxisOptions` | No | - | Y 轴展示选项，例如 domain、ticks、width、tick 样式、轴线、刻度线。 |
 | `grid` | `ChartGridOptions` | No | - | 网格线方向和线条样式。 |
-| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip 展示选项，当前支持 `cursor`。 |
+| `tooltip` | `ChartTooltipOptions<TDatum, ComboChartSeries<TDatum>>` | No | - | Tooltip cursor、默认内容格式化与样式，或可读取每个 series format 的自定义内容。 |
 | `line` | `ChartLineOptions` | No | - | 仅作用于 line series 的点位选项。 |
 | `height` | `number` | No | `280` | 图表高度，单位 px。 |
 | `format` | `ChartFormat` | No | `'number'` | 基础 Y 轴、tooltip、legend 的值格式。 |

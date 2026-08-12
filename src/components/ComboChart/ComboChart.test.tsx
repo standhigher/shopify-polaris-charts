@@ -86,6 +86,28 @@ describe('ComboChart', () => {
     expect(screen.getByText('Conversion rate')).toBeVisible();
   });
 
+  it('passes per-series format details to custom tooltip content', () => {
+    render(
+      <ComboChart
+        data={orderConversionData}
+        xKey="date"
+        series={[
+          { id: 'orders', label: 'Orders', data: orderConversionData, type: 'bar' },
+          { id: 'conversionRate', label: 'Conversion rate', data: orderConversionData, type: 'line', format: 'percent' }
+        ]}
+        tooltip={{
+          content: ({ format, series }) => {
+            const conversionRate = series.find((item) => item.id === 'conversionRate');
+
+            return `${format}:${conversionRate?.format}`;
+          }
+        }}
+      />
+    );
+
+    expect(screen.getByText('Orders')).toBeVisible();
+  });
+
   it('requires all alternate-axis series to share one format', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 

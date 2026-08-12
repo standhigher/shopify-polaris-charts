@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import { TrendChart } from './TrendChart';
 
@@ -7,6 +7,16 @@ const revenueData = [
   { date: '2026-07-02', grossSales: 14200, orders: 156 },
   { date: '2026-07-03', grossSales: 15890.75, orders: 171 }
 ];
+
+const activateTooltip = (container: HTMLElement) => {
+  const chart = container.querySelector('.recharts-wrapper');
+
+  if (!chart) {
+    throw new Error('Expected the Recharts chart wrapper to render');
+  }
+
+  fireEvent.mouseMove(chart, { clientX: 320, clientY: 120 });
+};
 
 describe('TrendChart', () => {
   it('renders line chart title, legend labels, and formatted values', () => {
@@ -99,6 +109,88 @@ describe('TrendChart', () => {
 
     expect(screen.getByText('Gross sales')).toBeVisible();
     expect(screen.getByText('$12,430.40')).toBeVisible();
+  });
+
+  it('renders the default tooltip when it becomes active', async () => {
+    const { container } = render(
+      <TrendChart
+        data={revenueData}
+        format="currency"
+        xKey="date"
+        series={[{ id: 'grossSales', label: 'Gross sales', data: revenueData }]}
+      />
+    );
+
+    activateTooltip(container);
+
+    expect(await screen.findByText('$14,200.00')).toBeVisible();
+  });
+
+  it('applies label and value formatters to the default tooltip', async () => {
+    const { container } = render(
+      <TrendChart
+        data={revenueData}
+        xKey="date"
+        series={[{ id: 'grossSales', label: 'Gross sales', data: revenueData }]}
+        tooltip={{
+          labelFormatter: (label) => `Tooltip date: ${label}`,
+          valueFormatter: (value, series) => `Formatted ${series?.id}: ${value}`
+        }}
+      />
+    );
+
+    activateTooltip(container);
+
+    expect(await screen.findByText('Tooltip date: 2026-07-02')).toBeVisible();
+    expect(screen.getByText('Formatted grossSales: 14200')).toBeVisible();
+  });
+
+  it('applies className and minWidth to the default tooltip container', async () => {
+    const { container } = render(
+      <TrendChart
+        data={revenueData}
+        xKey="date"
+        series={[{ id: 'grossSales', label: 'Gross sales', data: revenueData }]}
+        tooltip={{
+          className: 'analytics-tooltip',
+          labelFormatter: (label) => `Tooltip date: ${label}`,
+          minWidth: 180
+        }}
+      />
+    );
+
+    activateTooltip(container);
+
+    const label = await screen.findByText('Tooltip date: 2026-07-02');
+
+    expect(label.parentElement).toHaveClass('analytics-tooltip');
+    expect(label.parentElement).toHaveStyle({ minWidth: '180px' });
+  });
+
+  it('passes chart context to custom tooltip content', async () => {
+    const { container } = render(
+      <TrendChart
+        data={revenueData}
+        format="currency"
+        formatOptions={{ currency: 'CAD' }}
+        xFormat="date"
+        xKey="date"
+        series={[{ id: 'grossSales', label: 'Gross sales', data: revenueData }]}
+        tooltip={{
+          content: ({ active, format, formatLabel, formatOptions, label, payload, series, xFormat, xFormatOptions }) => (
+            <div data-testid="custom-tooltip">
+              {`active=${active}; label=${label}; payload=${payload?.[0]?.series?.label}; series=${series[0]?.label}; format=${format}; currency=${formatOptions.currency}; xFormat=${xFormat}; xLocale=${xFormatOptions.locale}; formattedLabel=${formatLabel(label)}`}
+            </div>
+          )
+        }}
+      />
+    );
+
+    activateTooltip(container);
+
+    expect(await screen.findByTestId('custom-tooltip')).toHaveTextContent(
+      'active=true; label=2026-07-02; payload=Gross sales; series=Gross sales; format=currency; currency=CAD; xFormat=date; xLocale=undefined; formattedLabel=Jul 2, 2026'
+    );
   });
 
   it('renders an empty state when data is empty', () => {

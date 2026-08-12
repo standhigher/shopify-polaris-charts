@@ -9,7 +9,10 @@ export type {
   ChartMargin,
   ChartSeries,
   ChartState,
+  ChartTooltipContentProps,
+  ChartTooltipContentRenderer,
   ChartTooltipCursorOptions,
   ChartTooltipOptions,
+  ChartTooltipPayloadItem,
   ChartValue
 } from './chart';

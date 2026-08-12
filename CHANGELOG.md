@@ -4,6 +4,12 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning while the public API is stabilizing.
 
+## Unreleased
+
+### Added
+
+- Added Cartesian chart tooltip content, label and value formatter, minimum-width, and class-name customization for `TrendChart`, `StackedBarChart`, and `ComboChart`.
+
 ## 0.2.0 - 2026-08-11
 
 ### Added

@@ -11,6 +11,8 @@ import type {
   ChartLineOptions,
   ChartMargin,
   ChartSeries,
+  ChartTooltipContentProps,
+  ChartTooltipPayloadItem,
   ChartTooltipOptions,
   ChartValue
 } from '../../types';
@@ -33,7 +35,7 @@ export interface ComboChartProps<TDatum extends object = ChartDatum> {
   xAxis?: CartesianAxisOptions;
   yAxis?: CartesianAxisOptions;
   grid?: ChartGridOptions;
-  tooltip?: ChartTooltipOptions;
+  tooltip?: ChartTooltipOptions<TDatum, ComboChartSeries<TDatum>>;
   line?: ChartLineOptions;
   height?: number;
   format?: ChartFormat;
@@ -43,22 +45,16 @@ export interface ComboChartProps<TDatum extends object = ChartDatum> {
   emptyMessage?: ReactNode;
 }
 
-interface TooltipPayloadItem {
-  color?: string;
-  dataKey?: string;
-  name?: string;
-  value?: string | number | Date | null;
-}
-
-interface ComboTooltipProps {
+interface ComboTooltipProps<TDatum extends object> {
   active?: boolean;
-  label?: string | number | Date;
-  payload?: TooltipPayloadItem[];
-  seriesById: Map<string, ComboChartSeries<Record<string, unknown>>>;
+  label?: ChartValue;
+  payload?: Array<ChartTooltipPayloadItem<TDatum, ComboChartSeries<TDatum>>>;
+  series: Array<ComboChartSeries<TDatum>>;
   format: ChartFormat;
   formatOptions: ChartValueFormatOptions;
   xFormat?: ChartFormat;
   xFormatOptions: ChartValueFormatOptions;
+  tooltip?: ChartTooltipOptions<TDatum, ComboChartSeries<TDatum>>;
 }
 
 const styles: Record<string, CSSProperties> = {
@@ -207,37 +203,67 @@ const getAxisFormatKey = (
   fallbackOptions: ChartValueFormatOptions
 ) => `${getFormatKey(seriesFormat, fallbackFormat)}:${getFormatOptionsKey(seriesOptions ?? fallbackOptions)}`;
 
-function ComboTooltip({
+function ComboTooltip<TDatum extends object>({
   active,
   format,
   formatOptions,
   label,
   payload,
-  seriesById,
+  series,
+  tooltip,
   xFormat,
   xFormatOptions
-}: ComboTooltipProps) {
+}: ComboTooltipProps<TDatum>) {
   if (!active || !payload?.length) {
     return null;
   }
 
+  const payloadWithSeries: Array<ChartTooltipPayloadItem<TDatum, ComboChartSeries<TDatum>>> = payload.map((item) => {
+    const id = String(item.dataKey ?? item.name ?? '');
+
+    return {
+      ...item,
+      series: item.series ?? series.find((seriesItem) => seriesItem.id === id)
+    };
+  });
+  const formatLabel = (value: ChartValue, items = payloadWithSeries) =>
+    tooltip?.labelFormatter?.(value, items) ?? formatCategoryValue(value, xFormat, xFormatOptions);
+  const formatValue = (value: ChartValue, seriesItem?: ComboChartSeries<TDatum>) =>
+    tooltip?.valueFormatter?.(value, seriesItem) ??
+    formatChartValue(
+      value,
+      getSeriesFormat(seriesItem as ComboChartSeries<Record<string, unknown>> | undefined, format),
+      getSeriesFormatOptions(seriesItem as ComboChartSeries<Record<string, unknown>> | undefined, formatOptions)
+    );
+  const contentProps: ChartTooltipContentProps<TDatum, ComboChartSeries<TDatum>> = {
+    active,
+    format,
+    formatLabel,
+    formatOptions,
+    formatValue,
+    label,
+    payload: payloadWithSeries,
+    series,
+    xFormat,
+    xFormatOptions
+  };
+
+  if (tooltip?.content) {
+    const Content = tooltip.content;
+
+    return <Content {...contentProps} />;
+  }
+
   return (
-    <div style={styles.tooltip}>
-      <div style={styles.tooltipLabel}>{formatCategoryValue(label, xFormat, xFormatOptions)}</div>
-      {payload.map((item) => {
+    <div className={tooltip?.className} style={{ ...styles.tooltip, minWidth: tooltip?.minWidth }}>
+      <div style={styles.tooltipLabel}>{formatLabel(label)}</div>
+      {payloadWithSeries.map((item) => {
         const id = String(item.dataKey ?? item.name ?? '');
-        const series = seriesById.get(id);
 
         return (
           <div key={id} style={styles.tooltipRow}>
-            <span>{series?.label ?? item.name ?? id}</span>
-            <strong>
-              {formatChartValue(
-                item.value,
-                getSeriesFormat(series, format),
-                getSeriesFormatOptions(series, formatOptions)
-              )}
-            </strong>
+            <span>{item.series?.label ?? item.name ?? id}</span>
+            <strong>{formatValue(item.value, item.series)}</strong>
           </div>
         );
       })}
@@ -284,9 +310,6 @@ export function ComboChart<TDatum extends object = ChartDatum>({
   const rightAxisFormatKey = alternateAxisFormatKeys[0];
   const rightAxisSeries = seriesWithColor.find(
     (item) => getAxisFormatKey(item.format, item.formatOptions, format, formatOptions) === rightAxisFormatKey
-  );
-  const seriesById = new Map(
-    seriesWithColor.map((item) => [item.id, item as unknown as ComboChartSeries<Record<string, unknown>>])
   );
   const hasData =
     data.length > 0 &&
@@ -349,7 +372,8 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                     <ComboTooltip
                       format={format}
                       formatOptions={formatOptions}
-                      seriesById={seriesById}
+                      series={seriesWithColor}
+                      tooltip={tooltip}
                       xFormat={xFormat}
                       xFormatOptions={xFormatOptions}
                     />

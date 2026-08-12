@@ -76,6 +76,22 @@ describe('StackedBarChart', () => {
     expect(screen.getByText('184')).toBeVisible();
   });
 
+  it('accepts default tooltip formatter options', () => {
+    render(
+      <StackedBarChart
+        data={channelCompositionData}
+        xKey="channel"
+        series={[{ id: 'fulfilled', label: 'Fulfilled', data: channelCompositionData }]}
+        tooltip={{
+          labelFormatter: (label) => `Channel: ${label}`,
+          valueFormatter: (value, series) => `${series?.label}: ${value}`
+        }}
+      />
+    );
+
+    expect(screen.getByText('Fulfilled')).toBeVisible();
+  });
+
   it('renders an empty state when all stacked values are empty', () => {
     render(
       <StackedBarChart

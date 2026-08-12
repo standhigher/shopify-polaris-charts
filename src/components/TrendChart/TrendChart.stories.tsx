@@ -1,7 +1,42 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { ChartSeries, ChartTooltipContentProps } from '../../types';
 
 import { ChartCard } from '../ChartCard';
 import { TrendChart } from './TrendChart';
+
+type SalesTrendDatum = (typeof salesTrendData)[number];
+
+function RevenueTooltip({
+  active,
+  formatLabel,
+  formatValue,
+  label,
+  payload
+}: ChartTooltipContentProps<SalesTrendDatum, ChartSeries<SalesTrendDatum>>) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  return (
+    <div
+      style={{
+        background: '#202223',
+        borderRadius: 8,
+        color: '#ffffff',
+        minWidth: 180,
+        padding: 12
+      }}
+    >
+      <strong>{formatLabel(label)}</strong>
+      {payload.map((item, index) => (
+        <div key={`${item.series?.label ?? 'series'}-${index}`} style={{ display: 'flex', gap: 12, justifyContent: 'space-between', marginTop: 8 }}>
+          <span>{item.series?.label}</span>
+          <span>{formatValue(item.value, item.series)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const salesTrendData = [
   { date: '2026-07-01', grossSales: 12430.4, netSales: 11280.1 },
@@ -84,6 +119,28 @@ export const AnalyticsStyle: Story = {
         xFormat="date"
         xKey="date"
         yAxis={{ domain: [0, 22000], ticks: [0, 5500, 11000, 16500, 22000], width: 64 }}
+      />
+    </ChartCard>
+  )
+};
+
+export const CustomTooltip: Story = {
+  render: () => (
+    <ChartCard title="Revenue trend" subtitle="Last 7 days" metric="$117.3K" trendLabel="+12.4%" state="ready">
+      <TrendChart
+        data={salesTrendData}
+        format="currency"
+        height={300}
+        series={[
+          { id: 'grossSales', label: 'Gross sales', data: salesTrendData },
+          { id: 'netSales', label: 'Net sales', data: salesTrendData }
+        ]}
+        tooltip={{
+          content: RevenueTooltip,
+          cursor: { stroke: '#9ca3af', strokeDasharray: '3 3' }
+        }}
+        xFormat="date"
+        xKey="date"
       />
     </ChartCard>
   )
