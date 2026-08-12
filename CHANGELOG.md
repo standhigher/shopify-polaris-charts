@@ -4,7 +4,7 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning while the public API is stabilizing.
 
-## Unreleased
+## 0.3.0 - 2026-08-12
 
 ### Added
 
