@@ -13,3 +13,8 @@ export type {
   ChartTooltipOptions,
   ChartValue
 } from './chart';
+export type {
+  ComboChartRechartsProps,
+  StackedBarChartRechartsProps,
+  TrendChartRechartsProps
+} from './recharts';

@@ -11,8 +11,17 @@ import type {
   ChartMargin,
   ChartSeries,
   ChartTooltipOptions,
-  ChartValue
+  ChartValue,
+  StackedBarChartRechartsProps
 } from '../../types';
+import {
+  getBarRechartsProps,
+  getCartesianGridRechartsProps,
+  getChartRechartsProps,
+  getTooltipRechartsProps,
+  getXAxisRechartsProps,
+  getYAxisRechartsProps
+} from '../cartesianRechartsProps';
 
 export interface StackedBarChartProps<TDatum extends object = ChartDatum> {
   title?: ReactNode;
@@ -25,6 +34,7 @@ export interface StackedBarChartProps<TDatum extends object = ChartDatum> {
   yAxis?: CartesianAxisOptions;
   grid?: ChartGridOptions;
   tooltip?: ChartTooltipOptions;
+  rechartsProps?: StackedBarChartRechartsProps;
   height?: number;
   format?: ChartFormat;
   formatOptions?: ChartValueFormatOptions;
@@ -205,6 +215,7 @@ export function StackedBarChart<TDatum extends object = ChartDatum>({
   grid,
   height = 280,
   margin,
+  rechartsProps,
   series,
   showLegend = true,
   title,
@@ -233,31 +244,34 @@ export function StackedBarChart<TDatum extends object = ChartDatum>({
         <>
           <div style={{ height, width: '100%' }}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
-              <BarChart data={data} margin={margin}>
-                <CartesianGrid {...resolveGridProps(grid)} />
+              <BarChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} data={data}>
+                <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
                 <XAxis
                   axisLine={xAxis?.axisLine}
-                  dataKey={xKey as never}
                   interval={xAxis?.interval}
                   minTickGap={xAxis?.minTickGap}
                   stroke={chartTheme.axis.lineColor}
                   tick={resolveAxisTick(xAxis)}
-                  tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
                   tickLine={xAxis?.tickLine}
                   ticks={xAxis?.ticks}
+                  {...getXAxisRechartsProps(rechartsProps?.xAxis)}
+                  dataKey={xKey as never}
+                  tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
                 />
                 <YAxis
                   axisLine={yAxis?.axisLine}
                   domain={yAxis?.domain}
                   stroke={chartTheme.axis.lineColor}
                   tick={resolveAxisTick(yAxis)}
-                  tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
                   tickLine={yAxis?.tickLine}
                   ticks={yAxis?.ticks}
                   width={yAxis?.width}
+                  {...getYAxisRechartsProps(rechartsProps?.yAxis)}
+                  tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
                 />
                 <Tooltip
                   cursor={tooltip?.cursor}
+                  {...getTooltipRechartsProps(rechartsProps?.tooltip)}
                   content={
                     <StackedTooltip
                       format={format}
@@ -269,7 +283,14 @@ export function StackedBarChart<TDatum extends object = ChartDatum>({
                   }
                 />
                 {seriesWithColor.map((item) => (
-                  <Bar dataKey={item.id} fill={item.color} key={item.id} name={item.label} stackId="stack" />
+                  <Bar
+                    key={item.id}
+                    {...getBarRechartsProps(rechartsProps?.bar)}
+                    dataKey={item.id}
+                    fill={item.color}
+                    name={item.label}
+                    stackId="stack"
+                  />
                 ))}
               </BarChart>
             </ResponsiveContainer>

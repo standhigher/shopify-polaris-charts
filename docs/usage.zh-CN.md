@@ -35,6 +35,34 @@ fulfilled、pending 和 returned orders。它最适合每个类别共享同一�
 表示 volume，用折线表示 rate 或 benchmark，这样可以看出关系，同时避免暗示两个
 指标使用同一刻度。
 
+## 受控 Recharts props
+
+`TrendChart`、`StackedBarChart` 和 `ComboChart` 提供聚焦的 `rechartsProps`
+escape hatch，用于当前常规组件 props 未覆盖的小范围视觉调整；它不是替换组件数据模型
+或自定义 tooltip 内容的接口。
+
+```tsx
+<TrendChart
+  data={data}
+  rechartsProps={{
+    chart: { margin: { left: -8 } },
+    xAxis: { minTickGap: 0 },
+    yAxis: { width: 56 },
+    tooltip: { cursor: { strokeDasharray: '3 3' } },
+    cartesianGrid: { vertical: false },
+    line: { activeDot: { r: 3 } },
+    area: { fillOpacity: 0.18 }
+  }}
+  series={[{ id: 'grossSales', label: 'Gross sales', data }]}
+  xKey="date"
+/>
+```
+
+`rechartsProps.chart.margin` 的优先级高于顶层 `margin`。图表 `data`、轴的
+`dataKey`/formatter、tooltip 内容和 formatter，以及 series 的 `dataKey`、`name`、
+颜色、类型、堆叠和轴 ID 仍由库控制。`ComboChart` 使用 `bar` 和 `line` 分别调整
+对应类型的系列。
+
 ## 本地预览
 
 运行 Storybook 查看示例：

@@ -12,8 +12,18 @@ import type {
   ChartMargin,
   ChartSeries,
   ChartTooltipOptions,
-  ChartValue
+  ChartValue,
+  ComboChartRechartsProps
 } from '../../types';
+import {
+  getBarRechartsProps,
+  getCartesianGridRechartsProps,
+  getChartRechartsProps,
+  getLineRechartsProps,
+  getTooltipRechartsProps,
+  getXAxisRechartsProps,
+  getYAxisRechartsProps
+} from '../cartesianRechartsProps';
 
 export type ComboChartSeriesType = 'bar' | 'line';
 
@@ -35,6 +45,7 @@ export interface ComboChartProps<TDatum extends object = ChartDatum> {
   grid?: ChartGridOptions;
   tooltip?: ChartTooltipOptions;
   line?: ChartLineOptions;
+  rechartsProps?: ComboChartRechartsProps;
   height?: number;
   format?: ChartFormat;
   formatOptions?: ChartValueFormatOptions;
@@ -254,6 +265,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
   height = 280,
   line,
   margin,
+  rechartsProps,
   series,
   showLegend = true,
   title,
@@ -299,28 +311,30 @@ export function ComboChart<TDatum extends object = ChartDatum>({
         <>
           <div style={{ height, width: '100%' }}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
-              <ComposedChart data={data} margin={margin}>
-                <CartesianGrid {...resolveGridProps(grid)} />
+              <ComposedChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} data={data}>
+                <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
                 <XAxis
                   axisLine={xAxis?.axisLine}
-                  dataKey={xKey as never}
                   interval={xAxis?.interval}
                   minTickGap={xAxis?.minTickGap}
                   stroke={chartTheme.axis.lineColor}
                   tick={resolveAxisTick(xAxis)}
-                  tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
                   tickLine={xAxis?.tickLine}
                   ticks={xAxis?.ticks}
+                  {...getXAxisRechartsProps(rechartsProps?.xAxis)}
+                  dataKey={xKey as never}
+                  tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
                 />
                 <YAxis
                   axisLine={yAxis?.axisLine}
                   domain={yAxis?.domain}
                   stroke={chartTheme.axis.lineColor}
                   tick={resolveAxisTick(yAxis)}
-                  tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
                   tickLine={yAxis?.tickLine}
                   ticks={yAxis?.ticks}
                   width={yAxis?.width}
+                  {...getYAxisRechartsProps(rechartsProps?.yAxis)}
+                  tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
                   yAxisId="left"
                 />
                 {rightAxisSeries ? (
@@ -340,11 +354,13 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                     tickLine={yAxis?.tickLine}
                     ticks={yAxis?.ticks}
                     width={yAxis?.width}
+                    {...getYAxisRechartsProps(rechartsProps?.yAxis)}
                     yAxisId="right"
                   />
                 ) : null}
                 <Tooltip
                   cursor={tooltip?.cursor}
+                  {...getTooltipRechartsProps(rechartsProps?.tooltip)}
                   content={
                     <ComboTooltip
                       format={format}
@@ -358,11 +374,12 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                 {seriesWithColor.map((item) =>
                   item.type === 'bar' ? (
                     <Bar
+                      key={item.id}
+                      radius={[4, 4, 0, 0]}
+                      {...getBarRechartsProps(rechartsProps?.bar)}
                       dataKey={item.id}
                       fill={item.color}
-                      key={item.id}
                       name={item.label}
-                      radius={[4, 4, 0, 0]}
                       yAxisId={
                         getAxisFormatKey(item.format, item.formatOptions, format, formatOptions) === rightAxisFormatKey
                           ? 'right'
@@ -372,12 +389,13 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                   ) : (
                     <Line
                       activeDot={line?.activeDot ?? defaultActiveDot}
-                      dataKey={item.id}
                       dot={line?.dot ?? false}
                       key={item.id}
+                      strokeWidth={2}
+                      {...getLineRechartsProps(rechartsProps?.line)}
+                      dataKey={item.id}
                       name={item.label}
                       stroke={item.color}
-                      strokeWidth={2}
                       type="monotone"
                       yAxisId={
                         getAxisFormatKey(item.format, item.formatOptions, format, formatOptions) === rightAxisFormatKey

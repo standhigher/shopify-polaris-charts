@@ -73,6 +73,9 @@ Runtime peer dependencies:
 | `DonutChartProps` | type | Props for `DonutChart`. |
 | `StackedBarChartProps` | type | Props for `StackedBarChart`. |
 | `ComboChartProps` | type | Props for `ComboChart`. |
+| `TrendChartRechartsProps` | type | Controlled Recharts props for `TrendChart`. |
+| `StackedBarChartRechartsProps` | type | Controlled Recharts props for `StackedBarChart`. |
+| `ComboChartRechartsProps` | type | Controlled Recharts props for `ComboChart`. |
 | `ComboChartSeries` | type | Series item for `ComboChart`. |
 | `ComboChartSeriesType` | type | `'bar' | 'line'`. |
 | `ChartValue` | type | Shared nullable display value. |
@@ -214,8 +217,42 @@ interface ChartLineOptions {
 ```
 
 Use these options for controlled presentation tweaks before reaching for custom
-CSS. They map to stable Recharts concepts, but intentionally do not expose a
-full Recharts escape hatch.
+CSS. They map to stable Recharts concepts.
+
+### Controlled Recharts props
+
+`TrendChart`, `StackedBarChart`, and `ComboChart` expose a controlled
+`rechartsProps` escape hatch for visual Recharts props not represented by the
+standard chart props. The value is based on the corresponding Recharts component
+props, with internal bindings omitted.
+
+```ts
+interface TrendChartRechartsProps {
+  chart?: Omit<ComponentProps<typeof LineChart>, 'children' | 'data' | 'dataKey' | 'layout'>;
+  xAxis?: Omit<ComponentProps<typeof XAxis>, 'children' | 'dataKey' | 'tickFormatter' | 'type' | 'xAxisId' | 'yAxisId'>;
+  yAxis?: Omit<ComponentProps<typeof YAxis>, 'children' | 'dataKey' | 'tickFormatter' | 'type' | 'xAxisId' | 'yAxisId'>;
+  tooltip?: Omit<ComponentProps<typeof Tooltip>, 'axisId' | 'content' | 'formatter' | 'labelFormatter'>;
+  cartesianGrid?: Omit<ComponentProps<typeof CartesianGrid>, 'children' | 'xAxisId' | 'yAxisId'>;
+  line?: Omit<ComponentProps<typeof Line>, 'children' | 'data' | 'dataKey' | 'fill' | 'formatter' | 'name' | 'stroke' | 'type' | 'xAxisId' | 'yAxisId'>;
+  area?: Omit<ComponentProps<typeof Area>, 'children' | 'data' | 'dataKey' | 'fill' | 'formatter' | 'name' | 'stackId' | 'stroke' | 'type' | 'xAxisId' | 'yAxisId'>;
+}
+
+interface StackedBarChartRechartsProps extends Omit<TrendChartRechartsProps, 'area' | 'line'> {
+  bar?: Omit<ComponentProps<typeof Bar>, 'children' | 'data' | 'dataKey' | 'fill' | 'formatter' | 'name' | 'stroke' | 'stackId' | 'xAxisId' | 'yAxisId'>;
+}
+
+interface ComboChartRechartsProps extends Omit<TrendChartRechartsProps, 'area'> {
+  bar?: Omit<ComponentProps<typeof Bar>, 'children' | 'data' | 'dataKey' | 'fill' | 'formatter' | 'name' | 'stroke' | 'stackId' | 'xAxisId' | 'yAxisId'>;
+}
+```
+
+`chart.margin` takes precedence over the chart component's top-level `margin`.
+User-provided safe visual props take precedence over library defaults. The
+library always controls the chart `data`, axis bindings, axis type, and
+formatters; tooltip axis/content/formatters; and series `dataKey`, `name`,
+`fill`, `stroke`, `type`, `stackId`, and `yAxisId`. Runtime sanitization removes these protected keys even
+when callers bypass TypeScript. Tooltip custom content is intentionally not
+supported through this API.
 
 ## Formatting
 
@@ -402,6 +439,7 @@ const data = [
 | `grid` | `ChartGridOptions` | No | - | Cartesian grid visibility and stroke options. |
 | `tooltip` | `ChartTooltipOptions` | No | - | Tooltip presentation options. Currently supports `cursor`. |
 | `line` | `ChartLineOptions` | No | - | Line and area dot options. |
+| `rechartsProps` | `TrendChartRechartsProps` | No | - | Controlled Recharts visual props for chart, axes, tooltip, grid, line, and area. `chart.margin` overrides `margin`. |
 | `mode` | `'line' \| 'area'` | No | `'line'` | Chart renderer mode. |
 | `height` | `number` | No | `280` | Chart viewport height in pixels. |
 | `format` | `ChartFormat` | No | `'number'` | Y-axis, tooltip, and legend value format. |
@@ -512,6 +550,7 @@ const data = [
 | `yAxis` | `CartesianAxisOptions` | No | - | Y-axis presentation options such as domain, ticks, width, tick style, axis line, and tick line. |
 | `grid` | `ChartGridOptions` | No | - | Cartesian grid visibility and stroke options. |
 | `tooltip` | `ChartTooltipOptions` | No | - | Tooltip presentation options. Currently supports `cursor`. |
+| `rechartsProps` | `StackedBarChartRechartsProps` | No | - | Controlled Recharts visual props for chart, axes, tooltip, grid, and bars. `chart.margin` overrides `margin`. |
 | `height` | `number` | No | `280` | Chart viewport height in pixels. |
 | `format` | `ChartFormat` | No | `'number'` | Y-axis, tooltip, and legend value format. |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for Y values. |
@@ -589,6 +628,7 @@ interface ComboChartSeries<TDatum extends object = ChartDatum>
 | `grid` | `ChartGridOptions` | No | - | Cartesian grid visibility and stroke options. |
 | `tooltip` | `ChartTooltipOptions` | No | - | Tooltip presentation options. Currently supports `cursor`. |
 | `line` | `ChartLineOptions` | No | - | Dot options for `line` series only. |
+| `rechartsProps` | `ComboChartRechartsProps` | No | - | Controlled Recharts visual props for chart, axes, tooltip, grid, bars, and lines. `chart.margin` overrides `margin`. |
 | `height` | `number` | No | `280` | Chart viewport height in pixels. |
 | `format` | `ChartFormat` | No | `'number'` | Base Y-axis, tooltip, and legend value format. |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for base Y values. |
