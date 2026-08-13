@@ -4,6 +4,12 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning while the public API is stabilizing.
 
+## 0.4.0 - 2026-08-13
+
+### Added
+
+- Added controlled Recharts props escape hatches for `TrendChart`, `StackedBarChart`, and `ComboChart`, including protected chart data, series identity, axis identity, and tooltip content bindings.
+
 ## 0.3.0 - 2026-08-12
 
 ### Added

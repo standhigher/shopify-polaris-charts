@@ -24,8 +24,18 @@ import type {
   ChartTooltipContentProps,
   ChartTooltipPayloadItem,
   ChartTooltipOptions,
-  ChartValue
+  ChartValue,
+  TrendChartRechartsProps
 } from '../../types';
+import {
+  getAreaRechartsProps,
+  getCartesianGridRechartsProps,
+  getChartRechartsProps,
+  getLineRechartsProps,
+  getTooltipRechartsProps,
+  getXAxisRechartsProps,
+  getYAxisRechartsProps
+} from '../cartesianRechartsProps';
 
 type TrendMode = 'line' | 'area';
 
@@ -41,6 +51,7 @@ export interface TrendChartProps<TDatum extends object = ChartDatum> {
   grid?: ChartGridOptions;
   tooltip?: ChartTooltipOptions<TDatum>;
   line?: ChartLineOptions;
+  rechartsProps?: TrendChartRechartsProps;
   mode?: TrendMode;
   height?: number;
   format?: ChartFormat;
@@ -251,6 +262,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
   line,
   margin,
   mode = 'line',
+  rechartsProps,
   series,
   showLegend = true,
   title,
@@ -277,31 +289,34 @@ export function TrendChart<TDatum extends object = ChartDatum>({
           <div style={{ height, width: '100%' }}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
               {mode === 'area' ? (
-                <AreaChart data={data} margin={margin}>
-                  <CartesianGrid {...resolveGridProps(grid)} />
+                <AreaChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} data={data}>
+                  <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
                   <XAxis
                     axisLine={xAxis?.axisLine}
-                    dataKey={xKey as never}
                     interval={xAxis?.interval}
                     minTickGap={xAxis?.minTickGap}
                     stroke={chartTheme.axis.lineColor}
                     tick={resolveAxisTick(xAxis)}
-                    tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
                     tickLine={xAxis?.tickLine}
                     ticks={xAxis?.ticks}
+                    {...getXAxisRechartsProps(rechartsProps?.xAxis)}
+                    dataKey={xKey as never}
+                    tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
                   />
                   <YAxis
                     axisLine={yAxis?.axisLine}
                     domain={yAxis?.domain}
                     stroke={chartTheme.axis.lineColor}
                     tick={resolveAxisTick(yAxis)}
-                    tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
                     tickLine={yAxis?.tickLine}
                     ticks={yAxis?.ticks}
                     width={yAxis?.width}
+                    {...getYAxisRechartsProps(rechartsProps?.yAxis)}
+                    tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
                   />
                   <Tooltip
                     cursor={tooltip?.cursor}
+                    {...getTooltipRechartsProps(rechartsProps?.tooltip)}
                     content={
                       <TrendTooltip
                         format={format}
@@ -316,44 +331,48 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                   {seriesWithColor.map((item) => (
                     <Area
                       activeDot={line?.activeDot ?? defaultActiveDot}
-                      dataKey={item.id}
                       dot={line?.dot ?? false}
-                      fill={item.color}
                       fillOpacity={0.12}
                       key={item.id}
+                      strokeWidth={2}
+                      {...getAreaRechartsProps(rechartsProps?.area)}
+                      dataKey={item.id}
+                      fill={item.color}
                       name={item.label}
                       stroke={item.color}
-                      strokeWidth={2}
                       type="monotone"
                     />
                   ))}
                 </AreaChart>
               ) : (
-                <LineChart data={data} margin={margin}>
-                  <CartesianGrid {...resolveGridProps(grid)} />
+                <LineChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} data={data}>
+                  <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
                   <XAxis
                     axisLine={xAxis?.axisLine}
-                    dataKey={xKey as never}
                     interval={xAxis?.interval}
                     minTickGap={xAxis?.minTickGap}
                     stroke={chartTheme.axis.lineColor}
                     tick={resolveAxisTick(xAxis)}
-                    tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
                     tickLine={xAxis?.tickLine}
                     ticks={xAxis?.ticks}
+                    {...getXAxisRechartsProps(rechartsProps?.xAxis)}
+                    dataKey={xKey as never}
+                    tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
                   />
                   <YAxis
                     axisLine={yAxis?.axisLine}
                     domain={yAxis?.domain}
                     stroke={chartTheme.axis.lineColor}
                     tick={resolveAxisTick(yAxis)}
-                    tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
                     tickLine={yAxis?.tickLine}
                     ticks={yAxis?.ticks}
                     width={yAxis?.width}
+                    {...getYAxisRechartsProps(rechartsProps?.yAxis)}
+                    tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
                   />
                   <Tooltip
                     cursor={tooltip?.cursor}
+                    {...getTooltipRechartsProps(rechartsProps?.tooltip)}
                     content={
                       <TrendTooltip
                         format={format}
@@ -368,12 +387,13 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                   {seriesWithColor.map((item) => (
                     <Line
                       activeDot={line?.activeDot ?? defaultActiveDot}
-                      dataKey={item.id}
                       dot={line?.dot ?? false}
                       key={item.id}
+                      strokeWidth={2}
+                      {...getLineRechartsProps(rechartsProps?.line)}
+                      dataKey={item.id}
                       name={item.label}
                       stroke={item.color}
-                      strokeWidth={2}
                       type="monotone"
                     />
                   ))}

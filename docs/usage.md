@@ -24,6 +24,35 @@ Use `StackedBarChart` when comparing category totals and their composition at th
 
 Use `ComboChart` when two related measures need to be read together, such as order volume and conversion rate. Use bars for volume and a line for the rate or benchmark so the relationship is visible without implying both measures use the same scale.
 
+## Controlled Recharts props
+
+`TrendChart`, `StackedBarChart`, and `ComboChart` accept a focused
+`rechartsProps` escape hatch for visual options that the regular component props
+do not yet cover. It is intended for small, version-tolerant presentation
+adjustments, not for replacing the component's data model or tooltip content.
+
+```tsx
+<TrendChart
+  data={data}
+  rechartsProps={{
+    chart: { margin: { left: -8 } },
+    xAxis: { minTickGap: 0 },
+    yAxis: { width: 56 },
+    tooltip: { cursor: { strokeDasharray: '3 3' } },
+    cartesianGrid: { vertical: false },
+    line: { activeDot: { r: 3 } },
+    area: { fillOpacity: 0.18 }
+  }}
+  series={[{ id: 'grossSales', label: 'Gross sales', data }]}
+  xKey="date"
+/>
+```
+
+`rechartsProps.chart.margin` overrides the top-level `margin`. The library
+continues to own chart `data`, axis `dataKey`/formatters, tooltip content and
+formatters, and series `dataKey`, `name`, colors, type, stack, and axis IDs.
+For `ComboChart`, use `bar` and `line` to style their respective series.
+
 ## Local Preview
 
 Run Storybook to inspect the examples:

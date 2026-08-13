@@ -75,6 +75,9 @@ import {
 | `DonutChartProps` | type | `DonutChart` props。 |
 | `StackedBarChartProps` | type | `StackedBarChart` props。 |
 | `ComboChartProps` | type | `ComboChart` props。 |
+| `TrendChartRechartsProps` | type | `TrendChart` 的受控 Recharts props。 |
+| `StackedBarChartRechartsProps` | type | `StackedBarChart` 的受控 Recharts props。 |
+| `ComboChartRechartsProps` | type | `ComboChart` 的受控 Recharts props。 |
 | `ComboChartSeries` | type | `ComboChart` series 项。 |
 | `ComboChartSeriesType` | type | `'bar' | 'line'`。 |
 | `ChartValue` | type | 共享可空展示值。 |
@@ -223,6 +226,41 @@ format 配置。它支持 React 组件或渲染函数；自定义内容可调用
 `valueFormatter` 用于每项 value，`minWidth` 和 `className` 作用于其内部容器。这些
 选项映射到稳定的 Recharts 概念，但不会开放完整 Recharts escape hatch。
 
+### 受控 Recharts props
+
+`TrendChart`、`StackedBarChart` 和 `ComboChart` 提供受控的 `rechartsProps`
+escape hatch，用于常规图表 props 尚未表达的 Recharts 视觉参数。其类型基于对应的
+Recharts 组件 props，并移除了内部绑定字段。
+
+```ts
+interface TrendChartRechartsProps {
+  chart?: Omit<ComponentProps<typeof LineChart>, 'children' | 'data' | 'dataKey' | 'layout'>;
+  xAxis?: Omit<ComponentProps<typeof XAxis>, 'children' | 'dataKey' | 'tickFormatter' | 'type' | 'xAxisId' | 'yAxisId'>;
+  yAxis?: Omit<ComponentProps<typeof YAxis>, 'children' | 'dataKey' | 'tickFormatter' | 'type' | 'xAxisId' | 'yAxisId'>;
+  tooltip?: Omit<ComponentProps<typeof Tooltip>, 'axisId' | 'content' | 'formatter' | 'labelFormatter'>;
+  cartesianGrid?: Omit<ComponentProps<typeof CartesianGrid>, 'children' | 'xAxisId' | 'yAxisId'>;
+  line?: Omit<ComponentProps<typeof Line>, 'children' | 'data' | 'dataKey' | 'fill' | 'formatter' | 'name' | 'stroke' | 'type' | 'xAxisId' | 'yAxisId'>;
+  area?: Omit<ComponentProps<typeof Area>, 'children' | 'data' | 'dataKey' | 'fill' | 'formatter' | 'name' | 'stackId' | 'stroke' | 'type' | 'xAxisId' | 'yAxisId'>;
+}
+
+interface StackedBarChartRechartsProps extends Omit<TrendChartRechartsProps, 'area' | 'line'> {
+  bar?: Omit<ComponentProps<typeof Bar>, 'children' | 'data' | 'dataKey' | 'fill' | 'formatter' | 'name' | 'stroke' | 'stackId' | 'xAxisId' | 'yAxisId'>;
+}
+
+interface ComboChartRechartsProps extends Omit<TrendChartRechartsProps, 'area'> {
+  bar?: Omit<ComponentProps<typeof Bar>, 'children' | 'data' | 'dataKey' | 'fill' | 'formatter' | 'name' | 'stroke' | 'stackId' | 'xAxisId' | 'yAxisId'>;
+}
+```
+
+`chart.margin` 的优先级高于图表组件顶层 `margin`。用户的安全视觉 props 会覆盖组件
+默认值。库始终控制图表 `data`、轴绑定/类型和 formatter、tooltip 轴/内容/formatter，以及
+series 的 `dataKey`、`name`、`fill`、`stroke`、`type`、`stackId` 和 `yAxisId`。即使
+调用方绕过 TypeScript，运行时也会移除这些受保护字段。此 API 有意不支持 tooltip
+custom content。
+
+如需自定义 tooltip 内容，请使用顶层 `tooltip.content`。`rechartsProps.tooltip`
+有意不接受 custom content，以保留图表的 tooltip 数据和格式化集成。
+
 ## 格式化
 
 ### Formatter option 类型
@@ -359,6 +397,7 @@ const chartFormatters = {
 | `grid` | `ChartGridOptions` | No | - | 网格线方向和线条样式。 |
 | `tooltip` | `ChartTooltipOptions<TDatum>` | No | - | Tooltip cursor、默认内容格式化与样式，或自定义内容。 |
 | `line` | `ChartLineOptions` | No | - | 折线和面积图的点位选项。 |
+| `rechartsProps` | `TrendChartRechartsProps` | No | - | 图表、轴、tooltip、网格、折线和面积图的受控 Recharts 视觉 props。`chart.margin` 覆盖 `margin`。 |
 | `mode` | `'line' \| 'area'` | No | `'line'` | 图表模式。 |
 | `height` | `number` | No | `280` | 图表高度，单位 px。 |
 | `format` | `ChartFormat` | No | `'number'` | Y 轴、tooltip、legend 的值格式。 |
@@ -456,6 +495,7 @@ function RevenueTooltip({ active, formatLabel, formatValue, label, payload }) {
 | `yAxis` | `CartesianAxisOptions` | No | - | Y 轴展示选项，例如 domain、ticks、width、tick 样式、轴线、刻度线。 |
 | `grid` | `ChartGridOptions` | No | - | 网格线方向和线条样式。 |
 | `tooltip` | `ChartTooltipOptions<TDatum>` | No | - | Tooltip cursor、默认内容格式化与样式，或自定义内容。 |
+| `rechartsProps` | `StackedBarChartRechartsProps` | No | - | 图表、轴、tooltip、网格和柱状图的受控 Recharts 视觉 props。`chart.margin` 覆盖 `margin`。 |
 | `height` | `number` | No | `280` | 图表高度，单位 px。 |
 | `format` | `ChartFormat` | No | `'number'` | Y 轴、tooltip、legend 的值格式。 |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Y 值格式化选项。 |
@@ -494,6 +534,7 @@ interface ComboChartSeries<TDatum extends object = ChartDatum>
 | `grid` | `ChartGridOptions` | No | - | 网格线方向和线条样式。 |
 | `tooltip` | `ChartTooltipOptions<TDatum, ComboChartSeries<TDatum>>` | No | - | Tooltip cursor、默认内容格式化与样式，或可读取每个 series format 的自定义内容。 |
 | `line` | `ChartLineOptions` | No | - | 仅作用于 line series 的点位选项。 |
+| `rechartsProps` | `ComboChartRechartsProps` | No | - | 图表、轴、tooltip、网格、柱状和折线 series 的受控 Recharts 视觉 props。`chart.margin` 覆盖 `margin`。 |
 | `height` | `number` | No | `280` | 图表高度，单位 px。 |
 | `format` | `ChartFormat` | No | `'number'` | 基础 Y 轴、tooltip、legend 的值格式。 |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | 基础 Y 值格式化选项。 |

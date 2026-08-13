@@ -145,3 +145,27 @@ export const CustomTooltip: Story = {
     </ChartCard>
   )
 };
+
+export const ControlledRechartsProps: Story = {
+  render: () => (
+    <ChartCard title="Revenue trend" subtitle="Controlled Recharts props" metric="$117.3K" state="ready">
+      <TrendChart
+        data={salesTrendData}
+        format="currency"
+        height={260}
+        rechartsProps={{
+          area: { fillOpacity: 0.18 },
+          cartesianGrid: { vertical: false },
+          chart: { margin: { left: -8, right: 8 } },
+          line: { activeDot: { r: 3 }, strokeDasharray: '4 2' },
+          tooltip: { cursor: { strokeDasharray: '3 3' } },
+          xAxis: { minTickGap: 0 },
+          yAxis: { width: 56 }
+        }}
+        series={[{ id: 'grossSales', label: 'Gross sales', data: salesTrendData, color: '#008060' }]}
+        xFormat="date"
+        xKey="date"
+      />
+    </ChartCard>
+  )
+};
