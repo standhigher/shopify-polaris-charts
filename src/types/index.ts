@@ -5,6 +5,7 @@ export type {
   ChartDotOptions,
   ChartFormat,
   ChartGridOptions,
+  ChartInlineState,
   ChartLineOptions,
   ChartMargin,
   ChartSeries,
@@ -14,7 +15,9 @@ export type {
   ChartTooltipCursorOptions,
   ChartTooltipOptions,
   ChartTooltipPayloadItem,
-  ChartValue
+  ChartValue,
+  TrendChartRevealOptions,
+  TrendChartSkeletonOptions
 } from './chart';
 export type {
   ComboChartRechartsProps,

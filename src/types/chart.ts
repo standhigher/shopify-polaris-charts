@@ -15,6 +15,9 @@ export interface ChartSeries<TDatum extends object = ChartDatum> {
   label: string;
   data: TDatum[];
   color?: string;
+  opacity?: number;
+  strokeDasharray?: string | number;
+  strokeWidth?: number;
 }
 
 export type ChartFormat = 'number' | 'currency' | 'percent' | 'compact' | 'date';
@@ -26,6 +29,20 @@ export type ChartState =
   | 'no-permission'
   | 'stale'
   | 'ready';
+
+export type ChartInlineState = 'loading' | 'empty' | 'error' | 'ready';
+
+export interface TrendChartSkeletonOptions {
+  label?: ReactNode;
+  lineCount?: number;
+}
+
+export interface TrendChartRevealOptions {
+  active?: boolean;
+  delayMs?: number;
+  durationMs?: number;
+  label?: ReactNode;
+}
 
 export interface ChartMargin {
   top?: number;

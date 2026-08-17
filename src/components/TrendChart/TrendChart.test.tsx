@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { TrendChart } from './TrendChart';
 
@@ -206,5 +207,55 @@ describe('TrendChart', () => {
 
     expect(screen.getByRole('heading', { name: 'Shopify revenue trend' })).toBeVisible();
     expect(screen.getByText('No data available')).toBeVisible();
+  });
+
+  it('renders an inline chart error state with a retry action', () => {
+    const onRetry = vi.fn();
+
+    render(
+      <TrendChart
+        data={revenueData}
+        errorMessage="Revenue API unavailable"
+        onRetry={onRetry}
+        retryLabel="Try again"
+        state="error"
+        xKey="date"
+        series={[{ id: 'grossSales', label: 'Gross sales', data: revenueData }]}
+      />
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Unable to load chart');
+    expect(screen.getByText('Revenue API unavailable')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a line-chart skeleton for the chart loading state', () => {
+    render(
+      <TrendChart
+        data={revenueData}
+        loadingLabel="Loading revenue trend"
+        state="loading"
+        xKey="date"
+        series={[{ id: 'grossSales', label: 'Gross sales', data: revenueData }]}
+      />
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Loading revenue trend');
+    expect(screen.getAllByTestId('trend-chart-skeleton-line')).toHaveLength(3);
+  });
+
+  it('keeps the chart mounted behind the reveal overlay', () => {
+    const { container } = render(
+      <TrendChart
+        data={revenueData}
+        reveal={{ active: true, label: 'Preparing chart' }}
+        xKey="date"
+        series={[{ id: 'grossSales', label: 'Gross sales', data: revenueData }]}
+      />
+    );
+
+    expect(container.querySelector('.recharts-wrapper')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Preparing chart');
   });
 });

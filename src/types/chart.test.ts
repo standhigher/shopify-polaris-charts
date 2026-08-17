@@ -10,10 +10,14 @@ describe('chart types', () => {
     const series: ChartSeries<SalesDatum> = {
       id: 'revenue',
       label: 'Revenue',
-      data: [{ date: '2026-08-08', revenue: 1200 }]
+      data: [{ date: '2026-08-08', revenue: 1200 }],
+      opacity: 0.72,
+      strokeDasharray: '4 4',
+      strokeWidth: 2
     };
 
     expect(series.data[0].revenue).toBe(1200);
+    expect(series.strokeDasharray).toBe('4 4');
   });
 
   it('exposes shared tooltip content and formatter options', () => {

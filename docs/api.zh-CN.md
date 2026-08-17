@@ -10,6 +10,8 @@
 ```ts
 import {
   ChartCard,
+  ChartRevealRegion,
+  ChartSkeletonLayout,
   ComboChart,
   DonutChart,
   StackedBarChart,
@@ -29,6 +31,7 @@ import {
   type ChartDotOptions,
   type ChartFormat,
   type ChartGridOptions,
+  type ChartInlineState,
   type ChartLineOptions,
   type ChartMargin,
   type ChartTheme,
@@ -39,7 +42,9 @@ import {
   type ChartTooltipPayloadItem,
   type ChartValueFormatOptions,
   type ChartSeries,
-  type ChartState
+  type ChartState,
+  type TrendChartRevealOptions,
+  type TrendChartSkeletonOptions
 } from '@standhigher/charts';
 ```
 
@@ -57,6 +62,8 @@ import {
 | Export | 类型 | 说明 |
 |---|---|---|
 | `ChartCard` | component | Polaris 风格仪表盘卡片外壳，内置图表状态。 |
+| `ChartSkeletonLayout` | component | 仪表盘级 skeleton 容器，支持图表区域独立 reveal。 |
+| `ChartRevealRegion` | component | 区域包装组件，未 ready 时显示区域 skeleton，ready 后显示 children。 |
 | `TrendChart` | component | 趋势折线图或面积图。 |
 | `DonutChart` | component | 用于构成占比的环形图。 |
 | `StackedBarChart` | component | 用于类别组成对比的堆叠柱状图。 |
@@ -85,6 +92,9 @@ import {
 | `ChartSeries` | type | 共享 series 形状。 |
 | `ChartFormat` | type | 值格式 union。 |
 | `ChartState` | type | `ChartCard` 状态 union。 |
+| `ChartInlineState` | type | `TrendChart` 使用的图表区域状态 union。 |
+| `TrendChartSkeletonOptions` | type | `TrendChart` 图表区域 skeleton 选项。 |
+| `TrendChartRevealOptions` | type | `TrendChart` reveal overlay 选项。 |
 | `ChartMargin` | type | Cartesian 图表 margin 选项。 |
 | `CartesianAxisOptions` | type | Cartesian X/Y 轴展示选项。 |
 | `ChartGridOptions` | type | Cartesian 网格线展示选项。 |
@@ -115,6 +125,9 @@ interface ChartSeries<TDatum extends object = ChartDatum> {
   label: string;
   data: TDatum[];
   color?: string;
+  opacity?: number;
+  strokeDasharray?: string | number;
+  strokeWidth?: number;
 }
 
 type ChartFormat = 'number' | 'currency' | 'percent' | 'compact' | 'date';
@@ -126,6 +139,20 @@ type ChartState =
   | 'no-permission'
   | 'stale'
   | 'ready';
+
+type ChartInlineState = 'loading' | 'empty' | 'error' | 'ready';
+
+interface TrendChartSkeletonOptions {
+  label?: ReactNode;
+  lineCount?: number;
+}
+
+interface TrendChartRevealOptions {
+  active?: boolean;
+  delayMs?: number;
+  durationMs?: number;
+  label?: ReactNode;
+}
 
 interface ChartMargin {
   top?: number;
@@ -215,7 +242,9 @@ interface ChartLineOptions {
 ```
 
 `ChartSeries.color` 当前是 series 级别颜色，会影响整条线、整组柱子或整个堆叠
-片段。当前公开 API 还不支持逐根柱子或逐个点单独设色。
+片段。`ChartSeries.strokeDasharray`、`strokeWidth` 和 `opacity` 可用于单条折线或
+面积图 series 的视觉覆盖，例如 current 为实线、previous 为虚线。当前公开 API 还不支持
+逐根柱子或逐个点单独设色。
 
 `content` 可拿到 active 状态、label、带匹配 series 的 payload、全部 series 与图表
 format 配置。它支持 React 组件或渲染函数；自定义内容可调用 `formatLabel` 和
@@ -405,8 +434,94 @@ const chartFormatters = {
 | `xFormat` | `ChartFormat` | No | - | X 轴和 tooltip label 格式。 |
 | `xFormatOptions` | `ChartValueFormatOptions` | No | `{}` | X 值格式化选项。 |
 | `emptyMessage` | `ReactNode` | No | `'No data available'` | 无可渲染数据时的空状态内容。 |
+| `state` | `ChartInlineState` | No | `'ready'` | 图表区域状态。适合 `TrendChart` 嵌入已有业务卡片时使用。 |
+| `errorMessage` | `ReactNode` | No | - | 图表区域 error 面板的补充说明。 |
+| `onRetry` | `() => void` | No | - | 传入后在 error 面板渲染重试按钮。 |
+| `retryLabel` | `ReactNode` | No | `'Retry'` | 重试按钮文案。 |
+| `loadingLabel` | `ReactNode` | No | `'Loading chart'` | 图表 skeleton 的可访问文案。 |
+| `skeleton` | `boolean \| TrendChartSkeletonOptions` | No | - | 图表 skeleton 选项，例如 `lineCount` 和自定义 label。 |
+| `reveal` | `boolean \| TrendChartRevealOptions` | No | - | 保持图表挂载，并在图表区域上方显示 reveal overlay。 |
 
 AI 生成代码时，应确保 `series[].id` 是 `data` 每项里的真实字段名。
+
+Revenue current/previous 虚线对比示例：
+
+```tsx
+<TrendChart
+  data={data}
+  format="currency"
+  series={[
+    { id: 'current', label: 'Current period', data, color: '#008060' },
+    {
+      id: 'previous',
+      label: 'Previous period',
+      data,
+      color: '#6d7175',
+      opacity: 0.72,
+      strokeDasharray: '4 4',
+      strokeWidth: 2
+    }
+  ]}
+  xKey="date"
+/>;
+```
+
+图表区域 error/retry 示例：
+
+```tsx
+<TrendChart
+  data={data}
+  errorMessage="Revenue API unavailable"
+  onRetry={reloadRevenue}
+  retryLabel="Try again"
+  state="error"
+  xKey="date"
+  series={[{ id: 'current', label: 'Current period', data }]}
+/>;
+```
+
+图表区域 loading/reveal 示例：
+
+```tsx
+<TrendChart
+  data={data}
+  loadingLabel="Loading revenue trend"
+  state="loading"
+  xKey="date"
+  series={[{ id: 'current', label: 'Current period', data }]}
+/>;
+
+<TrendChart
+  data={data}
+  reveal={{ active: isPreparing, label: 'Preparing chart', durationMs: 240 }}
+  xKey="date"
+  series={[{ id: 'current', label: 'Current period', data }]}
+/>;
+```
+
+## ChartSkeletonLayout 和 ChartRevealRegion
+
+当一个 dashboard 中多个图表依赖不同 API，需要分区逐步 reveal 时使用。
+
+| Component | Prop | Type | Required | Default | 说明 |
+|---|---|---:|---:|---|---|
+| `ChartSkeletonLayout` | `ariaLabel` | `string` | No | `'Charts loading'` | 仪表盘 loading 容器的可访问标签。 |
+| `ChartSkeletonLayout` | `children` | `ReactNode` | Yes | - | reveal regions 或图表卡片。 |
+| `ChartRevealRegion` | `label` | `string` | Yes | - | 区域可访问标签，也是默认 skeleton 文案前缀。 |
+| `ChartRevealRegion` | `ready` | `boolean` | Yes | - | 为 true 时渲染 children，否则显示区域 skeleton。 |
+| `ChartRevealRegion` | `children` | `ReactNode` | Yes | - | ready 后展示的内容。 |
+| `ChartRevealRegion` | `skeleton` | `ReactNode` | No | - | 自定义区域 skeleton 内容。 |
+
+```tsx
+<ChartSkeletonLayout ariaLabel="Revenue dashboard loading">
+  <ChartRevealRegion label="Revenue chart" ready={revenueReady}>
+    <TrendChart {...revenueChartProps} />
+  </ChartRevealRegion>
+  <ChartRevealRegion label="Orders chart" ready={ordersReady}>
+    <TrendChart {...ordersChartProps} />
+  </ChartRevealRegion>
+</ChartSkeletonLayout>
+```
 
 Analytics 风格示例：
 

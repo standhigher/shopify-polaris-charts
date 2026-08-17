@@ -11,6 +11,8 @@ contracts, and implementation notes.
 ```ts
 import {
   ChartCard,
+  ChartRevealRegion,
+  ChartSkeletonLayout,
   ComboChart,
   DonutChart,
   StackedBarChart,
@@ -30,6 +32,7 @@ import {
   type ChartDotOptions,
   type ChartFormat,
   type ChartGridOptions,
+  type ChartInlineState,
   type ChartLineOptions,
   type ChartMargin,
   type ChartTheme,
@@ -40,7 +43,9 @@ import {
   type ChartTooltipPayloadItem,
   type ChartValueFormatOptions,
   type ChartSeries,
-  type ChartState
+  type ChartState,
+  type TrendChartRevealOptions,
+  type TrendChartSkeletonOptions
 } from '@standhigher/charts';
 ```
 
@@ -58,6 +63,8 @@ Runtime peer dependencies:
 | Export | Kind | Description |
 |---|---|---|
 | `ChartCard` | component | Polaris-style dashboard card shell with built-in chart states. |
+| `ChartSkeletonLayout` | component | Dashboard-level skeleton container for independently revealed chart regions. |
+| `ChartRevealRegion` | component | Region wrapper that swaps a chart-area skeleton for ready children. |
 | `TrendChart` | component | Line or area chart for trends. |
 | `DonutChart` | component | Donut chart for parts-of-a-whole data. |
 | `StackedBarChart` | component | Stacked bar chart for category composition. |
@@ -86,6 +93,9 @@ Runtime peer dependencies:
 | `ChartSeries` | type | Shared series shape. |
 | `ChartFormat` | type | Value format union. |
 | `ChartState` | type | `ChartCard` state union. |
+| `ChartInlineState` | type | Chart-area-only state union used by `TrendChart`. |
+| `TrendChartSkeletonOptions` | type | Options for the `TrendChart` chart-area skeleton. |
+| `TrendChartRevealOptions` | type | Options for the `TrendChart` reveal overlay. |
 | `ChartMargin` | type | Cartesian chart margin options. |
 | `CartesianAxisOptions` | type | Cartesian X/Y axis presentation options. |
 | `ChartGridOptions` | type | Cartesian grid presentation options. |
@@ -131,6 +141,9 @@ interface ChartSeries<TDatum extends object = ChartDatum> {
   label: string;
   data: TDatum[];
   color?: string;
+  opacity?: number;
+  strokeDasharray?: string | number;
+  strokeWidth?: number;
 }
 ```
 
@@ -140,6 +153,9 @@ interface ChartSeries<TDatum extends object = ChartDatum> {
 | `label` | `string` | Yes | Human-readable legend and tooltip label. |
 | `data` | `TDatum[]` | Yes | Series-owned data. Current chart components read from the chart-level `data` prop; keep this aligned for API consistency. |
 | `color` | `string` | No | CSS color for the whole series. Defaults to `chartTheme.palette[index]`. |
+| `opacity` | `number` | No | Series-level opacity for Cartesian line and area renderers. |
+| `strokeDasharray` | `string \| number` | No | Series-level dashed stroke pattern, useful for current vs previous comparisons. |
+| `strokeWidth` | `number` | No | Series-level stroke width. Overrides the global `rechartsProps.line.strokeWidth` or `rechartsProps.area.strokeWidth`. |
 
 Important: `color` is currently series-level. Per-bar or per-point colors are
 not part of the public API yet.
@@ -160,6 +176,20 @@ type ChartState =
   | 'no-permission'
   | 'stale'
   | 'ready';
+
+type ChartInlineState = 'loading' | 'empty' | 'error' | 'ready';
+
+interface TrendChartSkeletonOptions {
+  label?: ReactNode;
+  lineCount?: number;
+}
+
+interface TrendChartRevealOptions {
+  active?: boolean;
+  delayMs?: number;
+  durationMs?: number;
+  label?: ReactNode;
+}
 ```
 
 ### Chart presentation options
@@ -496,6 +526,13 @@ const data = [
 | `xFormat` | `ChartFormat` | No | - | Optional X-axis and tooltip label format. |
 | `xFormatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for X values. |
 | `emptyMessage` | `ReactNode` | No | `'No data available'` | Empty-state content when no series values are renderable. |
+| `state` | `ChartInlineState` | No | `'ready'` | Chart-area-only state. Use this when `TrendChart` is embedded in an existing business card. |
+| `errorMessage` | `ReactNode` | No | - | Optional body content for the inline chart error panel. |
+| `onRetry` | `() => void` | No | - | Renders a retry button in the inline error panel. |
+| `retryLabel` | `ReactNode` | No | `'Retry'` | Retry button label. |
+| `loadingLabel` | `ReactNode` | No | `'Loading chart'` | Accessible label shown in the chart skeleton. |
+| `skeleton` | `boolean \| TrendChartSkeletonOptions` | No | - | Enables skeleton options such as `lineCount` and custom label. |
+| `reveal` | `boolean \| TrendChartRevealOptions` | No | - | Keeps the chart mounted and places a chart-area reveal overlay above it. |
 
 ### Notes for AI code generation
 
@@ -504,6 +541,92 @@ const data = [
 - Use `mode="area"` when overall movement should carry more visual weight.
 - Use `series[].color` for series-level color. Individual point colors are not
   supported by this component.
+- Use `series[].strokeDasharray`, `series[].strokeWidth`, and `series[].opacity`
+  for per-series comparison styling. These values override global line or area
+  presentation from `rechartsProps`.
+- Use `state="error"` with `onRetry` for chart-area errors inside existing
+  business cards. Use `ChartCard state="error"` only when the full card shell
+  should be replaced by a card-level state.
+
+### Revenue comparison with a dashed previous period
+
+```tsx
+<TrendChart
+  data={data}
+  format="currency"
+  series={[
+    { id: 'current', label: 'Current period', data, color: '#008060' },
+    {
+      id: 'previous',
+      label: 'Previous period',
+      data,
+      color: '#6d7175',
+      opacity: 0.72,
+      strokeDasharray: '4 4',
+      strokeWidth: 2
+    }
+  ]}
+  xKey="date"
+/>;
+```
+
+### Chart-area error and retry
+
+```tsx
+<TrendChart
+  data={data}
+  errorMessage="Revenue API unavailable"
+  onRetry={reloadRevenue}
+  retryLabel="Try again"
+  state="error"
+  xKey="date"
+  series={[{ id: 'current', label: 'Current period', data }]}
+/>;
+```
+
+### Chart-area loading and reveal
+
+```tsx
+<TrendChart
+  data={data}
+  loadingLabel="Loading revenue trend"
+  state="loading"
+  xKey="date"
+  series={[{ id: 'current', label: 'Current period', data }]}
+/>;
+
+<TrendChart
+  data={data}
+  reveal={{ active: isPreparing, label: 'Preparing chart', durationMs: 240 }}
+  xKey="date"
+  series={[{ id: 'current', label: 'Current period', data }]}
+/>;
+```
+
+## ChartSkeletonLayout and ChartRevealRegion
+
+Use these primitives for dashboard-level phased reveal when each chart depends
+on a different API request.
+
+| Component | Prop | Type | Required | Default | Description |
+|---|---|---:|---:|---|---|
+| `ChartSkeletonLayout` | `ariaLabel` | `string` | No | `'Charts loading'` | Accessible label for the dashboard loading container. |
+| `ChartSkeletonLayout` | `children` | `ReactNode` | Yes | - | Reveal regions or chart cards. |
+| `ChartRevealRegion` | `label` | `string` | Yes | - | Accessible region label and default skeleton text prefix. |
+| `ChartRevealRegion` | `ready` | `boolean` | Yes | - | When true, renders children; otherwise renders a chart-area skeleton. |
+| `ChartRevealRegion` | `children` | `ReactNode` | Yes | - | Ready content. |
+| `ChartRevealRegion` | `skeleton` | `ReactNode` | No | - | Custom skeleton content for the region. |
+
+```tsx
+<ChartSkeletonLayout ariaLabel="Revenue dashboard loading">
+  <ChartRevealRegion label="Revenue chart" ready={revenueReady}>
+    <TrendChart {...revenueChartProps} />
+  </ChartRevealRegion>
+  <ChartRevealRegion label="Orders chart" ready={ordersReady}>
+    <TrendChart {...ordersChartProps} />
+  </ChartRevealRegion>
+</ChartSkeletonLayout>
+```
 
 ### Analytics-style customization example
 

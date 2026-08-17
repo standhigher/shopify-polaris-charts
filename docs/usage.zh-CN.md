@@ -18,6 +18,39 @@ stale、permission 和 error 等状态。
 net sales、sessions、orders 或 customer count。需要直接比较时使用 line 模式；
 希望整体走势更突出时使用 area 模式。
 
+Revenue 当前周期 vs 上一周期对比时，把线型配置放在单条 series 上：current 保持
+实线，previous 使用虚线。
+
+```tsx
+<TrendChart
+  data={data}
+  format="currency"
+  series={[
+    { id: 'current', label: 'Current period', data, color: '#008060' },
+    { id: 'previous', label: 'Previous period', data, color: '#6d7175', strokeDasharray: '4 4', opacity: 0.72 }
+  ]}
+  xKey="date"
+/>
+```
+
+当图表嵌入已有业务卡片时，使用 `TrendChart` 的图表区域状态，不要用 `ChartCard`
+状态替换整张卡片：
+
+```tsx
+<TrendChart
+  data={data}
+  errorMessage="Revenue API unavailable"
+  onRetry={reloadRevenue}
+  retryLabel="Try again"
+  state="error"
+  xKey="date"
+  series={[{ id: 'current', label: 'Current period', data }]}
+/>
+```
+
+`state="loading"` 会显示折线图 skeleton；如果希望真实图表保持挂载、只在上层盖一层
+过渡遮罩，使用 `reveal`。
+
 ## DonutChart
 
 使用 `DonutChart` 展示少量部分占整体的类别，例如流量来源占比、订单状态占比，
@@ -34,6 +67,22 @@ fulfilled、pending 和 returned orders。它最适合每个类别共享同一�
 当两个相关指标需要一起阅读时使用 `ComboChart`，例如订单量和转化率。通常用柱形
 表示 volume，用折线表示 rate 或 benchmark，这样可以看出关系，同时避免暗示两个
 指标使用同一刻度。
+
+## Dashboard 分区 reveal
+
+当一个 dashboard 中多个图表依赖不同 API，需要独立完成、独立显示时，使用
+`ChartSkeletonLayout` 和 `ChartRevealRegion`。
+
+```tsx
+<ChartSkeletonLayout ariaLabel="Revenue dashboard loading">
+  <ChartRevealRegion label="Revenue chart" ready={revenueReady}>
+    <TrendChart {...revenueChartProps} />
+  </ChartRevealRegion>
+  <ChartRevealRegion label="Orders chart" ready={ordersReady}>
+    <TrendChart {...ordersChartProps} />
+  </ChartRevealRegion>
+</ChartSkeletonLayout>
+```
 
 ## 受控 Recharts props
 
