@@ -74,8 +74,8 @@ fulfilled、pending 和 returned orders。它最适合每个类别共享同一�
 `ChartSkeletonLayout` 和 `ChartRevealRegion`。
 
 ```tsx
-<ChartSkeletonLayout ariaLabel="Revenue dashboard loading">
-  <ChartRevealRegion label="Revenue chart" ready={revenueReady}>
+<ChartSkeletonLayout ariaLabel="Revenue dashboard loading" columns={2} gap={20}>
+  <ChartRevealRegion label="Revenue chart" mode="overlay" ready={revenueReady}>
     <TrendChart {...revenueChartProps} />
   </ChartRevealRegion>
   <ChartRevealRegion label="Orders chart" ready={ordersReady}>
@@ -83,6 +83,9 @@ fulfilled、pending 和 returned orders。它最适合每个类别共享同一�
   </ChartRevealRegion>
 </ChartSkeletonLayout>
 ```
+
+如果图表需要保持挂载，并在 reveal 期间只覆盖 skeleton，使用 `mode="overlay"`。
+如果希望 API ready 前完全不挂载图表，使用默认 `mode="replace"`。
 
 ## 受控 Recharts props
 

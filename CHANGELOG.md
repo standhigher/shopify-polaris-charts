@@ -4,6 +4,16 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning while the public API is stabilizing.
 
+## 0.5.0 - 2026-08-17
+
+### Added
+
+- Added per-series `strokeDasharray`, `strokeWidth`, and `opacity` support for `TrendChart` revenue comparisons.
+- Added chart-area `TrendChart` loading, empty, and error states with retry action support.
+- Added `TrendChart` reveal overlay support to keep charts mounted during loading transitions.
+- Added `ChartSkeletonLayout` and `ChartRevealRegion` for dashboard-level phased chart reveal.
+- Added Storybook examples and English/Chinese docs for revenue comparison, inline retry, skeleton loading, reveal overlay, and dashboard phased reveal.
+
 ## 0.4.0 - 2026-08-13
 
 ### Added

@@ -63,8 +63,8 @@ Use `ChartSkeletonLayout` and `ChartRevealRegion` when a dashboard has several
 chart regions that depend on independent API requests.
 
 ```tsx
-<ChartSkeletonLayout ariaLabel="Revenue dashboard loading">
-  <ChartRevealRegion label="Revenue chart" ready={revenueReady}>
+<ChartSkeletonLayout ariaLabel="Revenue dashboard loading" columns={2} gap={20}>
+  <ChartRevealRegion label="Revenue chart" mode="overlay" ready={revenueReady}>
     <TrendChart {...revenueChartProps} />
   </ChartRevealRegion>
   <ChartRevealRegion label="Orders chart" ready={ordersReady}>
@@ -72,6 +72,10 @@ chart regions that depend on independent API requests.
   </ChartRevealRegion>
 </ChartSkeletonLayout>
 ```
+
+Choose `mode="overlay"` for chart regions that should stay mounted behind a
+skeleton overlay during reveal transitions. Keep the default `mode="replace"`
+for regions that should not mount until their API data is ready.
 
 ## Controlled Recharts props
 

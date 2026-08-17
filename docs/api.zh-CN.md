@@ -507,14 +507,22 @@ Revenue current/previous 虚线对比示例：
 |---|---|---:|---:|---|---|
 | `ChartSkeletonLayout` | `ariaLabel` | `string` | No | `'Charts loading'` | 仪表盘 loading 容器的可访问标签。 |
 | `ChartSkeletonLayout` | `children` | `ReactNode` | Yes | - | reveal regions 或图表卡片。 |
+| `ChartSkeletonLayout` | `columns` | `number \| string` | No | - | Grid 列模板。数字会映射为 `repeat(n, minmax(0, 1fr))`；字符串会直接使用。 |
+| `ChartSkeletonLayout` | `gap` | `number \| string` | No | `16` | Grid 间距。数字按 px 处理。 |
+| `ChartSkeletonLayout` | `className` | `string` | No | - | layout wrapper 的可选 className。 |
+| `ChartSkeletonLayout` | `style` | `CSSProperties` | No | - | 可选内联样式覆盖。 |
 | `ChartRevealRegion` | `label` | `string` | Yes | - | 区域可访问标签，也是默认 skeleton 文案前缀。 |
 | `ChartRevealRegion` | `ready` | `boolean` | Yes | - | 为 true 时渲染 children，否则显示区域 skeleton。 |
 | `ChartRevealRegion` | `children` | `ReactNode` | Yes | - | ready 后展示的内容。 |
 | `ChartRevealRegion` | `skeleton` | `ReactNode` | No | - | 自定义区域 skeleton 内容。 |
+| `ChartRevealRegion` | `mode` | `'replace' \| 'overlay'` | No | `'replace'` | `replace` 用 skeleton 替换 children；`overlay` 会让 children 保持挂载，并在上方显示 skeleton overlay。 |
+| `ChartRevealRegion` | `minHeight` | `number` | No | `220` | loading 时区域最小高度，单位 px。 |
+| `ChartRevealRegion` | `className` | `string` | No | - | region wrapper 的可选 className。 |
+| `ChartRevealRegion` | `style` | `CSSProperties` | No | - | 可选内联样式覆盖。 |
 
 ```tsx
-<ChartSkeletonLayout ariaLabel="Revenue dashboard loading">
-  <ChartRevealRegion label="Revenue chart" ready={revenueReady}>
+<ChartSkeletonLayout ariaLabel="Revenue dashboard loading" columns={2} gap={20}>
+  <ChartRevealRegion label="Revenue chart" mode="overlay" ready={revenueReady}>
     <TrendChart {...revenueChartProps} />
   </ChartRevealRegion>
   <ChartRevealRegion label="Orders chart" ready={ordersReady}>
@@ -522,6 +530,9 @@ Revenue current/previous 虚线对比示例：
   </ChartRevealRegion>
 </ChartSkeletonLayout>
 ```
+
+当 API 未 ready 前不希望挂载图表，使用默认 `mode="replace"`。当希望真实图表保持
+挂载、避免 skeleton 结束后重新测量或动画闪动时，使用 `mode="overlay"`。
 
 Analytics 风格示例：
 
