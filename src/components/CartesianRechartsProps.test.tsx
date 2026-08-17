@@ -120,6 +120,44 @@ describe('controlled Recharts props escape hatch', () => {
     );
   });
 
+  it('allows each TrendChart series to override global line styling', () => {
+    render(
+      <TrendChart
+        data={trendData}
+        rechartsProps={{ line: { strokeDasharray: '2 2', strokeWidth: 1 } }}
+        series={[
+          { id: 'grossSales', label: 'Current', data: trendData, color: '#008060' },
+          {
+            id: 'previousSales',
+            label: 'Previous',
+            data: trendData,
+            color: '#6d7175',
+            opacity: 0.72,
+            strokeDasharray: '4 4',
+            strokeWidth: 2
+          }
+        ]}
+        xKey="date"
+      />
+    );
+
+    expect(rechartsMocks.line).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dataKey: 'grossSales',
+        strokeDasharray: '2 2',
+        strokeWidth: 1
+      })
+    );
+    expect(rechartsMocks.line).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dataKey: 'previousSales',
+        opacity: 0.72,
+        strokeDasharray: '4 4',
+        strokeWidth: 2
+      })
+    );
+  });
+
   it('forwards TrendChart area props only in area mode while retaining series color', () => {
     const unsafeRechartsProps = {
       area: {

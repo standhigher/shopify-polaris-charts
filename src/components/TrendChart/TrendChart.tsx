@@ -18,6 +18,7 @@ import type {
   ChartDatum,
   ChartFormat,
   ChartGridOptions,
+  ChartInlineState,
   ChartLineOptions,
   ChartMargin,
   ChartSeries,
@@ -25,7 +26,9 @@ import type {
   ChartTooltipPayloadItem,
   ChartTooltipOptions,
   ChartValue,
-  TrendChartRechartsProps
+  TrendChartRevealOptions,
+  TrendChartRechartsProps,
+  TrendChartSkeletonOptions
 } from '../../types';
 import {
   getAreaRechartsProps,
@@ -59,6 +62,13 @@ export interface TrendChartProps<TDatum extends object = ChartDatum> {
   xFormat?: ChartFormat;
   xFormatOptions?: ChartValueFormatOptions;
   emptyMessage?: ReactNode;
+  errorMessage?: ReactNode;
+  loadingLabel?: ReactNode;
+  onRetry?: () => void;
+  retryLabel?: ReactNode;
+  reveal?: boolean | TrendChartRevealOptions;
+  skeleton?: boolean | TrendChartSkeletonOptions;
+  state?: ChartInlineState;
 }
 
 interface TrendTooltipProps<TDatum extends object> {
@@ -95,6 +105,41 @@ const styles: Record<string, CSSProperties> = {
     padding: 24,
     textAlign: 'center'
   },
+  errorAction: {
+    background: chartTheme.palette[0],
+    border: 0,
+    borderRadius: 6,
+    color: '#ffffff',
+    cursor: 'pointer',
+    fontSize: 13,
+    fontWeight: 650,
+    padding: '8px 12px'
+  },
+  errorMessage: {
+    color: chartTheme.text.secondary,
+    fontSize: 13,
+    lineHeight: 1.45,
+    margin: 0
+  },
+  errorPanel: {
+    alignItems: 'center',
+    background: chartTheme.surface.subtleBackground,
+    border: `1px solid ${chartTheme.surface.border}`,
+    borderRadius: 6,
+    color: chartTheme.text.primary,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+    justifyContent: 'center',
+    minHeight: 180,
+    padding: 24,
+    textAlign: 'center'
+  },
+  errorTitle: {
+    fontSize: 14,
+    fontWeight: 650,
+    margin: 0
+  },
   heading: {
     fontSize: 14,
     fontWeight: 650,
@@ -124,6 +169,39 @@ const styles: Record<string, CSSProperties> = {
     height: chartTheme.legend.markerSize,
     width: chartTheme.legend.markerSize
   },
+  revealOverlay: {
+    alignItems: 'center',
+    background: 'rgba(255, 255, 255, 0.82)',
+    borderRadius: 6,
+    color: chartTheme.text.secondary,
+    display: 'flex',
+    fontSize: 13,
+    inset: 0,
+    justifyContent: 'center',
+    position: 'absolute'
+  },
+  skeleton: {
+    background: chartTheme.surface.subtleBackground,
+    border: `1px solid ${chartTheme.surface.border}`,
+    borderRadius: 6,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 14,
+    justifyContent: 'center',
+    minHeight: 180,
+    overflow: 'hidden',
+    padding: 24
+  },
+  skeletonLabel: {
+    color: chartTheme.text.secondary,
+    fontSize: 13
+  },
+  skeletonLine: {
+    background: `linear-gradient(90deg, ${chartTheme.surface.border}, rgba(255, 255, 255, 0.9), ${chartTheme.surface.border})`,
+    borderRadius: 999,
+    height: 8,
+    width: '100%'
+  },
   tooltip: {
     background: chartTheme.tooltip.background,
     border: `1px solid ${chartTheme.tooltip.border}`,
@@ -149,6 +227,30 @@ const styles: Record<string, CSSProperties> = {
 const isEmptyValue = (value: unknown) => value === null || value === undefined || value === '';
 
 const defaultActiveDot = { r: 4 };
+
+const normalizeSkeletonOptions = (skeleton: boolean | TrendChartSkeletonOptions | undefined) =>
+  typeof skeleton === 'object' ? skeleton : {};
+
+const normalizeRevealOptions = (reveal: boolean | TrendChartRevealOptions | undefined) =>
+  typeof reveal === 'object' ? reveal : { active: reveal };
+
+const getSeriesPresentationProps = <TDatum extends object>(item: ChartSeries<TDatum>) => {
+  const props: { opacity?: number; strokeDasharray?: string | number; strokeWidth?: number } = {};
+
+  if (item.opacity !== undefined) {
+    props.opacity = item.opacity;
+  }
+
+  if (item.strokeDasharray !== undefined) {
+    props.strokeDasharray = item.strokeDasharray;
+  }
+
+  if (item.strokeWidth !== undefined) {
+    props.strokeWidth = item.strokeWidth;
+  }
+
+  return props;
+};
 
 const resolveAxisTick = (axis?: CartesianAxisOptions) => ({
   fill: axis?.tickColor ?? chartTheme.axis.tickColor,
@@ -255,16 +357,23 @@ function TrendTooltip<TDatum extends object>({
 export function TrendChart<TDatum extends object = ChartDatum>({
   data,
   emptyMessage = 'No data available',
+  errorMessage,
   format = 'number',
   formatOptions = {},
   grid,
   height = 280,
   line,
+  loadingLabel = 'Loading chart',
   margin,
   mode = 'line',
+  onRetry,
   rechartsProps,
+  retryLabel = 'Retry',
+  reveal,
   series,
   showLegend = true,
+  skeleton,
+  state = 'ready',
   title,
   tooltip,
   xFormat,
@@ -280,150 +389,214 @@ export function TrendChart<TDatum extends object = ChartDatum>({
   const hasData =
     data.length > 0 &&
     seriesWithColor.some((item) => data.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));
+  const skeletonOptions = normalizeSkeletonOptions(skeleton);
+  const revealOptions = normalizeRevealOptions(reveal);
+  const isRevealActive = Boolean(revealOptions.active);
+  const renderSkeleton = () => {
+    const lineCount = skeletonOptions.lineCount ?? 3;
+    const label = skeletonOptions.label ?? loadingLabel;
+
+    return (
+      <div role="status" style={{ ...styles.skeleton, minHeight: height }}>
+        <span style={styles.skeletonLabel}>{label}</span>
+        {Array.from({ length: lineCount }).map((_, index) => (
+          <span
+            aria-hidden="true"
+            data-testid="trend-chart-skeleton-line"
+            key={index}
+            style={{ ...styles.skeletonLine, width: `${100 - index * 14}%` }}
+          />
+        ))}
+      </div>
+    );
+  };
+  const renderChart = () => (
+    <div style={{ height, position: 'relative', width: '100%' }}>
+      <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
+        {mode === 'area' ? (
+          <AreaChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} data={data}>
+            <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
+            <XAxis
+              axisLine={xAxis?.axisLine}
+              interval={xAxis?.interval}
+              minTickGap={xAxis?.minTickGap}
+              stroke={chartTheme.axis.lineColor}
+              tick={resolveAxisTick(xAxis)}
+              tickLine={xAxis?.tickLine}
+              ticks={xAxis?.ticks}
+              {...getXAxisRechartsProps(rechartsProps?.xAxis)}
+              dataKey={xKey as never}
+              tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
+            />
+            <YAxis
+              axisLine={yAxis?.axisLine}
+              domain={yAxis?.domain}
+              stroke={chartTheme.axis.lineColor}
+              tick={resolveAxisTick(yAxis)}
+              tickLine={yAxis?.tickLine}
+              ticks={yAxis?.ticks}
+              width={yAxis?.width}
+              {...getYAxisRechartsProps(rechartsProps?.yAxis)}
+              tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
+            />
+            <Tooltip
+              cursor={tooltip?.cursor}
+              {...getTooltipRechartsProps(rechartsProps?.tooltip)}
+              content={
+                <TrendTooltip
+                  format={format}
+                  formatOptions={formatOptions}
+                  series={seriesWithColor}
+                  tooltip={tooltip}
+                  xFormat={xFormat}
+                  xFormatOptions={xFormatOptions}
+                />
+              }
+            />
+            {seriesWithColor.map((item) => (
+              <Area
+                activeDot={line?.activeDot ?? defaultActiveDot}
+                dot={line?.dot ?? false}
+                fillOpacity={0.12}
+                key={item.id}
+                strokeWidth={2}
+                {...getAreaRechartsProps(rechartsProps?.area)}
+                {...getSeriesPresentationProps(item)}
+                dataKey={item.id}
+                fill={item.color}
+                name={item.label}
+                stroke={item.color}
+                type="monotone"
+              />
+            ))}
+          </AreaChart>
+        ) : (
+          <LineChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} data={data}>
+            <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
+            <XAxis
+              axisLine={xAxis?.axisLine}
+              interval={xAxis?.interval}
+              minTickGap={xAxis?.minTickGap}
+              stroke={chartTheme.axis.lineColor}
+              tick={resolveAxisTick(xAxis)}
+              tickLine={xAxis?.tickLine}
+              ticks={xAxis?.ticks}
+              {...getXAxisRechartsProps(rechartsProps?.xAxis)}
+              dataKey={xKey as never}
+              tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
+            />
+            <YAxis
+              axisLine={yAxis?.axisLine}
+              domain={yAxis?.domain}
+              stroke={chartTheme.axis.lineColor}
+              tick={resolveAxisTick(yAxis)}
+              tickLine={yAxis?.tickLine}
+              ticks={yAxis?.ticks}
+              width={yAxis?.width}
+              {...getYAxisRechartsProps(rechartsProps?.yAxis)}
+              tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
+            />
+            <Tooltip
+              cursor={tooltip?.cursor}
+              {...getTooltipRechartsProps(rechartsProps?.tooltip)}
+              content={
+                <TrendTooltip
+                  format={format}
+                  formatOptions={formatOptions}
+                  series={seriesWithColor}
+                  tooltip={tooltip}
+                  xFormat={xFormat}
+                  xFormatOptions={xFormatOptions}
+                />
+              }
+            />
+            {seriesWithColor.map((item) => (
+              <Line
+                activeDot={line?.activeDot ?? defaultActiveDot}
+                dot={line?.dot ?? false}
+                key={item.id}
+                strokeWidth={2}
+                {...getLineRechartsProps(rechartsProps?.line)}
+                {...getSeriesPresentationProps(item)}
+                dataKey={item.id}
+                name={item.label}
+                stroke={item.color}
+                type="monotone"
+              />
+            ))}
+          </LineChart>
+        )}
+      </ResponsiveContainer>
+      {isRevealActive ? (
+        <div
+          role="status"
+          style={{
+            ...styles.revealOverlay,
+            transitionDelay: `${revealOptions.delayMs ?? 0}ms`,
+            transitionDuration: `${revealOptions.durationMs ?? 180}ms`
+          }}
+        >
+          {revealOptions.label ?? 'Preparing chart'}
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const renderContent = () => {
+    if (state === 'loading') {
+      return renderSkeleton();
+    }
+
+    if (state === 'error') {
+      return (
+        <div role="alert" style={{ ...styles.errorPanel, minHeight: height }}>
+          <p style={styles.errorTitle}>Unable to load chart</p>
+          {errorMessage ? <p style={styles.errorMessage}>{errorMessage}</p> : null}
+          {onRetry ? (
+            <button onClick={onRetry} style={styles.errorAction} type="button">
+              {retryLabel}
+            </button>
+          ) : null}
+        </div>
+      );
+    }
+
+    if (!hasData || state === 'empty') {
+      return (
+        <div role="status" style={{ ...styles.empty, minHeight: height }}>
+          {emptyMessage}
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {renderChart()}
+        {showLegend ? (
+          <div aria-label="Chart legend" style={styles.legend}>
+            {seriesWithColor.map((item) => {
+              const firstDatum = data.find((datum) => !isEmptyValue(getDatumValue(datum, item.id)));
+
+              return (
+                <span key={item.id} style={styles.legendItem}>
+                  <span aria-hidden="true" style={{ ...styles.marker, background: item.color }} />
+                  <span>{item.label}</span>
+                  <span style={styles.legendValue}>
+                    {formatChartValue(toChartValue(getDatumValue(firstDatum, item.id)), format, formatOptions)}
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+        ) : null}
+      </>
+    );
+  };
 
   return (
     <div style={styles.container}>
       {title ? <h3 style={styles.heading}>{title}</h3> : null}
-      {hasData ? (
-        <>
-          <div style={{ height, width: '100%' }}>
-            <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
-              {mode === 'area' ? (
-                <AreaChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} data={data}>
-                  <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
-                  <XAxis
-                    axisLine={xAxis?.axisLine}
-                    interval={xAxis?.interval}
-                    minTickGap={xAxis?.minTickGap}
-                    stroke={chartTheme.axis.lineColor}
-                    tick={resolveAxisTick(xAxis)}
-                    tickLine={xAxis?.tickLine}
-                    ticks={xAxis?.ticks}
-                    {...getXAxisRechartsProps(rechartsProps?.xAxis)}
-                    dataKey={xKey as never}
-                    tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
-                  />
-                  <YAxis
-                    axisLine={yAxis?.axisLine}
-                    domain={yAxis?.domain}
-                    stroke={chartTheme.axis.lineColor}
-                    tick={resolveAxisTick(yAxis)}
-                    tickLine={yAxis?.tickLine}
-                    ticks={yAxis?.ticks}
-                    width={yAxis?.width}
-                    {...getYAxisRechartsProps(rechartsProps?.yAxis)}
-                    tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
-                  />
-                  <Tooltip
-                    cursor={tooltip?.cursor}
-                    {...getTooltipRechartsProps(rechartsProps?.tooltip)}
-                    content={
-                      <TrendTooltip
-                        format={format}
-                        formatOptions={formatOptions}
-                        series={seriesWithColor}
-                        tooltip={tooltip}
-                        xFormat={xFormat}
-                        xFormatOptions={xFormatOptions}
-                      />
-                    }
-                  />
-                  {seriesWithColor.map((item) => (
-                    <Area
-                      activeDot={line?.activeDot ?? defaultActiveDot}
-                      dot={line?.dot ?? false}
-                      fillOpacity={0.12}
-                      key={item.id}
-                      strokeWidth={2}
-                      {...getAreaRechartsProps(rechartsProps?.area)}
-                      dataKey={item.id}
-                      fill={item.color}
-                      name={item.label}
-                      stroke={item.color}
-                      type="monotone"
-                    />
-                  ))}
-                </AreaChart>
-              ) : (
-                <LineChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} data={data}>
-                  <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
-                  <XAxis
-                    axisLine={xAxis?.axisLine}
-                    interval={xAxis?.interval}
-                    minTickGap={xAxis?.minTickGap}
-                    stroke={chartTheme.axis.lineColor}
-                    tick={resolveAxisTick(xAxis)}
-                    tickLine={xAxis?.tickLine}
-                    ticks={xAxis?.ticks}
-                    {...getXAxisRechartsProps(rechartsProps?.xAxis)}
-                    dataKey={xKey as never}
-                    tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
-                  />
-                  <YAxis
-                    axisLine={yAxis?.axisLine}
-                    domain={yAxis?.domain}
-                    stroke={chartTheme.axis.lineColor}
-                    tick={resolveAxisTick(yAxis)}
-                    tickLine={yAxis?.tickLine}
-                    ticks={yAxis?.ticks}
-                    width={yAxis?.width}
-                    {...getYAxisRechartsProps(rechartsProps?.yAxis)}
-                    tickFormatter={(value) => formatChartValue(toChartValue(value), format, formatOptions)}
-                  />
-                  <Tooltip
-                    cursor={tooltip?.cursor}
-                    {...getTooltipRechartsProps(rechartsProps?.tooltip)}
-                    content={
-                      <TrendTooltip
-                        format={format}
-                        formatOptions={formatOptions}
-                        series={seriesWithColor}
-                        tooltip={tooltip}
-                        xFormat={xFormat}
-                        xFormatOptions={xFormatOptions}
-                      />
-                    }
-                  />
-                  {seriesWithColor.map((item) => (
-                    <Line
-                      activeDot={line?.activeDot ?? defaultActiveDot}
-                      dot={line?.dot ?? false}
-                      key={item.id}
-                      strokeWidth={2}
-                      {...getLineRechartsProps(rechartsProps?.line)}
-                      dataKey={item.id}
-                      name={item.label}
-                      stroke={item.color}
-                      type="monotone"
-                    />
-                  ))}
-                </LineChart>
-              )}
-            </ResponsiveContainer>
-          </div>
-          {showLegend ? (
-            <div aria-label="Chart legend" style={styles.legend}>
-              {seriesWithColor.map((item) => {
-                const firstDatum = data.find((datum) => !isEmptyValue(getDatumValue(datum, item.id)));
-
-                return (
-                  <span key={item.id} style={styles.legendItem}>
-                    <span aria-hidden="true" style={{ ...styles.marker, background: item.color }} />
-                    <span>{item.label}</span>
-                    <span style={styles.legendValue}>
-                      {formatChartValue(toChartValue(getDatumValue(firstDatum, item.id)), format, formatOptions)}
-                    </span>
-                  </span>
-                );
-              })}
-            </div>
-          ) : null}
-        </>
-      ) : (
-        <div role="status" style={{ ...styles.empty, minHeight: height }}>
-          {emptyMessage}
-        </div>
-      )}
+      {renderContent()}
     </div>
   );
 }

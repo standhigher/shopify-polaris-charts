@@ -3,6 +3,7 @@ export const packageVersion = '0.4.0';
 
 export * from './formatters';
 export * from './components/ChartCard';
+export * from './components/ChartSkeletonLayout';
 export * from './components/ComboChart';
 export * from './components/DonutChart';
 export * from './components/StackedBarChart';

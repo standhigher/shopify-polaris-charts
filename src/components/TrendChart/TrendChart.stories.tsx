@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ChartSeries, ChartTooltipContentProps } from '../../types';
 
 import { ChartCard } from '../ChartCard';
+import { ChartRevealRegion, ChartSkeletonLayout } from '../ChartSkeletonLayout';
 import { TrendChart } from './TrendChart';
 
 type SalesTrendDatum = (typeof salesTrendData)[number];
@@ -56,6 +57,16 @@ const orderTrendData = [
   { date: '2026-07-05', onlineStore: 188, pointOfSale: 62 },
   { date: '2026-07-06', onlineStore: 204, pointOfSale: 66 },
   { date: '2026-07-07', onlineStore: 219, pointOfSale: 71 }
+];
+
+const revenueComparisonData = [
+  { date: '2026-07-01', current: 12430.4, previous: 10980.2 },
+  { date: '2026-07-02', current: 14200, previous: 11840.35 },
+  { date: '2026-07-03', current: 15890.75, previous: 13120.5 },
+  { date: '2026-07-04', current: 13780.2, previous: 12680.8 },
+  { date: '2026-07-05', current: 17440.8, previous: 14220.4 },
+  { date: '2026-07-06', current: 19120.15, previous: 15890.9 },
+  { date: '2026-07-07', current: 20480.6, previous: 16740.7 }
 ];
 
 const meta = {
@@ -167,5 +178,106 @@ export const ControlledRechartsProps: Story = {
         xKey="date"
       />
     </ChartCard>
+  )
+};
+
+export const PerSeriesDashedComparison: Story = {
+  render: () => (
+    <ChartCard title="Revenue comparison" subtitle="Current period vs previous period" metric="$117.3K" state="ready">
+      <TrendChart
+        data={revenueComparisonData}
+        format="currency"
+        height={300}
+        series={[
+          { id: 'current', label: 'Current period', data: revenueComparisonData, color: '#008060' },
+          {
+            id: 'previous',
+            label: 'Previous period',
+            data: revenueComparisonData,
+            color: '#6d7175',
+            opacity: 0.72,
+            strokeDasharray: '4 4',
+            strokeWidth: 2
+          }
+        ]}
+        xFormat="date"
+        xKey="date"
+      />
+    </ChartCard>
+  )
+};
+
+export const InlineErrorWithRetry: Story = {
+  render: () => (
+    <ChartCard title="Revenue trend" subtitle="Embedded business card keeps its own shell" metric="$117.3K" state="ready">
+      <TrendChart
+        data={revenueComparisonData}
+        errorMessage="Revenue API unavailable. Check the selected date range or retry the request."
+        format="currency"
+        onRetry={() => undefined}
+        retryLabel="Try again"
+        state="error"
+        xKey="date"
+        series={[{ id: 'current', label: 'Current period', data: revenueComparisonData }]}
+      />
+    </ChartCard>
+  )
+};
+
+export const LoadingSkeleton: Story = {
+  render: () => (
+    <ChartCard title="Revenue trend" subtitle="Chart-area loading state" metric="$117.3K" state="ready">
+      <TrendChart
+        data={revenueComparisonData}
+        loadingLabel="Loading revenue trend"
+        state="loading"
+        xKey="date"
+        series={[{ id: 'current', label: 'Current period', data: revenueComparisonData }]}
+      />
+    </ChartCard>
+  )
+};
+
+export const RevealOverlay: Story = {
+  render: () => (
+    <ChartCard title="Revenue trend" subtitle="Chart remains mounted while the overlay fades" metric="$117.3K" state="ready">
+      <TrendChart
+        data={revenueComparisonData}
+        format="currency"
+        reveal={{ active: true, label: 'Preparing chart', durationMs: 240 }}
+        series={[{ id: 'current', label: 'Current period', data: revenueComparisonData, color: '#008060' }]}
+        xFormat="date"
+        xKey="date"
+      />
+    </ChartCard>
+  )
+};
+
+export const DashboardPhasedReveal: Story = {
+  render: () => (
+    <ChartSkeletonLayout ariaLabel="Revenue dashboard loading">
+      <ChartRevealRegion label="Revenue chart" ready={false}>
+        <TrendChart
+          data={revenueComparisonData}
+          format="currency"
+          series={[{ id: 'current', label: 'Current period', data: revenueComparisonData }]}
+          xKey="date"
+        />
+      </ChartRevealRegion>
+      <ChartRevealRegion label="Orders chart" ready>
+        <ChartCard title="Orders by channel" subtitle="Ready region" metric="1,433" state="ready">
+          <TrendChart
+            data={orderTrendData}
+            format="number"
+            mode="area"
+            series={[
+              { id: 'onlineStore', label: 'Online store', data: orderTrendData },
+              { id: 'pointOfSale', label: 'Point of sale', data: orderTrendData }
+            ]}
+            xKey="date"
+          />
+        </ChartCard>
+      </ChartRevealRegion>
+    </ChartSkeletonLayout>
   )
 };

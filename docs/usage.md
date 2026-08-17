@@ -12,6 +12,39 @@ Use `ChartCard` as the standard dashboard card shell around a chart or compact a
 
 Use `TrendChart` when the user needs to see change over time, such as gross sales, net sales, sessions, orders, or customer count by day. Use the line mode for direct comparisons and the area mode when overall movement should carry more visual weight.
 
+For current-vs-previous revenue comparisons, set line styling on the individual
+series so the current period stays solid and the previous period is dashed:
+
+```tsx
+<TrendChart
+  data={data}
+  format="currency"
+  series={[
+    { id: 'current', label: 'Current period', data, color: '#008060' },
+    { id: 'previous', label: 'Previous period', data, color: '#6d7175', strokeDasharray: '4 4', opacity: 0.72 }
+  ]}
+  xKey="date"
+/>
+```
+
+When the chart is embedded in an existing business card, use `TrendChart`'s
+chart-area states instead of replacing the whole card with `ChartCard` state UI:
+
+```tsx
+<TrendChart
+  data={data}
+  errorMessage="Revenue API unavailable"
+  onRetry={reloadRevenue}
+  retryLabel="Try again"
+  state="error"
+  xKey="date"
+  series={[{ id: 'current', label: 'Current period', data }]}
+/>
+```
+
+Use `state="loading"` for a line-chart skeleton, and `reveal` when the real
+chart should stay mounted behind a temporary overlay to avoid a static flash.
+
 ## DonutChart
 
 Use `DonutChart` for a small number of parts-of-a-whole categories, such as traffic source mix, order status share, or revenue by plan. Keep categories limited so the legend stays scannable in a dashboard card.
@@ -23,6 +56,22 @@ Use `StackedBarChart` when comparing category totals and their composition at th
 ## ComboChart
 
 Use `ComboChart` when two related measures need to be read together, such as order volume and conversion rate. Use bars for volume and a line for the rate or benchmark so the relationship is visible without implying both measures use the same scale.
+
+## Dashboard phased reveal
+
+Use `ChartSkeletonLayout` and `ChartRevealRegion` when a dashboard has several
+chart regions that depend on independent API requests.
+
+```tsx
+<ChartSkeletonLayout ariaLabel="Revenue dashboard loading">
+  <ChartRevealRegion label="Revenue chart" ready={revenueReady}>
+    <TrendChart {...revenueChartProps} />
+  </ChartRevealRegion>
+  <ChartRevealRegion label="Orders chart" ready={ordersReady}>
+    <TrendChart {...ordersChartProps} />
+  </ChartRevealRegion>
+</ChartSkeletonLayout>
+```
 
 ## Controlled Recharts props
 
