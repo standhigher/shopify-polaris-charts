@@ -3,7 +3,16 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 import { formatChartValue, type ChartValueFormatOptions } from '../../formatters';
 import { chartTheme } from '../../theme';
-import type { ChartDatum, ChartFormat, ChartValue } from '../../types';
+import type {
+  ChartContentState,
+  ChartDatum,
+  ChartFormat,
+  ChartRevealOptions,
+  ChartSkeletonOptions,
+  ChartValue
+} from '../../types';
+import { ChartStateRegion } from '../ChartState';
+import { useChartLocalization } from '../ChartLocalization';
 
 export interface DonutChartProps<TDatum extends object = ChartDatum> {
   title?: ReactNode;
@@ -16,6 +25,13 @@ export interface DonutChartProps<TDatum extends object = ChartDatum> {
   format?: ChartFormat;
   formatOptions?: ChartValueFormatOptions;
   emptyMessage?: ReactNode;
+  errorMessage?: ReactNode;
+  loadingLabel?: ReactNode;
+  onRetry?: () => void;
+  retryLabel?: ReactNode;
+  reveal?: boolean | ChartRevealOptions;
+  skeleton?: boolean | ChartSkeletonOptions;
+  state?: ChartContentState;
 }
 
 interface DonutTooltipProps {
@@ -159,14 +175,28 @@ export function DonutChart<TDatum extends object = ChartDatum>({
   categoryKey,
   centerLabel,
   data,
-  emptyMessage = 'No data available',
+  emptyMessage,
+  errorMessage,
   format = 'number',
-  formatOptions = {},
+  formatOptions: suppliedFormatOptions = {},
   height = 280,
+  loadingLabel,
+  onRetry,
+  reveal,
+  retryLabel,
   showLegend = true,
+  skeleton,
+  state = 'ready',
   title,
   valueKey
 }: DonutChartProps<TDatum>) {
+  const localization = useChartLocalization();
+  const formatOptions = {
+    currency: localization.currency,
+    locale: localization.locale,
+    timeZone: localization.timeZone,
+    ...suppliedFormatOptions
+  };
   const slices = data
     .map((datum, index) => ({
       ...datum,
@@ -174,14 +204,25 @@ export function DonutChart<TDatum extends object = ChartDatum>({
       __key: `${String(getDatumValue(datum, categoryKey) ?? '')}-${index}`,
       __name: String(getDatumValue(datum, categoryKey) ?? ''),
       __value: toPositiveNumber(getDatumValue(datum, valueKey))
-    }))
+  }))
     .filter((datum): datum is typeof datum & { __value: number } => datum.__value !== null);
   const hasData = slices.length > 0;
+  const resolvedState = state === 'ready' && !hasData ? 'empty' : state;
 
   return (
     <div style={styles.container}>
       {title ? <h3 style={styles.heading}>{title}</h3> : null}
-      {hasData ? (
+      <ChartStateRegion
+        emptyMessage={emptyMessage}
+        errorMessage={errorMessage}
+        loadingLabel={loadingLabel}
+        minHeight={height}
+        onRetry={onRetry}
+        reveal={reveal}
+        retryLabel={retryLabel}
+        skeleton={skeleton}
+        state={resolvedState}
+      >
         <>
           <div style={{ ...styles.chartWrap, height }}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
@@ -217,11 +258,7 @@ export function DonutChart<TDatum extends object = ChartDatum>({
             </div>
           ) : null}
         </>
-      ) : (
-        <div role="status" style={{ ...styles.empty, minHeight: height }}>
-          {emptyMessage}
-        </div>
-      )}
+      </ChartStateRegion>
     </div>
   );
 }

@@ -11,7 +11,7 @@
 面向 Shopify App 仪表盘的 Polaris 风格 React 图表组件库。
 
 该包提供可复用的 Polaris 风格图表体验组件，包括卡片外壳、趋势图、
-环形图、堆叠柱状图和组合图。
+指标卡片、环形图、堆叠柱状图和组合图。
 
 ## 链接
 
@@ -28,7 +28,7 @@
 ## 安装
 
 ```bash
-npm install @standhigher/charts react react-dom @shopify/polaris recharts
+npm install @standhigher/charts react react-dom recharts
 ```
 
 ## 组件概览
@@ -36,6 +36,8 @@ npm install @standhigher/charts react react-dom @shopify/polaris recharts
 | 组件 | 用途 | 推荐场景 |
 | --- | --- | --- |
 | `ChartCard` | Polaris 风格图表卡片外壳，支持标题、副标题、指标、趋势、操作区、加载态和空态。 | 包裹所有图表，统一仪表盘卡片体验。 |
+| `MetricCard` | 可访问的核心指标卡片，支持对比、趋势与加载 skeleton。 | 收入、订单、转化率、AOV、客户数。 |
+| `ChartStateRegion` | 共享图表区域状态渲染器，支持 loading、empty、error/retry、skeleton 与 reveal。 | 为所有主图表保持一致状态体验。 |
 | `TrendChart` | 单线或多线趋势图，用于时间序列指标。 | 收入、订单、转化率等趋势分析。 |
 | `DonutChart` | 分类占比图，支持图例开关。 | 渠道、市场、来源或分群占比。 |
 | `StackedBarChart` | 堆叠或分组柱状图，支持坐标轴、网格、提示框和边距配置。 | 对比不同时间或分类下的多指标。 |
@@ -47,7 +49,7 @@ npm install @standhigher/charts react react-dom @shopify/polaris recharts
 | --- | --- |
 | React | `>=18` |
 | React DOM | `>=18` |
-| Shopify Polaris | `>=12` |
+| Shopify Polaris | 可选 `>=12` peer，不在运行时导入 |
 | Recharts | `>=2` |
 | 本地开发 Node.js | `>=20` |
 
@@ -74,6 +76,20 @@ export function RevenueCard() {
     </ChartCard>
   );
 }
+```
+
+## v0.7 基础能力
+
+用 `ChartLocalizationProvider` 统一组件文案与展示默认值。图表或 series 的显式
+`formatOptions` 优先级更高。独立 formatter 保持纯函数；只有输入已经是 0–100
+百分数时，才向 `formatPercentage` 传入 `input: 'percent'`。
+
+```tsx
+<ChartLocalizationProvider locale="zh-CN" timeZone="Asia/Shanghai" currency="CNY"
+  messages={{ chartEmpty: '暂无数据', retry: '重试' }}>
+  <MetricCard title="收入" value={formatMoney(12400, { currency: 'CNY', locale: 'zh-CN' })} trend={{ direction: 'up', value: '+8.2%' }} />
+  <TrendChart {...props} />
+</ChartLocalizationProvider>
 ```
 
 ## 示例与 Storybook

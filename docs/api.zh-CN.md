@@ -10,14 +10,22 @@
 ```ts
 import {
   ChartCard,
+  ChartLocalizationProvider,
   ChartRevealRegion,
   ChartSkeletonLayout,
+  ChartStateRegion,
   ComboChart,
   DonutChart,
+  MetricCard,
   StackedBarChart,
   TrendChart,
   chartFormatters,
   chartTheme,
+  formatCompactNumber,
+  formatDate,
+  formatMoney,
+  formatNumber,
+  formatPercentage,
   formatChartCurrency,
   formatChartDate,
   formatChartNumber,
@@ -31,7 +39,8 @@ import {
   type ChartDotOptions,
   type ChartFormat,
   type ChartGridOptions,
-  type ChartInlineState,
+  type ChartCardState,
+  type ChartContentState,
   type ChartLineOptions,
   type ChartMargin,
   type ChartTheme,
@@ -42,9 +51,12 @@ import {
   type ChartTooltipPayloadItem,
   type ChartValueFormatOptions,
   type ChartSeries,
-  type ChartState,
-  type TrendChartRevealOptions,
-  type TrendChartSkeletonOptions
+  type ChartRevealOptions,
+  type ChartSkeletonOptions,
+  type ChartStateRegionProps,
+  type ChartLocalizationProviderProps,
+  type MetricCardProps,
+  type MetricCardTrend
 } from '@standhigher/charts';
 ```
 
@@ -54,7 +66,7 @@ import {
 |---|---:|---|
 | `react` | `>=18` | React 渲染运行时 |
 | `react-dom` | `>=18` | React DOM 运行时 |
-| `@shopify/polaris` | `>=12` | 消费端应用的设计系统 peer |
+| `@shopify/polaris` | 可选 `>=12` | 消费端应用的设计系统 peer；本包没有运行时 import |
 | `recharts` | `>=2` | 图表渲染引擎 |
 
 ### 入口公开导出
@@ -62,6 +74,9 @@ import {
 | Export | 类型 | 说明 |
 |---|---|---|
 | `ChartCard` | component | Polaris 风格仪表盘卡片外壳，内置图表状态。 |
+| `MetricCard` | component | 支持对比、趋势和 loading skeleton 的可访问 KPI 卡片。 |
+| `ChartLocalizationProvider` | component | 为组件文案和图表格式默认值提供 React Context。 |
+| `ChartStateRegion` | component | 共享图表区域 loading、empty、error/retry、skeleton 与 reveal 渲染器。 |
 | `ChartSkeletonLayout` | component | 仪表盘级 skeleton 容器，支持图表区域独立 reveal。 |
 | `ChartRevealRegion` | component | 区域包装组件，未 ready 时显示区域 skeleton，ready 后显示 children。 |
 | `TrendChart` | component | 趋势折线图或面积图。 |
@@ -73,6 +88,11 @@ import {
 | `formatChartPercent` | function | 将可空数字格式化为百分比。 |
 | `formatChartDate` | function | 格式化日期类值。 |
 | `formatChartValue` | function | 按 `ChartFormat` 分派到具体 formatter。 |
+| `formatNumber` | function | 标准数字展示的规范 formatter。 |
+| `formatCompactNumber` | function | 紧凑数字展示的规范 formatter。 |
+| `formatMoney` | function | 货币展示的规范 formatter。 |
+| `formatPercentage` | function | 支持明确输入基准的规范百分比 formatter。 |
+| `formatDate` | function | 日期展示的规范 formatter。 |
 | `chartFormatters` | object | formatter helper 映射。 |
 | `chartTheme` | object | 默认视觉主题。 |
 | `packageName` | constant | 入口导出的包名字符串。 |
@@ -91,10 +111,21 @@ import {
 | `ChartDatum` | type | 默认宽松 datum 形状。 |
 | `ChartSeries` | type | 共享 series 形状。 |
 | `ChartFormat` | type | 值格式 union。 |
-| `ChartState` | type | `ChartCard` 状态 union。 |
-| `ChartInlineState` | type | `TrendChart` 使用的图表区域状态 union。 |
-| `TrendChartSkeletonOptions` | type | `TrendChart` 图表区域 skeleton 选项。 |
-| `TrendChartRevealOptions` | type | `TrendChart` reveal overlay 选项。 |
+| `ChartCardState` | type | 卡片级状态 union。 |
+| `ChartContentState` | type | 共享图表区域状态 union。 |
+| `ChartState` | type | `ChartCardState` 的已弃用别名。 |
+| `ChartInlineState` | type | `ChartContentState` 的已弃用别名。 |
+| `ChartSkeletonOptions` | type | 共享图表区域 skeleton 选项。 |
+| `ChartRevealOptions` | type | 共享图表区域 reveal 选项。 |
+| `ChartStateRegionProps` | type | `ChartStateRegion` props。 |
+| `ChartLocalizationProviderProps` | type | `ChartLocalizationProvider` props。 |
+| `ChartMessages` | type | 可本地化组件文案 key。 |
+| `ChartLocalizationValue` | type | 解析后的本地化 Context 值。 |
+| `MetricCardProps` | type | `MetricCard` props。 |
+| `MetricCardTrend` | type | `MetricCard` 的趋势语义。 |
+| `MetricCardState` | type | `'loading' | 'ready'`。 |
+| `MetricTrendDirection` | type | `'down' | 'neutral' | 'up'`。 |
+| `MetricTrendTone` | type | `'negative' | 'neutral' | 'positive'`。 |
 | `ChartMargin` | type | Cartesian 图表 margin 选项。 |
 | `CartesianAxisOptions` | type | Cartesian X/Y 轴展示选项。 |
 | `ChartGridOptions` | type | Cartesian 网格线展示选项。 |
@@ -107,6 +138,11 @@ import {
 | `ChartDotOptions` | type | 非 active dot 选项。 |
 | `ChartActiveDotOptions` | type | hover active dot 选项。 |
 | `ChartValueFormatOptions` | type | 共享 formatter options。 |
+| `FormatNumberOptions` | type | `formatNumber` 的选项。 |
+| `FormatCompactNumberOptions` | type | `formatCompactNumber` 的选项。 |
+| `FormatMoneyOptions` | type | `formatMoney` 的选项。 |
+| `FormatPercentageOptions` | type | `formatPercentage` 的选项。 |
+| `FormatDateOptions` | type | `formatDate` 的选项。 |
 | `ChartTheme` | type | `chartTheme` 的形状。 |
 
 ## 共享类型
@@ -132,7 +168,7 @@ interface ChartSeries<TDatum extends object = ChartDatum> {
 
 type ChartFormat = 'number' | 'currency' | 'percent' | 'compact' | 'date';
 
-type ChartState =
+type ChartCardState =
   | 'loading'
   | 'empty'
   | 'error'
@@ -140,14 +176,14 @@ type ChartState =
   | 'stale'
   | 'ready';
 
-type ChartInlineState = 'loading' | 'empty' | 'error' | 'ready';
+type ChartContentState = 'loading' | 'empty' | 'error' | 'ready';
 
-interface TrendChartSkeletonOptions {
+interface ChartSkeletonOptions {
   label?: ReactNode;
   lineCount?: number;
 }
 
-interface TrendChartRevealOptions {
+interface ChartRevealOptions {
   active?: boolean;
   delayMs?: number;
   durationMs?: number;
@@ -241,6 +277,10 @@ interface ChartLineOptions {
 }
 ```
 
+`ChartState` 仍保留为 `ChartCardState` 的已弃用别名。`ChartInlineState`、
+`TrendChartSkeletonOptions` 和 `TrendChartRevealOptions` 会在 v1.0 前继续作为
+对应共享类型的已弃用别名保留。
+
 `ChartSeries.color` 当前是 series 级别颜色，会影响整条线、整组柱子或整个堆叠
 片段。`ChartSeries.strokeDasharray`、`strokeWidth` 和 `opacity` 可用于单条折线或
 面积图 series 的视觉覆盖，例如 current 为实线、previous 为虚线。当前公开 API 还不支持
@@ -290,6 +330,93 @@ custom content。
 如需自定义 tooltip 内容，请使用顶层 `tooltip.content`。`rechartsProps.tooltip`
 有意不接受 custom content，以保留图表的 tooltip 数据和格式化集成。
 
+## 本地化与图表区域状态
+
+### `ChartLocalizationProvider`
+
+`ChartLocalizationProvider` 只负责组件文案和格式化默认值；它不负责数据请求、
+业务计算或 dashboard 编排。
+
+```ts
+interface ChartMessages {
+  chartEmpty: ReactNode;
+  chartError: ReactNode;
+  chartLoading: ReactNode;
+  chartNoPermission: ReactNode;
+  chartPreparing: ReactNode;
+  chartStale: ReactNode;
+  metricLoading: ReactNode;
+  retry: ReactNode;
+}
+
+interface ChartLocalizationProviderProps {
+  children: ReactNode;
+  currency?: string;
+  locale?: string;
+  messages?: Partial<ChartMessages>;
+  timeZone?: string;
+}
+```
+
+默认 Context 为 `locale: 'en-US'`、`currency: 'USD'` 和英文文案。Provider 可以嵌套：
+未传的值继承上层，`messages` 按 key 合并。图表值的优先级是显式的图表或 series
+`formatOptions`，然后是 Provider 的 `locale` / `currency` / `timeZone`，最后才是内置
+默认值。独立 formatter 是纯函数，不读取 React Context；请直接传入其
+`locale`、`currency` 或 `timeZone` 选项。
+
+### `ChartStateRegion`
+
+`ChartStateRegion` 是 `TrendChart`、`ComboChart`、`StackedBarChart` 和
+`DonutChart` 使用的共享图表区域渲染器，也可以包裹自定义图表内容。
+
+| Prop | Type | Required | Default | 说明 |
+|---|---|---:|---|---|
+| `children` | `ReactNode` | Yes | - | ready 状态的图表内容。 |
+| `state` | `ChartContentState` | No | `'ready'` | `loading`、`empty`、`error` 或 `ready`。 |
+| `emptyMessage` | `ReactNode` | No | 本地化 `chartEmpty` | 空状态内容。 |
+| `errorMessage` | `ReactNode` | No | - | 错误补充说明。 |
+| `loadingLabel` | `ReactNode` | No | 本地化 `chartLoading` | 可访问 loading 文案。 |
+| `onRetry` | `() => void` | No | - | error 状态展示重试按钮。 |
+| `retryLabel` | `ReactNode` | No | 本地化 `retry` | 重试按钮文案。 |
+| `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | skeleton 选项，`lineCount` 默认是 `3`。 |
+| `reveal` | `boolean \| ChartRevealOptions` | No | - | ready 内容遮罩，支持 `active`、`delayMs`、`durationMs` 和 `label`。 |
+| `minHeight` | `number` | No | - | 状态面板最小高度。 |
+
+四个主图都提供上表所列的一致状态 props。显式传入的 `loading`、`empty` 或 `error`
+优先；默认 `ready` 但没有可渲染数值时，会自动解析为 `empty`。loading 使用 status
+role，error 使用 assertive alert 和可选重试操作，reveal 会遵守减少动态效果偏好。
+
+## MetricCard
+
+`MetricCard` 用于收入、订单、转化率、AOV 或客户数等已经格式化的 KPI。它只负责展示，
+不计算比较值或趋势。
+
+```ts
+type MetricCardState = 'loading' | 'ready';
+type MetricTrendDirection = 'down' | 'neutral' | 'up';
+type MetricTrendTone = 'negative' | 'neutral' | 'positive';
+
+interface MetricCardTrend {
+  accessibilityLabel?: string;
+  direction: MetricTrendDirection;
+  tone?: MetricTrendTone;
+  value: ReactNode;
+}
+
+interface MetricCardProps {
+  comparison?: ReactNode;
+  loadingLabel?: ReactNode;
+  state?: MetricCardState;
+  title: ReactNode;
+  trend?: MetricCardTrend;
+  value: ReactNode;
+}
+```
+
+`state="loading"` 会用可访问 skeleton 替换数值区域；未传 `loadingLabel` 时使用本地化的
+`metricLoading`。趋势的 `direction` 会被辅助技术播报，`tone` 独立控制颜色，因此可表达
+“成本下降是正向”这类场景。
+
 ## 格式化
 
 ### Formatter option 类型
@@ -320,6 +447,15 @@ interface ChartDateFormatOptions {
   timeZone?: string;
 }
 
+type FormatNumberOptions = Omit<ChartNumberFormatOptions, 'notation'>;
+type FormatCompactNumberOptions = Omit<ChartNumberFormatOptions, 'notation'>;
+type FormatMoneyOptions = ChartCurrencyFormatOptions;
+type FormatDateOptions = ChartDateFormatOptions;
+
+interface FormatPercentageOptions extends ChartPercentFormatOptions {
+  input?: 'percent' | 'ratio';
+}
+
 interface ChartValueFormatOptions
   extends ChartNumberFormatOptions,
     ChartCurrencyFormatOptions,
@@ -329,6 +465,33 @@ interface ChartValueFormatOptions
 
 所有 formatter helper 在输入为 `null` 或 `undefined` 时都会返回空字符串。数字类
 formatter 在字符串无法通过 `Number(value)` 转成数字时也会返回空字符串。
+
+### 规范展示 formatter
+
+新 UI 代码使用以下名称。它们是纯 `Intl` 包装函数，因此 locale 相关选项必须直接传入，
+不会读取 `ChartLocalizationProvider`。
+
+```ts
+formatNumber(9876.543, { locale: 'en-US' }); // "9,876.54"
+formatCompactNumber(9876543, { locale: 'en-US' }); // "9.9M"
+formatMoney(12400, { currency: 'CNY', locale: 'zh-CN' }); // "¥12,400.00"
+formatPercentage(0.082); // "8.2%"（默认 ratio 输入）
+formatPercentage(8.2, { input: 'percent' }); // "8.2%"
+formatDate('2026-07-20', { locale: 'en-GB', timeZone: 'UTC' }); // "20 Jul 2026"
+```
+
+`formatPercentage` 要明确输入基准：`0.082` 这类比例值使用默认的 `input: 'ratio'`；
+只有数据本身已经在 0–100 范围时才使用 `input: 'percent'`。
+`formatCompactNumber` 总是使用 compact notation；未传选项时 `formatMoney` 默认
+使用 `en-US` 和 `USD`。
+
+### 旧 formatter 兼容策略
+
+`formatChartNumber`、`formatChartCurrency`、`formatChartPercent`、
+`formatChartDate`、`formatChartValue` 和 `chartFormatters` 会继续导出并保持 v0.6
+行为，但已经标为 deprecated。它们没有运行时 warning，并会在 v1.0 前继续支持。
+新展示代码应迁移到上面的规范名称；当需要按 `ChartFormat` union 分派时，仍可使用
+`formatChartValue`。
 
 ### `formatChartNumber(value, options)`
 
@@ -405,7 +568,7 @@ const chartFormatters = {
 | `trendLabel` | `ReactNode` | No | - | 指标旁边的趋势文本，默认正向绿色样式。 |
 | `actions` | `ReactNode` | No | - | 右侧操作控件。 |
 | `filters` | `ReactNode` | No | - | 右侧筛选控件，位于 `actions` 前面。 |
-| `state` | `ChartState` | Yes | - | 控制渲染 children 还是状态面板。 |
+| `state` | `ChartCardState` | Yes | - | 控制渲染 children 还是状态面板。 |
 | `errorMessage` | `ReactNode` | No | - | 仅 `state="error"` 时展示的额外错误信息。 |
 | `children` | `ReactNode` | No | - | 仅 `state="ready"` 时展示的图表内容。 |
 
@@ -433,14 +596,14 @@ const chartFormatters = {
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Y 值格式化选项。 |
 | `xFormat` | `ChartFormat` | No | - | X 轴和 tooltip label 格式。 |
 | `xFormatOptions` | `ChartValueFormatOptions` | No | `{}` | X 值格式化选项。 |
-| `emptyMessage` | `ReactNode` | No | `'No data available'` | 无可渲染数据时的空状态内容。 |
-| `state` | `ChartInlineState` | No | `'ready'` | 图表区域状态。适合 `TrendChart` 嵌入已有业务卡片时使用。 |
+| `emptyMessage` | `ReactNode` | No | 本地化 `chartEmpty` | 无可渲染数据时的空状态内容。 |
+| `state` | `ChartContentState` | No | `'ready'` | 图表区域状态。适合 `TrendChart` 嵌入已有业务卡片时使用。 |
 | `errorMessage` | `ReactNode` | No | - | 图表区域 error 面板的补充说明。 |
 | `onRetry` | `() => void` | No | - | 传入后在 error 面板渲染重试按钮。 |
-| `retryLabel` | `ReactNode` | No | `'Retry'` | 重试按钮文案。 |
-| `loadingLabel` | `ReactNode` | No | `'Loading chart'` | 图表 skeleton 的可访问文案。 |
-| `skeleton` | `boolean \| TrendChartSkeletonOptions` | No | - | 图表 skeleton 选项，例如 `lineCount` 和自定义 label。 |
-| `reveal` | `boolean \| TrendChartRevealOptions` | No | - | 保持图表挂载，并在图表区域上方显示 reveal overlay。 |
+| `retryLabel` | `ReactNode` | No | 本地化 `retry` | 重试按钮文案。 |
+| `loadingLabel` | `ReactNode` | No | 本地化 `chartLoading` | 图表 skeleton 的可访问文案。 |
+| `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | 图表 skeleton 选项，例如 `lineCount` 和自定义 label。 |
+| `reveal` | `boolean \| ChartRevealOptions` | No | - | 保持图表挂载，并在图表区域上方显示 reveal overlay。 |
 
 AI 生成代码时，应确保 `series[].id` 是 `data` 每项里的真实字段名。
 
@@ -601,7 +764,14 @@ function RevenueTooltip({ active, formatLabel, formatValue, label, payload }) {
 | `height` | `number` | No | `280` | 图表高度，单位 px。 |
 | `format` | `ChartFormat` | No | `'number'` | tooltip 和 legend 的值格式。 |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | 值格式化选项。 |
-| `emptyMessage` | `ReactNode` | No | `'No data available'` | 无正数值时的空状态内容。 |
+| `emptyMessage` | `ReactNode` | No | 本地化 `chartEmpty` | 无正数值时的空状态内容。 |
+| `state` | `ChartContentState` | No | `'ready'` | 共享图表区域状态；ready 但无正数值时会解析为 empty。 |
+| `errorMessage` | `ReactNode` | No | - | error 面板的补充说明。 |
+| `onRetry` | `() => void` | No | - | error 面板展示重试按钮。 |
+| `retryLabel` | `ReactNode` | No | 本地化 `retry` | 重试按钮文案。 |
+| `loadingLabel` | `ReactNode` | No | 本地化 `chartLoading` | skeleton 的可访问文案。 |
+| `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | skeleton 线条选项。 |
+| `reveal` | `boolean \| ChartRevealOptions` | No | - | ready 内容遮罩选项。 |
 
 `valueKey` 必须对应正数或数字字符串；0、负数、空值和非数字会被过滤。
 
@@ -627,7 +797,14 @@ function RevenueTooltip({ active, formatLabel, formatValue, label, payload }) {
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Y 值格式化选项。 |
 | `xFormat` | `ChartFormat` | No | - | X 轴和 tooltip label 格式。 |
 | `xFormatOptions` | `ChartValueFormatOptions` | No | `{}` | X 值格式化选项。 |
-| `emptyMessage` | `ReactNode` | No | `'No data available'` | 无可渲染数据时的空状态内容。 |
+| `emptyMessage` | `ReactNode` | No | 本地化 `chartEmpty` | 无可渲染数据时的空状态内容。 |
+| `state` | `ChartContentState` | No | `'ready'` | 共享图表区域状态；ready 但无可渲染数值时会解析为 empty。 |
+| `errorMessage` | `ReactNode` | No | - | error 面板的补充说明。 |
+| `onRetry` | `() => void` | No | - | error 面板展示重试按钮。 |
+| `retryLabel` | `ReactNode` | No | 本地化 `retry` | 重试按钮文案。 |
+| `loadingLabel` | `ReactNode` | No | 本地化 `chartLoading` | skeleton 的可访问文案。 |
+| `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | skeleton 线条选项。 |
+| `reveal` | `boolean \| ChartRevealOptions` | No | - | ready 内容遮罩选项。 |
 
 `series[].color` 会改变某个堆叠片段在所有类别中的颜色。当前 API 不支持同一个
 series 在不同类别下使用不同颜色。
@@ -666,7 +843,14 @@ interface ComboChartSeries<TDatum extends object = ChartDatum>
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | 基础 Y 值格式化选项。 |
 | `xFormat` | `ChartFormat` | No | - | X 轴和 tooltip label 格式。 |
 | `xFormatOptions` | `ChartValueFormatOptions` | No | `{}` | X 值格式化选项。 |
-| `emptyMessage` | `ReactNode` | No | `'No data available'` | 无可渲染数据时的空状态内容。 |
+| `emptyMessage` | `ReactNode` | No | 本地化 `chartEmpty` | 无可渲染数据时的空状态内容。 |
+| `state` | `ChartContentState` | No | `'ready'` | 共享图表区域状态；ready 但无可渲染数值时会解析为 empty。 |
+| `errorMessage` | `ReactNode` | No | - | error 面板的补充说明。 |
+| `onRetry` | `() => void` | No | - | error 面板展示重试按钮。 |
+| `retryLabel` | `ReactNode` | No | 本地化 `retry` | 重试按钮文案。 |
+| `loadingLabel` | `ReactNode` | No | 本地化 `chartLoading` | skeleton 的可访问文案。 |
+| `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | skeleton 线条选项。 |
+| `reveal` | `boolean \| ChartRevealOptions` | No | - | ready 内容遮罩选项。 |
 
 `ComboChart` 支持基础 `format` 加一种额外 series format。额外 format 会走右侧
 Y 轴。例如 base 是 `number`，折线是 `percent`。如果出现两个不同的额外格式，

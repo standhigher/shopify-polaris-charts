@@ -11,8 +11,8 @@ Language: English | [中文](README.zh-CN.md)
 Reusable React chart components for Shopify App dashboards built with Polaris.
 
 This package provides reusable React chart components for Polaris-style chart
-experiences, including card shells, trend charts, donut charts, stacked bar
-charts, and combo charts.
+experiences, including card shells, metric cards, trend charts, donut charts,
+stacked bar charts, and combo charts.
 
 ## Links
 
@@ -29,7 +29,7 @@ charts, and combo charts.
 ## Installation
 
 ```bash
-npm install @standhigher/charts react react-dom @shopify/polaris recharts
+npm install @standhigher/charts react react-dom recharts
 ```
 
 ## Component Overview
@@ -37,6 +37,8 @@ npm install @standhigher/charts react react-dom @shopify/polaris recharts
 | Component | Purpose | Start with |
 | --- | --- | --- |
 | `ChartCard` | Polaris-style chart shell with title, subtitle, metric, trend, actions, and loading or empty states. | Use around every chart to keep dashboard cards consistent. |
+| `MetricCard` | Accessible headline metric with comparison, trend, and loading skeleton. | Revenue, orders, conversion rate, AOV, and customer KPIs. |
+| `ChartStateRegion` | Shared chart-area loading, empty, error/retry, skeleton, and reveal renderer. | Consistent states across all primary charts. |
 | `TrendChart` | Single or multi-series line charts for time-series metrics. | Use for revenue, orders, conversion rate, and other trends. |
 | `DonutChart` | Category share visualization with optional legend controls. | Use for channel, market, source, or segment breakdowns. |
 | `StackedBarChart` | Stacked or grouped bar charts with axis, grid, tooltip, and margin customization. | Use for comparing multiple metrics across time or categories. |
@@ -48,7 +50,7 @@ npm install @standhigher/charts react react-dom @shopify/polaris recharts
 | --- | --- |
 | React | `>=18` |
 | React DOM | `>=18` |
-| Shopify Polaris | `>=12` |
+| Shopify Polaris | Optional `>=12` peer; no runtime import |
 | Recharts | `>=2` |
 | Node.js for local development | `>=20` |
 
@@ -75,6 +77,21 @@ export function RevenueCard() {
     </ChartCard>
   );
 }
+```
+
+## v0.7 foundations
+
+Wrap a view in `ChartLocalizationProvider` to localize component copy and set
+display defaults. Explicit chart or series `formatOptions` take precedence.
+Standalone formatters stay pure functions; use `formatPercentage` with
+`input: 'percent'` only for values already expressed on a 0–100 scale.
+
+```tsx
+<ChartLocalizationProvider locale="zh-CN" timeZone="Asia/Shanghai" currency="CNY"
+  messages={{ chartEmpty: '暂无数据', retry: '重试' }}>
+  <MetricCard title="Revenue" value={formatMoney(12400, { currency: 'CNY', locale: 'zh-CN' })} trend={{ direction: 'up', value: '+8.2%' }} />
+  <TrendChart {...props} />
+</ChartLocalizationProvider>
 ```
 
 ## Examples and Storybook

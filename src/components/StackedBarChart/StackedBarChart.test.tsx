@@ -9,6 +9,21 @@ const channelCompositionData = [
 ];
 
 describe('StackedBarChart', () => {
+  it('renders the shared loading skeleton', () => {
+    render(
+      <StackedBarChart
+        data={channelCompositionData}
+        loadingLabel="Loading order status"
+        series={[{ id: 'fulfilled', label: 'Fulfilled', data: channelCompositionData }]}
+        state="loading"
+        xKey="channel"
+      />
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Loading order status');
+    expect(screen.getAllByTestId('chart-state-skeleton-line')).toHaveLength(3);
+  });
+
   it('renders stacked series labels and formatted values', () => {
     render(
       <StackedBarChart

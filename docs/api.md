@@ -11,14 +11,22 @@ contracts, and implementation notes.
 ```ts
 import {
   ChartCard,
+  ChartLocalizationProvider,
   ChartRevealRegion,
   ChartSkeletonLayout,
+  ChartStateRegion,
   ComboChart,
   DonutChart,
+  MetricCard,
   StackedBarChart,
   TrendChart,
   chartFormatters,
   chartTheme,
+  formatCompactNumber,
+  formatDate,
+  formatMoney,
+  formatNumber,
+  formatPercentage,
   formatChartCurrency,
   formatChartDate,
   formatChartNumber,
@@ -32,7 +40,8 @@ import {
   type ChartDotOptions,
   type ChartFormat,
   type ChartGridOptions,
-  type ChartInlineState,
+  type ChartCardState,
+  type ChartContentState,
   type ChartLineOptions,
   type ChartMargin,
   type ChartTheme,
@@ -43,9 +52,12 @@ import {
   type ChartTooltipPayloadItem,
   type ChartValueFormatOptions,
   type ChartSeries,
-  type ChartState,
-  type TrendChartRevealOptions,
-  type TrendChartSkeletonOptions
+  type ChartRevealOptions,
+  type ChartSkeletonOptions,
+  type ChartStateRegionProps,
+  type ChartLocalizationProviderProps,
+  type MetricCardProps,
+  type MetricCardTrend
 } from '@standhigher/charts';
 ```
 
@@ -55,7 +67,7 @@ Runtime peer dependencies:
 |---|---:|---|
 | `react` | `>=18` | React rendering runtime |
 | `react-dom` | `>=18` | React DOM runtime |
-| `@shopify/polaris` | `>=12` | Consumer app design-system peer |
+| `@shopify/polaris` | Optional `>=12` | Consumer app design-system peer; this package has no runtime import |
 | `recharts` | `>=2` | Chart rendering engine |
 
 ### Public Entry Exports
@@ -63,6 +75,9 @@ Runtime peer dependencies:
 | Export | Kind | Description |
 |---|---|---|
 | `ChartCard` | component | Polaris-style dashboard card shell with built-in chart states. |
+| `MetricCard` | component | Accessible KPI card with comparison, trend, and loading skeleton. |
+| `ChartLocalizationProvider` | component | React context for component copy and chart-format defaults. |
+| `ChartStateRegion` | component | Shared chart-area loading, empty, error/retry, skeleton, and reveal renderer. |
 | `ChartSkeletonLayout` | component | Dashboard-level skeleton container for independently revealed chart regions. |
 | `ChartRevealRegion` | component | Region wrapper that swaps a chart-area skeleton for ready children. |
 | `TrendChart` | component | Line or area chart for trends. |
@@ -74,6 +89,11 @@ Runtime peer dependencies:
 | `formatChartPercent` | function | Formats nullable numbers as percentages. |
 | `formatChartDate` | function | Formats nullable date-like values. |
 | `formatChartValue` | function | Dispatches to a formatter based on `ChartFormat`. |
+| `formatNumber` | function | Canonical standard-number display formatter. |
+| `formatCompactNumber` | function | Canonical compact-number display formatter. |
+| `formatMoney` | function | Canonical currency display formatter. |
+| `formatPercentage` | function | Canonical percentage formatter with an explicit input basis. |
+| `formatDate` | function | Canonical date display formatter. |
 | `chartFormatters` | object | Named formatter helper map. |
 | `chartTheme` | object | Default visual theme. |
 | `packageName` | constant | Package name string exported from the entry point. |
@@ -92,10 +112,21 @@ Runtime peer dependencies:
 | `ChartDatum` | type | Default loose datum shape. |
 | `ChartSeries` | type | Shared series shape. |
 | `ChartFormat` | type | Value format union. |
-| `ChartState` | type | `ChartCard` state union. |
-| `ChartInlineState` | type | Chart-area-only state union used by `TrendChart`. |
-| `TrendChartSkeletonOptions` | type | Options for the `TrendChart` chart-area skeleton. |
-| `TrendChartRevealOptions` | type | Options for the `TrendChart` reveal overlay. |
+| `ChartCardState` | type | Card-level state union. |
+| `ChartContentState` | type | Shared chart-area state union. |
+| `ChartState` | type | Deprecated alias of `ChartCardState`. |
+| `ChartInlineState` | type | Deprecated alias of `ChartContentState`. |
+| `ChartSkeletonOptions` | type | Shared chart-area skeleton options. |
+| `ChartRevealOptions` | type | Shared chart-area reveal options. |
+| `ChartStateRegionProps` | type | Props for `ChartStateRegion`. |
+| `ChartLocalizationProviderProps` | type | Props for `ChartLocalizationProvider`. |
+| `ChartMessages` | type | Localizable component-copy keys. |
+| `ChartLocalizationValue` | type | Resolved localization context value. |
+| `MetricCardProps` | type | Props for `MetricCard`. |
+| `MetricCardTrend` | type | Trend semantics for `MetricCard`. |
+| `MetricCardState` | type | `'loading' | 'ready'`. |
+| `MetricTrendDirection` | type | `'down' | 'neutral' | 'up'`. |
+| `MetricTrendTone` | type | `'negative' | 'neutral' | 'positive'`. |
 | `ChartMargin` | type | Cartesian chart margin options. |
 | `CartesianAxisOptions` | type | Cartesian X/Y axis presentation options. |
 | `ChartGridOptions` | type | Cartesian grid presentation options. |
@@ -108,6 +139,11 @@ Runtime peer dependencies:
 | `ChartDotOptions` | type | Non-active line or area dot options. |
 | `ChartActiveDotOptions` | type | Active hover dot options. |
 | `ChartValueFormatOptions` | type | Shared formatter options. |
+| `FormatNumberOptions` | type | Options for `formatNumber`. |
+| `FormatCompactNumberOptions` | type | Options for `formatCompactNumber`. |
+| `FormatMoneyOptions` | type | Options for `formatMoney`. |
+| `FormatPercentageOptions` | type | Options for `formatPercentage`. |
+| `FormatDateOptions` | type | Options for `formatDate`. |
 | `ChartTheme` | type | Shape of `chartTheme`. |
 
 ## Shared Types
@@ -166,10 +202,10 @@ not part of the public API yet.
 type ChartFormat = 'number' | 'currency' | 'percent' | 'compact' | 'date';
 ```
 
-### `ChartState`
+### Chart state types
 
 ```ts
-type ChartState =
+type ChartCardState =
   | 'loading'
   | 'empty'
   | 'error'
@@ -177,20 +213,24 @@ type ChartState =
   | 'stale'
   | 'ready';
 
-type ChartInlineState = 'loading' | 'empty' | 'error' | 'ready';
+type ChartContentState = 'loading' | 'empty' | 'error' | 'ready';
 
-interface TrendChartSkeletonOptions {
+interface ChartSkeletonOptions {
   label?: ReactNode;
   lineCount?: number;
 }
 
-interface TrendChartRevealOptions {
+interface ChartRevealOptions {
   active?: boolean;
   delayMs?: number;
   durationMs?: number;
   label?: ReactNode;
 }
 ```
+
+`ChartState` remains a deprecated alias of `ChartCardState`. `ChartInlineState`,
+`TrendChartSkeletonOptions`, and `TrendChartRevealOptions` remain deprecated
+aliases of the corresponding shared types through v1.0.
 
 ### Chart presentation options
 
@@ -333,6 +373,121 @@ Use `tooltip.content` for custom tooltip content. Custom content is deliberately
 not accepted through `rechartsProps.tooltip`, which preserves the chart's
 tooltip data and formatting integration.
 
+## Localization and chart-area states
+
+### `ChartLocalizationProvider`
+
+`ChartLocalizationProvider` is intentionally limited to component copy and
+formatting defaults. It does not perform data fetching, business calculations,
+or dashboard orchestration.
+
+```ts
+interface ChartMessages {
+  chartEmpty: ReactNode;
+  chartError: ReactNode;
+  chartLoading: ReactNode;
+  chartNoPermission: ReactNode;
+  chartPreparing: ReactNode;
+  chartStale: ReactNode;
+  metricLoading: ReactNode;
+  retry: ReactNode;
+}
+
+interface ChartLocalizationProviderProps {
+  children: ReactNode;
+  currency?: string;
+  locale?: string;
+  messages?: Partial<ChartMessages>;
+  timeZone?: string;
+}
+```
+
+The default context is `locale: 'en-US'`, `currency: 'USD'`, and English
+messages. Providers can be nested; omitted values inherit from the parent and
+`messages` merge by key. For chart values, precedence is explicit chart or
+series `formatOptions`, then provider `locale` / `currency` / `timeZone`, then
+the built-in defaults. Standalone formatter functions are pure and never read
+this React context, so pass their `locale`, `currency`, or `timeZone` options
+directly.
+
+```tsx
+<ChartLocalizationProvider
+  currency="CNY"
+  locale="zh-CN"
+  messages={{ chartEmpty: '暂无数据', retry: '重试' }}
+  timeZone="Asia/Shanghai"
+>
+  <TrendChart format="currency" formatOptions={{ maximumFractionDigits: 0 }} {...props} />
+</ChartLocalizationProvider>
+```
+
+### `ChartStateRegion`
+
+`ChartStateRegion` is the shared chart-area renderer used by `TrendChart`,
+`ComboChart`, `StackedBarChart`, and `DonutChart`. You may also use it around
+custom chart content.
+
+| Prop | Type | Required | Default | Description |
+|---|---|---:|---|---|
+| `children` | `ReactNode` | Yes | - | Ready chart content. |
+| `state` | `ChartContentState` | No | `'ready'` | `loading`, `empty`, `error`, or `ready`. |
+| `emptyMessage` | `ReactNode` | No | localized `chartEmpty` | Empty-state content. |
+| `errorMessage` | `ReactNode` | No | - | Supporting error content. |
+| `loadingLabel` | `ReactNode` | No | localized `chartLoading` | Accessible loading label. |
+| `onRetry` | `() => void` | No | - | Shows a retry button for the error state. |
+| `retryLabel` | `ReactNode` | No | localized `retry` | Retry button label. |
+| `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | Skeleton line options; `lineCount` defaults to `3`. |
+| `reveal` | `boolean \| ChartRevealOptions` | No | - | Ready-content overlay, with `active`, `delayMs`, `durationMs`, and `label`. |
+| `minHeight` | `number` | No | - | Minimum height for state panels. |
+
+All four primary charts expose the same state-related props above. An explicit
+`loading`, `empty`, or `error` state wins. With the default `ready` state, a
+chart without renderable values resolves to `empty`. The loading state has a
+status role, the error state has an assertive alert and optional retry action,
+and reveal honors reduced-motion preferences.
+
+## MetricCard
+
+Use `MetricCard` for already-formatted dashboard KPIs such as revenue, orders,
+conversion rate, AOV, or customer count. It is presentational: it does not
+calculate comparisons or trends.
+
+```ts
+type MetricCardState = 'loading' | 'ready';
+type MetricTrendDirection = 'down' | 'neutral' | 'up';
+type MetricTrendTone = 'negative' | 'neutral' | 'positive';
+
+interface MetricCardTrend {
+  accessibilityLabel?: string;
+  direction: MetricTrendDirection;
+  tone?: MetricTrendTone;
+  value: ReactNode;
+}
+
+interface MetricCardProps {
+  comparison?: ReactNode;
+  loadingLabel?: ReactNode;
+  state?: MetricCardState;
+  title: ReactNode;
+  trend?: MetricCardTrend;
+  value: ReactNode;
+}
+```
+
+`state="loading"` replaces the value area with an accessible skeleton and uses
+the localized `metricLoading` message unless `loadingLabel` is supplied. A
+trend's `direction` is announced for assistive technology; its `tone` controls
+color independently, which supports metrics where a decrease is positive.
+
+```tsx
+<MetricCard
+  comparison="vs. previous 30 days"
+  title="Conversion rate"
+  trend={{ direction: 'up', value: '+0.4 percentage points' }}
+  value={formatPercentage(0.034, { locale: 'en-GB' })}
+/>
+```
+
 ## Formatting
 
 ### Formatter option types
@@ -363,6 +518,15 @@ interface ChartDateFormatOptions {
   timeZone?: string;
 }
 
+type FormatNumberOptions = Omit<ChartNumberFormatOptions, 'notation'>;
+type FormatCompactNumberOptions = Omit<ChartNumberFormatOptions, 'notation'>;
+type FormatMoneyOptions = ChartCurrencyFormatOptions;
+type FormatDateOptions = ChartDateFormatOptions;
+
+interface FormatPercentageOptions extends ChartPercentFormatOptions {
+  input?: 'percent' | 'ratio';
+}
+
 interface ChartValueFormatOptions
   extends ChartNumberFormatOptions,
     ChartCurrencyFormatOptions,
@@ -373,6 +537,36 @@ interface ChartValueFormatOptions
 All formatter helpers return an empty string for `null` and `undefined`.
 Numeric formatters also return an empty string when a string value cannot be
 converted to a number through `Number(value)`.
+
+### Canonical display formatters
+
+Use these names for new UI code. They are pure `Intl` wrappers, so their
+locale-related options must be supplied directly rather than through
+`ChartLocalizationProvider`.
+
+```ts
+formatNumber(9876.543, { locale: 'en-US' }); // "9,876.54"
+formatCompactNumber(9876543, { locale: 'en-US' }); // "9.9M"
+formatMoney(12400, { currency: 'CNY', locale: 'zh-CN' }); // "¥12,400.00"
+formatPercentage(0.082); // "8.2%" (ratio input is the default)
+formatPercentage(8.2, { input: 'percent' }); // "8.2%"
+formatDate('2026-07-20', { locale: 'en-GB', timeZone: 'UTC' }); // "20 Jul 2026"
+```
+
+`formatPercentage` makes the input basis explicit: use the default
+`input: 'ratio'` for values such as `0.082`; use `input: 'percent'` only when
+the source is already on a 0–100 scale. `formatCompactNumber` always uses
+compact notation. `formatMoney` defaults to `en-US` and `USD` if its options
+are omitted.
+
+### Legacy formatter compatibility
+
+`formatChartNumber`, `formatChartCurrency`, `formatChartPercent`,
+`formatChartDate`, `formatChartValue`, and `chartFormatters` remain exported
+with their v0.6 behavior and are marked deprecated. They have no runtime
+warning and remain supported through v1.0. Migrate new display code to the
+canonical names above. Continue using `formatChartValue` internally or in
+chart-format callbacks when dispatching from a `ChartFormat` union is useful.
 
 ### `formatChartNumber(value, options)`
 
@@ -467,7 +661,7 @@ compact analytical view.
 | `trendLabel` | `ReactNode` | No | - | Inline trend text beside `metric`. Styled as positive green by default. |
 | `actions` | `ReactNode` | No | - | Right-aligned command controls. |
 | `filters` | `ReactNode` | No | - | Right-aligned filter controls before `actions`. |
-| `state` | `ChartState` | Yes | - | Controls whether children render or a status panel renders. |
+| `state` | `ChartCardState` | Yes | - | Controls whether children render or a status panel renders. |
 | `errorMessage` | `ReactNode` | No | - | Extra message shown only when `state="error"`. |
 | `children` | `ReactNode` | No | - | Chart or analytical content shown only when `state="ready"`. |
 
@@ -476,11 +670,11 @@ compact analytical view.
 | State | Rendered behavior |
 |---|---|
 | `ready` | Renders `children`. |
-| `loading` | Renders a polite status panel with "Loading chart". |
-| `empty` | Renders a polite status panel with "No data available". |
-| `error` | Renders an assertive alert panel with "Unable to load chart" and optional `errorMessage`. |
-| `no-permission` | Renders a polite status panel with "No permission to view this chart". |
-| `stale` | Renders a polite status panel with "Data may be out of date". |
+| `loading` | Renders a polite status panel with the localized `chartLoading` message. |
+| `empty` | Renders a polite status panel with the localized `chartEmpty` message. |
+| `error` | Renders an assertive alert panel with localized `chartError` and optional `errorMessage`. |
+| `no-permission` | Renders a polite status panel with localized `chartNoPermission`. |
+| `stale` | Renders a polite status panel with localized `chartStale`. |
 
 ## TrendChart
 
@@ -525,14 +719,14 @@ const data = [
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for Y values. |
 | `xFormat` | `ChartFormat` | No | - | Optional X-axis and tooltip label format. |
 | `xFormatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for X values. |
-| `emptyMessage` | `ReactNode` | No | `'No data available'` | Empty-state content when no series values are renderable. |
-| `state` | `ChartInlineState` | No | `'ready'` | Chart-area-only state. Use this when `TrendChart` is embedded in an existing business card. |
+| `emptyMessage` | `ReactNode` | No | localized `chartEmpty` | Empty-state content when no series values are renderable. |
+| `state` | `ChartContentState` | No | `'ready'` | Chart-area state. Use this when `TrendChart` is embedded in an existing business card. |
 | `errorMessage` | `ReactNode` | No | - | Optional body content for the inline chart error panel. |
 | `onRetry` | `() => void` | No | - | Renders a retry button in the inline error panel. |
-| `retryLabel` | `ReactNode` | No | `'Retry'` | Retry button label. |
-| `loadingLabel` | `ReactNode` | No | `'Loading chart'` | Accessible label shown in the chart skeleton. |
-| `skeleton` | `boolean \| TrendChartSkeletonOptions` | No | - | Enables skeleton options such as `lineCount` and custom label. |
-| `reveal` | `boolean \| TrendChartRevealOptions` | No | - | Keeps the chart mounted and places a chart-area reveal overlay above it. |
+| `retryLabel` | `ReactNode` | No | localized `retry` | Retry button label. |
+| `loadingLabel` | `ReactNode` | No | localized `chartLoading` | Accessible label shown in the chart skeleton. |
+| `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | Enables skeleton options such as `lineCount` and custom label. |
+| `reveal` | `boolean \| ChartRevealOptions` | No | - | Keeps the chart mounted and places a chart-area reveal overlay above it. |
 
 ### Notes for AI code generation
 
@@ -724,7 +918,14 @@ const data = [
 | `height` | `number` | No | `280` | Chart viewport height in pixels. |
 | `format` | `ChartFormat` | No | `'number'` | Tooltip and legend value format. |
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for slice values. |
-| `emptyMessage` | `ReactNode` | No | `'No data available'` | Empty-state content when no positive values are renderable. |
+| `emptyMessage` | `ReactNode` | No | localized `chartEmpty` | Empty-state content when no positive values are renderable. |
+| `state` | `ChartContentState` | No | `'ready'` | Shared chart-area state; ready without positive values resolves to empty. |
+| `errorMessage` | `ReactNode` | No | - | Supporting content for the error panel. |
+| `onRetry` | `() => void` | No | - | Shows a retry button for the error panel. |
+| `retryLabel` | `ReactNode` | No | localized `retry` | Retry button label. |
+| `loadingLabel` | `ReactNode` | No | localized `chartLoading` | Accessible label shown in the skeleton. |
+| `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | Skeleton line options. |
+| `reveal` | `boolean \| ChartRevealOptions` | No | - | Ready-content overlay options. |
 
 ### Notes for AI code generation
 
@@ -774,7 +975,14 @@ const data = [
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for Y values. |
 | `xFormat` | `ChartFormat` | No | - | Optional X-axis and tooltip label format. |
 | `xFormatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for X values. |
-| `emptyMessage` | `ReactNode` | No | `'No data available'` | Empty-state content when no series values are renderable. |
+| `emptyMessage` | `ReactNode` | No | localized `chartEmpty` | Empty-state content when no series values are renderable. |
+| `state` | `ChartContentState` | No | `'ready'` | Shared chart-area state; ready without renderable values resolves to empty. |
+| `errorMessage` | `ReactNode` | No | - | Supporting content for the error panel. |
+| `onRetry` | `() => void` | No | - | Shows a retry button for the error panel. |
+| `retryLabel` | `ReactNode` | No | localized `retry` | Retry button label. |
+| `loadingLabel` | `ReactNode` | No | localized `chartLoading` | Accessible label shown in the skeleton. |
+| `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | Skeleton line options. |
+| `reveal` | `boolean \| ChartRevealOptions` | No | - | Ready-content overlay options. |
 
 ### Notes for AI code generation
 
@@ -852,7 +1060,14 @@ interface ComboChartSeries<TDatum extends object = ChartDatum>
 | `formatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for base Y values. |
 | `xFormat` | `ChartFormat` | No | - | Optional X-axis and tooltip label format. |
 | `xFormatOptions` | `ChartValueFormatOptions` | No | `{}` | Formatter options for X values. |
-| `emptyMessage` | `ReactNode` | No | `'No data available'` | Empty-state content when no series values are renderable. |
+| `emptyMessage` | `ReactNode` | No | localized `chartEmpty` | Empty-state content when no series values are renderable. |
+| `state` | `ChartContentState` | No | `'ready'` | Shared chart-area state; ready without renderable values resolves to empty. |
+| `errorMessage` | `ReactNode` | No | - | Supporting content for the error panel. |
+| `onRetry` | `() => void` | No | - | Shows a retry button for the error panel. |
+| `retryLabel` | `ReactNode` | No | localized `retry` | Retry button label. |
+| `loadingLabel` | `ReactNode` | No | localized `chartLoading` | Accessible label shown in the skeleton. |
+| `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | Skeleton line options. |
+| `reveal` | `boolean \| ChartRevealOptions` | No | - | Ready-content overlay options. |
 
 ### Axis behavior
 

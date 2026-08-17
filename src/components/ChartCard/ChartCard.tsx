@@ -2,7 +2,8 @@ import { useId } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { chartTheme } from '../../theme';
-import type { ChartState } from '../../types';
+import type { ChartCardState } from '../../types';
+import { useChartLocalization } from '../ChartLocalization';
 
 export interface ChartCardProps {
   title: ReactNode;
@@ -11,18 +12,10 @@ export interface ChartCardProps {
   trendLabel?: ReactNode;
   actions?: ReactNode;
   filters?: ReactNode;
-  state: ChartState;
+  state: ChartCardState;
   errorMessage?: ReactNode;
   children?: ReactNode;
 }
-
-const stateCopy: Record<Exclude<ChartState, 'ready'>, string> = {
-  empty: 'No data available',
-  error: 'Unable to load chart',
-  loading: 'Loading chart',
-  'no-permission': 'No permission to view this chart',
-  stale: 'Data may be out of date'
-};
 
 const styles: Record<string, CSSProperties> = {
   card: {
@@ -115,12 +108,21 @@ const styles: Record<string, CSSProperties> = {
   }
 };
 
-function ChartCardState({ errorMessage, state }: Pick<ChartCardProps, 'errorMessage' | 'state'>) {
+function ChartCardStatePanel({ errorMessage, state }: Pick<ChartCardProps, 'errorMessage' | 'state'>) {
+  const { messages } = useChartLocalization();
+
   if (state === 'ready') {
     return null;
   }
 
   const isError = state === 'error';
+  const stateCopy: Record<Exclude<ChartCardState, 'ready'>, ReactNode> = {
+    empty: messages.chartEmpty,
+    error: messages.chartError,
+    loading: messages.chartLoading,
+    'no-permission': messages.chartNoPermission,
+    stale: messages.chartStale
+  };
 
   return (
     <div
@@ -174,7 +176,7 @@ export function ChartCard({
         ) : null}
       </div>
       <div style={styles.body}>
-        {state === 'ready' ? children : <ChartCardState errorMessage={errorMessage} state={state} />}
+        {state === 'ready' ? children : <ChartCardStatePanel errorMessage={errorMessage} state={state} />}
       </div>
     </section>
   );

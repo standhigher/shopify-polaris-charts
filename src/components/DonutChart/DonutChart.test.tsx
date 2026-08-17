@@ -1,6 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { DonutChart } from './DonutChart';
+import { ChartLocalizationProvider } from '../ChartLocalization';
 
 const orderStatusData = [
   { status: 'Paid', value: 642 },
@@ -9,6 +11,40 @@ const orderStatusData = [
 ];
 
 describe('DonutChart', () => {
+  it('uses localization defaults unless explicit format options override them', () => {
+    render(
+      <ChartLocalizationProvider currency="CAD">
+        <DonutChart
+          categoryKey="plan"
+          data={[{ plan: 'Plus', revenue: 1200 }]}
+          format="currency"
+          valueKey="revenue"
+        />
+      </ChartLocalizationProvider>
+    );
+
+    expect(screen.getByText('CA$1,200.00')).toBeVisible();
+  });
+
+  it('renders the shared error state with a retry action', () => {
+    const onRetry = vi.fn();
+
+    render(
+      <DonutChart
+        categoryKey="status"
+        data={orderStatusData}
+        errorMessage="Order status API unavailable"
+        onRetry={onRetry}
+        state="error"
+        valueKey="value"
+      />
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Unable to load chart');
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
   it('renders chart title, center label, legend labels, and formatted values', () => {
     render(
       <DonutChart

@@ -8,6 +8,11 @@ export interface ChartTheme {
     primary: string;
     secondary: string;
   };
+  status: {
+    negative: string;
+    neutral: string;
+    positive: string;
+  };
   palette: string[];
   axis: {
     fontSize: number;
@@ -61,6 +66,11 @@ export const chartTheme: ChartTheme = {
     background: '#ffffff',
     border: '#dcdfe4',
     subtleBackground: '#f6f6f7'
+  },
+  status: {
+    negative: '#d72c0d',
+    neutral: '#6d7175',
+    positive: '#008060'
   },
   text: {
     primary: '#202223',

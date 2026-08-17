@@ -1,6 +1,8 @@
 export type {
   CartesianAxisOptions,
   ChartActiveDotOptions,
+  ChartCardState,
+  ChartContentState,
   ChartDatum,
   ChartDotOptions,
   ChartFormat,
@@ -9,6 +11,7 @@ export type {
   ChartLineOptions,
   ChartMargin,
   ChartSeries,
+  ChartSkeletonOptions,
   ChartState,
   ChartTooltipContentProps,
   ChartTooltipContentRenderer,
@@ -16,6 +19,7 @@ export type {
   ChartTooltipOptions,
   ChartTooltipPayloadItem,
   ChartValue,
+  ChartRevealOptions,
   TrendChartRevealOptions,
   TrendChartSkeletonOptions
 } from './chart';

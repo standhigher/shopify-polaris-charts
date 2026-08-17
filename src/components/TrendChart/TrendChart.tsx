@@ -15,10 +15,10 @@ import { formatChartValue, type ChartValueFormatOptions } from '../../formatters
 import { chartTheme } from '../../theme';
 import type {
   CartesianAxisOptions,
+  ChartContentState,
   ChartDatum,
   ChartFormat,
   ChartGridOptions,
-  ChartInlineState,
   ChartLineOptions,
   ChartMargin,
   ChartSeries,
@@ -30,6 +30,8 @@ import type {
   TrendChartRechartsProps,
   TrendChartSkeletonOptions
 } from '../../types';
+import { ChartStateRegion } from '../ChartState';
+import { useChartLocalization } from '../ChartLocalization';
 import {
   getAreaRechartsProps,
   getCartesianGridRechartsProps,
@@ -68,7 +70,7 @@ export interface TrendChartProps<TDatum extends object = ChartDatum> {
   retryLabel?: ReactNode;
   reveal?: boolean | TrendChartRevealOptions;
   skeleton?: boolean | TrendChartSkeletonOptions;
-  state?: ChartInlineState;
+  state?: ChartContentState;
 }
 
 interface TrendTooltipProps<TDatum extends object> {
@@ -228,12 +230,6 @@ const isEmptyValue = (value: unknown) => value === null || value === undefined |
 
 const defaultActiveDot = { r: 4 };
 
-const normalizeSkeletonOptions = (skeleton: boolean | TrendChartSkeletonOptions | undefined) =>
-  typeof skeleton === 'object' ? skeleton : {};
-
-const normalizeRevealOptions = (reveal: boolean | TrendChartRevealOptions | undefined) =>
-  typeof reveal === 'object' ? reveal : { active: reveal };
-
 const getSeriesPresentationProps = <TDatum extends object>(item: ChartSeries<TDatum>) => {
   const props: { opacity?: number; strokeDasharray?: string | number; strokeWidth?: number } = {};
 
@@ -356,19 +352,19 @@ function TrendTooltip<TDatum extends object>({
 
 export function TrendChart<TDatum extends object = ChartDatum>({
   data,
-  emptyMessage = 'No data available',
+  emptyMessage,
   errorMessage,
   format = 'number',
-  formatOptions = {},
+  formatOptions: suppliedFormatOptions = {},
   grid,
   height = 280,
   line,
-  loadingLabel = 'Loading chart',
+  loadingLabel,
   margin,
   mode = 'line',
   onRetry,
   rechartsProps,
-  retryLabel = 'Retry',
+  retryLabel,
   reveal,
   series,
   showLegend = true,
@@ -377,11 +373,23 @@ export function TrendChart<TDatum extends object = ChartDatum>({
   title,
   tooltip,
   xFormat,
-  xFormatOptions = {},
+  xFormatOptions: suppliedXFormatOptions = {},
   xAxis,
   yAxis,
   xKey
 }: TrendChartProps<TDatum>) {
+  const localization = useChartLocalization();
+  const formatOptions = {
+    currency: localization.currency,
+    locale: localization.locale,
+    timeZone: localization.timeZone,
+    ...suppliedFormatOptions
+  };
+  const xFormatOptions = {
+    locale: localization.locale,
+    timeZone: localization.timeZone,
+    ...suppliedXFormatOptions
+  };
   const seriesWithColor = series.map((item, index) => ({
     ...item,
     color: item.color ?? chartTheme.palette[index % chartTheme.palette.length]
@@ -389,27 +397,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
   const hasData =
     data.length > 0 &&
     seriesWithColor.some((item) => data.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));
-  const skeletonOptions = normalizeSkeletonOptions(skeleton);
-  const revealOptions = normalizeRevealOptions(reveal);
-  const isRevealActive = Boolean(revealOptions.active);
-  const renderSkeleton = () => {
-    const lineCount = skeletonOptions.lineCount ?? 3;
-    const label = skeletonOptions.label ?? loadingLabel;
-
-    return (
-      <div role="status" style={{ ...styles.skeleton, minHeight: height }}>
-        <span style={styles.skeletonLabel}>{label}</span>
-        {Array.from({ length: lineCount }).map((_, index) => (
-          <span
-            aria-hidden="true"
-            data-testid="trend-chart-skeleton-line"
-            key={index}
-            style={{ ...styles.skeletonLine, width: `${100 - index * 14}%` }}
-          />
-        ))}
-      </div>
-    );
-  };
+  const resolvedState = state === 'ready' && !hasData ? 'empty' : state;
   const renderChart = () => (
     <div style={{ height, position: 'relative', width: '100%' }}>
       <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
@@ -527,50 +515,11 @@ export function TrendChart<TDatum extends object = ChartDatum>({
           </LineChart>
         )}
       </ResponsiveContainer>
-      {isRevealActive ? (
-        <div
-          role="status"
-          style={{
-            ...styles.revealOverlay,
-            transitionDelay: `${revealOptions.delayMs ?? 0}ms`,
-            transitionDuration: `${revealOptions.durationMs ?? 180}ms`
-          }}
-        >
-          {revealOptions.label ?? 'Preparing chart'}
-        </div>
-      ) : null}
     </div>
   );
 
-  const renderContent = () => {
-    if (state === 'loading') {
-      return renderSkeleton();
-    }
-
-    if (state === 'error') {
-      return (
-        <div role="alert" style={{ ...styles.errorPanel, minHeight: height }}>
-          <p style={styles.errorTitle}>Unable to load chart</p>
-          {errorMessage ? <p style={styles.errorMessage}>{errorMessage}</p> : null}
-          {onRetry ? (
-            <button onClick={onRetry} style={styles.errorAction} type="button">
-              {retryLabel}
-            </button>
-          ) : null}
-        </div>
-      );
-    }
-
-    if (!hasData || state === 'empty') {
-      return (
-        <div role="status" style={{ ...styles.empty, minHeight: height }}>
-          {emptyMessage}
-        </div>
-      );
-    }
-
-    return (
-      <>
+  const chartContent = (
+    <>
         {renderChart()}
         {showLegend ? (
           <div aria-label="Chart legend" style={styles.legend}>
@@ -589,14 +538,25 @@ export function TrendChart<TDatum extends object = ChartDatum>({
             })}
           </div>
         ) : null}
-      </>
-    );
-  };
+    </>
+  );
 
   return (
     <div style={styles.container}>
       {title ? <h3 style={styles.heading}>{title}</h3> : null}
-      {renderContent()}
+      <ChartStateRegion
+        emptyMessage={emptyMessage}
+        errorMessage={errorMessage}
+        loadingLabel={loadingLabel}
+        minHeight={height}
+        onRetry={onRetry}
+        reveal={reveal}
+        retryLabel={retryLabel}
+        skeleton={skeleton}
+        state={resolvedState}
+      >
+        {chartContent}
+      </ChartStateRegion>
     </div>
   );
 }

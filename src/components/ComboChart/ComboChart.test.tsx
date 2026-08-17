@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { ComboChart } from './ComboChart';
 
@@ -9,6 +10,25 @@ const orderConversionData = [
 ];
 
 describe('ComboChart', () => {
+  it('renders the shared error state with a retry action', () => {
+    const onRetry = vi.fn();
+
+    render(
+      <ComboChart
+        data={orderConversionData}
+        errorMessage="Orders API unavailable"
+        onRetry={onRetry}
+        series={[{ id: 'orders', label: 'Orders', data: orderConversionData, type: 'bar' }]}
+        state="error"
+        xKey="date"
+      />
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Unable to load chart');
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
   it('renders bar and line series labels', () => {
     render(
       <ComboChart

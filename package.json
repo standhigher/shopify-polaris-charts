@@ -1,6 +1,6 @@
 {
   "name": "@standhigher/charts",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Reusable React chart components for Shopify Polaris-style dashboards.",
   "license": "MIT",
   "author": "Standhigher",
@@ -63,6 +63,11 @@
     "react": ">=18",
     "react-dom": ">=18",
     "recharts": ">=2"
+  },
+  "peerDependenciesMeta": {
+    "@shopify/polaris": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

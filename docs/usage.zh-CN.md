@@ -68,6 +68,80 @@ fulfilled、pending 和 returned orders。它最适合每个类别共享同一�
 表示 volume，用折线表示 rate 或 benchmark，这样可以看出关系，同时避免暗示两个
 指标使用同一刻度。
 
+## 共享图表状态
+
+`TrendChart`、`ComboChart`、`StackedBarChart` 和 `DonutChart` 都提供相同的图表区域
+状态契约：`state`、`emptyMessage`、`errorMessage`、`loadingLabel`、`onRetry`、
+`retryLabel`、`skeleton` 和 `reveal`。显式传入的 `loading`、`empty` 或 `error` 优先；
+默认 `state="ready"` 时，没有可渲染数值会自动解析为空状态。
+
+```tsx
+<DonutChart
+  categoryKey="source"
+  data={trafficSources}
+  errorMessage="无法加载流量来源"
+  onRetry={reloadTrafficSources}
+  retryLabel="重试"
+  state="error"
+  valueKey="visits"
+/>
+```
+
+通过 `skeleton={{ lineCount: 4, label: '正在加载订单' }}` 调整 loading 文案和密度。
+希望 ready 内容保持挂载、在短暂遮罩下 reveal 时，使用
+`reveal={{ active: isRefreshing, label: '正在准备图表' }}`。状态 UI 具备可访问的
+status/alert role，并遵守减少动态效果偏好。
+
+## MetricCard
+
+`MetricCard` 适合精简的、已经格式化的 KPI。它有意不计算收入、转化率、比较值或趋势，
+这些展示值由应用提供。
+
+```tsx
+import { MetricCard, formatMoney, formatPercentage } from '@standhigher/charts';
+
+<MetricCard
+  comparison="对比前 30 天"
+  title="收入"
+  trend={{ direction: 'up', value: '+8.2%' }}
+  value={formatMoney(12400, { currency: 'CNY', locale: 'zh-CN' })}
+/>
+
+<MetricCard
+  state="loading"
+  title="转化率"
+  value={formatPercentage(0)}
+/>
+```
+
+`trend.direction` 可取 `up`、`down` 或 `neutral`，并会被辅助技术播报。业务含义与方向不同时，
+单独设置 `trend.tone`；例如成本下降可使用 `direction: 'down'` 与 `tone: 'positive'`。
+
+## 本地化文案与格式化
+
+`ChartLocalizationProvider` 为图表提供组件文案以及默认 `locale`、`currency`、
+`timeZone`；它不是数据或业务逻辑 Provider。显式图表或 `ComboChart` series 的
+`formatOptions` 优先于 Provider；Provider 又优先于内置 `en-US` 和 `USD` 默认值。
+
+```tsx
+<ChartLocalizationProvider
+  currency="CNY"
+  locale="zh-CN"
+  messages={{ chartEmpty: '暂无数据', chartError: '图表加载失败', retry: '重试' }}
+  timeZone="Asia/Shanghai"
+>
+  <TrendChart format="currency" {...revenueChartProps} />
+</ChartLocalizationProvider>
+```
+
+独立 formatter 是纯函数，不读取 Provider。新展示代码优先使用 `formatMoney`、
+`formatPercentage`、`formatNumber`、`formatCompactNumber` 和 `formatDate`。
+`formatPercentage` 默认把输入当作比例（`0.082` 显示为 `8.2%`）；只有数据已经是
+`8.2` 这类 0–100 百分数时才指定 `input: 'percent'`。
+
+旧的 `formatChart*` helpers 和 `chartFormatters` 仍兼容，但已在 v1.0 前弃用。
+只有需要按旧 `ChartFormat` 分派时才继续使用它们。
+
 ## Dashboard 分区 reveal
 
 当一个 dashboard 中多个图表依赖不同 API，需要独立完成、独立显示时，使用
@@ -124,5 +198,8 @@ npm run storybook
 ```
 
 然后打开 `Examples/Phase One Overview` story。
+
+`Components/ChartStateRegion` 与 `Components/MetricCard` story 展示新的状态和
+可访问性行为。
 
 查看详细 props、默认值和适合 AI 阅读的实现指引，请阅读 [api.zh-CN.md](api.zh-CN.md)。

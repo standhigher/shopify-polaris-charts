@@ -5,17 +5,22 @@ import { formatChartValue, type ChartValueFormatOptions } from '../../formatters
 import { chartTheme } from '../../theme';
 import type {
   CartesianAxisOptions,
+  ChartContentState,
   ChartDatum,
   ChartFormat,
   ChartGridOptions,
   ChartMargin,
   ChartSeries,
+  ChartRevealOptions,
+  ChartSkeletonOptions,
   ChartTooltipContentProps,
   ChartTooltipPayloadItem,
   ChartTooltipOptions,
   ChartValue,
   StackedBarChartRechartsProps
 } from '../../types';
+import { ChartStateRegion } from '../ChartState';
+import { useChartLocalization } from '../ChartLocalization';
 import {
   getBarRechartsProps,
   getCartesianGridRechartsProps,
@@ -43,6 +48,13 @@ export interface StackedBarChartProps<TDatum extends object = ChartDatum> {
   xFormat?: ChartFormat;
   xFormatOptions?: ChartValueFormatOptions;
   emptyMessage?: ReactNode;
+  errorMessage?: ReactNode;
+  loadingLabel?: ReactNode;
+  onRetry?: () => void;
+  retryLabel?: ReactNode;
+  reveal?: boolean | ChartRevealOptions;
+  skeleton?: boolean | ChartSkeletonOptions;
+  state?: ChartContentState;
 }
 
 interface StackedTooltipProps<TDatum extends object> {
@@ -236,23 +248,42 @@ function StackedTooltip<TDatum extends object>({
 
 export function StackedBarChart<TDatum extends object = ChartDatum>({
   data,
-  emptyMessage = 'No data available',
+  emptyMessage,
+  errorMessage,
   format = 'number',
-  formatOptions = {},
+  formatOptions: suppliedFormatOptions = {},
   grid,
   height = 280,
+  loadingLabel,
   margin,
+  onRetry,
   rechartsProps,
+  reveal,
+  retryLabel,
   series,
   showLegend = true,
+  skeleton,
+  state = 'ready',
   title,
   tooltip,
   xFormat,
-  xFormatOptions = {},
+  xFormatOptions: suppliedXFormatOptions = {},
   xAxis,
   yAxis,
   xKey
 }: StackedBarChartProps<TDatum>) {
+  const localization = useChartLocalization();
+  const formatOptions = {
+    currency: localization.currency,
+    locale: localization.locale,
+    timeZone: localization.timeZone,
+    ...suppliedFormatOptions
+  };
+  const xFormatOptions = {
+    locale: localization.locale,
+    timeZone: localization.timeZone,
+    ...suppliedXFormatOptions
+  };
   const seriesWithColor = series.map((item, index) => ({
     ...item,
     color: item.color ?? chartTheme.palette[index % chartTheme.palette.length]
@@ -260,11 +291,22 @@ export function StackedBarChart<TDatum extends object = ChartDatum>({
   const hasData =
     data.length > 0 &&
     seriesWithColor.some((item) => data.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));
+  const resolvedState = state === 'ready' && !hasData ? 'empty' : state;
 
   return (
     <div style={styles.container}>
       {title ? <h3 style={styles.heading}>{title}</h3> : null}
-      {hasData ? (
+      <ChartStateRegion
+        emptyMessage={emptyMessage}
+        errorMessage={errorMessage}
+        loadingLabel={loadingLabel}
+        minHeight={height}
+        onRetry={onRetry}
+        reveal={reveal}
+        retryLabel={retryLabel}
+        skeleton={skeleton}
+        state={resolvedState}
+      >
         <>
           <div style={{ height, width: '100%' }}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
@@ -338,11 +380,7 @@ export function StackedBarChart<TDatum extends object = ChartDatum>({
             </div>
           ) : null}
         </>
-      ) : (
-        <div role="status" style={{ ...styles.empty, minHeight: height }}>
-          {emptyMessage}
-        </div>
-      )}
+      </ChartStateRegion>
     </div>
   );
 }

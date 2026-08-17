@@ -190,7 +190,7 @@ describe('TrendChart', () => {
     activateTooltip(container);
 
     expect(await screen.findByTestId('custom-tooltip')).toHaveTextContent(
-      'active=true; label=2026-07-02; payload=Gross sales; series=Gross sales; format=currency; currency=CAD; xFormat=date; xLocale=undefined; formattedLabel=Jul 2, 2026'
+      'active=true; label=2026-07-02; payload=Gross sales; series=Gross sales; format=currency; currency=CAD; xFormat=date; xLocale=en-US; formattedLabel=Jul 2, 2026'
     );
   });
 
@@ -242,7 +242,7 @@ describe('TrendChart', () => {
     );
 
     expect(screen.getByRole('status')).toHaveTextContent('Loading revenue trend');
-    expect(screen.getAllByTestId('trend-chart-skeleton-line')).toHaveLength(3);
+    expect(screen.getAllByTestId('chart-state-skeleton-line')).toHaveLength(3);
   });
 
   it('keeps the chart mounted behind the reveal overlay', () => {

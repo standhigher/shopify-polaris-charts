@@ -22,7 +22,7 @@ export interface ChartSeries<TDatum extends object = ChartDatum> {
 
 export type ChartFormat = 'number' | 'currency' | 'percent' | 'compact' | 'date';
 
-export type ChartState =
+export type ChartCardState =
   | 'loading'
   | 'empty'
   | 'error'
@@ -30,19 +30,31 @@ export type ChartState =
   | 'stale'
   | 'ready';
 
-export type ChartInlineState = 'loading' | 'empty' | 'error' | 'ready';
+/** @deprecated Use ChartCardState. */
+export type ChartState = ChartCardState;
 
-export interface TrendChartSkeletonOptions {
+export type ChartContentState = 'loading' | 'empty' | 'error' | 'ready';
+
+/** @deprecated Use ChartContentState. */
+export type ChartInlineState = ChartContentState;
+
+export interface ChartSkeletonOptions {
   label?: ReactNode;
   lineCount?: number;
 }
 
-export interface TrendChartRevealOptions {
+/** @deprecated Use ChartSkeletonOptions. */
+export type TrendChartSkeletonOptions = ChartSkeletonOptions;
+
+export interface ChartRevealOptions {
   active?: boolean;
   delayMs?: number;
   durationMs?: number;
   label?: ReactNode;
 }
+
+/** @deprecated Use ChartRevealOptions. */
+export type TrendChartRevealOptions = ChartRevealOptions;
 
 export interface ChartMargin {
   top?: number;

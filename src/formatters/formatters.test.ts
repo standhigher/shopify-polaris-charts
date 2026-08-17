@@ -3,7 +3,12 @@ import {
   formatChartNumber,
   formatChartPercent,
   formatChartCurrency,
-  formatChartValue
+  formatChartValue,
+  formatCompactNumber,
+  formatDate,
+  formatMoney,
+  formatNumber,
+  formatPercentage
 } from './formatters';
 import { chartFormatters } from '../index';
 
@@ -52,5 +57,17 @@ describe('chart formatters', () => {
   it('exports the formatter helpers from the package entry', () => {
     expect(chartFormatters.number(1200)).toBe('1,200');
     expect(chartFormatters.percent(0.42)).toBe('42%');
+  });
+
+  it('formats canonical display helpers with locale-aware money and compact values', () => {
+    expect(formatMoney(1234.5, { currency: 'USD' })).toBe('$1,234.50');
+    expect(formatNumber(1200)).toBe('1,200');
+    expect(formatCompactNumber(1_250_000)).toBe('1.3M');
+    expect(formatDate(new Date('2026-08-08T16:30:00.000Z'), { timeZone: 'Asia/Shanghai' })).toBe('Aug 9, 2026');
+  });
+
+  it('requires an explicit percentage input basis when values are already percentages', () => {
+    expect(formatPercentage(0.042)).toBe('4.2%');
+    expect(formatPercentage(4.2, { input: 'percent' })).toBe('4.2%');
   });
 });

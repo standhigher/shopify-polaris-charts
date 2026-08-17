@@ -4,6 +4,20 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning while the public API is stabilizing.
 
+## 0.7.0 - 2026-08-17
+
+### Added
+
+- Added `ChartStateRegion` and one shared chart-area state API to `TrendChart`, `ComboChart`, `StackedBarChart`, and `DonutChart`.
+- Added `MetricCard` with accessible trend direction and loading skeleton states.
+- Added `ChartLocalizationProvider` for localized copy and component formatting defaults.
+- Added `formatMoney`, `formatPercentage`, `formatNumber`, `formatCompactNumber`, and `formatDate`.
+
+### Changed
+
+- Made `@shopify/polaris` an optional peer dependency; the package has no Polaris runtime import.
+- Deprecated `ChartInlineState`, Trend-specific reveal/skeleton option types, and `formatChart*` helpers in favor of canonical v0.7 names while retaining compatibility.
+
 ## 0.6.0 - 2026-08-17
 
 ### Added

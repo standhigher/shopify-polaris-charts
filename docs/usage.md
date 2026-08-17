@@ -57,6 +57,87 @@ Use `StackedBarChart` when comparing category totals and their composition at th
 
 Use `ComboChart` when two related measures need to be read together, such as order volume and conversion rate. Use bars for volume and a line for the rate or benchmark so the relationship is visible without implying both measures use the same scale.
 
+## Shared chart states
+
+`TrendChart`, `ComboChart`, `StackedBarChart`, and `DonutChart` expose the same
+chart-area state contract: `state`, `emptyMessage`, `errorMessage`,
+`loadingLabel`, `onRetry`, `retryLabel`, `skeleton`, and `reveal`. An explicit
+`loading`, `empty`, or `error` state wins. With `state="ready"` (the default),
+no renderable values automatically resolve to an empty state.
+
+```tsx
+<DonutChart
+  categoryKey="source"
+  data={trafficSources}
+  errorMessage="Traffic sources could not be loaded."
+  onRetry={reloadTrafficSources}
+  retryLabel="Try again"
+  state="error"
+  valueKey="visits"
+/>
+```
+
+Use `skeleton={{ lineCount: 4, label: 'Loading orders' }}` to adjust loading
+copy and density. Use `reveal={{ active: isRefreshing, label: 'Preparing chart' }}`
+when ready content should remain mounted behind a short overlay. The state UI
+has accessible status/alert roles and honors reduced-motion preferences.
+
+## MetricCard
+
+Use `MetricCard` for concise, already-formatted KPIs. It deliberately does not
+calculate revenue, conversion, comparisons, or trends; provide display values
+from your application.
+
+```tsx
+import { MetricCard, formatMoney, formatPercentage } from '@standhigher/charts';
+
+<MetricCard
+  comparison="vs. previous 30 days"
+  title="Revenue"
+  trend={{ direction: 'up', value: '+8.2%' }}
+  value={formatMoney(12400, { currency: 'USD', locale: 'en-US' })}
+/>
+
+<MetricCard
+  state="loading"
+  title="Conversion rate"
+  value={formatPercentage(0)}
+/>
+```
+
+Set `trend.direction` to `up`, `down`, or `neutral`; it is announced to
+assistive technology. Set `trend.tone` separately when business meaning differs
+from direction, for example a cost decrease with `direction: 'down'` and
+`tone: 'positive'`.
+
+## Localized copy and formatting
+
+`ChartLocalizationProvider` supplies component copy plus default `locale`,
+`currency`, and `timeZone` for charts. It is not a data or business-logic
+provider. Explicit chart or `ComboChart` series `formatOptions` override the
+provider; provider values override the built-in `en-US` and `USD` defaults.
+
+```tsx
+<ChartLocalizationProvider
+  currency="CNY"
+  locale="zh-CN"
+  messages={{ chartEmpty: '暂无数据', chartError: '图表加载失败', retry: '重试' }}
+  timeZone="Asia/Shanghai"
+>
+  <TrendChart format="currency" {...revenueChartProps} />
+</ChartLocalizationProvider>
+```
+
+Standalone formatters are pure functions and do not read the provider. For new
+display code, prefer `formatMoney`, `formatPercentage`, `formatNumber`,
+`formatCompactNumber`, and `formatDate`. `formatPercentage` assumes ratio input
+by default (`0.082` becomes `8.2%`); specify `input: 'percent'` only for a
+source already expressed as `8.2`.
+
+The older `formatChart*` helpers and `chartFormatters` remain compatible but
+are deprecated through v1.0. Use them only where the legacy `ChartFormat`
+dispatcher is specifically useful.
+
 ## Dashboard phased reveal
 
 Use `ChartSkeletonLayout` and `ChartRevealRegion` when a dashboard has several
@@ -115,6 +196,9 @@ npm run storybook
 ```
 
 Then open the `Examples/Phase One Overview` story.
+
+The `Components/ChartStateRegion` and `Components/MetricCard` stories
+demonstrate the new state and accessibility behavior.
 
 For detailed props, defaults, and AI-readable implementation guidance, see
 [api.md](api.md).

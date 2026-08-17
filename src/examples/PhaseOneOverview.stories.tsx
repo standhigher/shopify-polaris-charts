@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ChartCard } from '../components/ChartCard';
 import { ComboChart } from '../components/ComboChart';
 import { DonutChart } from '../components/DonutChart';
+import { MetricCard } from '../components/MetricCard';
 import { StackedBarChart } from '../components/StackedBarChart';
 import { TrendChart } from '../components/TrendChart';
 import {
@@ -150,11 +151,13 @@ export function PhaseOneOverview() {
 
         <section aria-label="Dashboard metrics" style={styles.metricGrid}>
           {overviewMetrics.map((metric) => (
-            <div key={metric.label} style={styles.metricTile}>
-              <p style={styles.metricLabel}>{metric.label}</p>
-              <p style={styles.metricValue}>{metric.value}</p>
-              <span style={styles.metricTrend}>{metric.delta}</span>
-            </div>
+            <MetricCard
+              comparison="Compared with previous period"
+              key={metric.label}
+              title={metric.label}
+              trend={{ direction: metric.delta.startsWith('-') ? 'down' : 'up', value: metric.delta }}
+              value={metric.value}
+            />
           ))}
         </section>
 

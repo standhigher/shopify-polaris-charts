@@ -25,6 +25,16 @@ export interface ChartDateFormatOptions {
   timeZone?: string;
 }
 
+export type FormatNumberOptions = Omit<ChartNumberFormatOptions, 'notation'>;
+export type FormatCompactNumberOptions = Omit<ChartNumberFormatOptions, 'notation'>;
+export type FormatMoneyOptions = ChartCurrencyFormatOptions;
+export type FormatDateOptions = ChartDateFormatOptions;
+
+export interface FormatPercentageOptions extends ChartPercentFormatOptions {
+  /** Whether the input is a ratio (0.042) or a percentage value (4.2). */
+  input?: 'percent' | 'ratio';
+}
+
 export interface ChartValueFormatOptions
   extends ChartNumberFormatOptions,
     ChartCurrencyFormatOptions,
@@ -38,6 +48,7 @@ const DEFAULT_LOCALE = 'en-US';
 const isNullish = (value: NullableChartValue): value is null | undefined =>
   value === null || value === undefined;
 
+/** @deprecated Use formatNumber or formatCompactNumber. */
 export function formatChartNumber(
   value: number | null | undefined,
   options: ChartNumberFormatOptions = {}
@@ -53,6 +64,7 @@ export function formatChartNumber(
   }).format(value);
 }
 
+/** @deprecated Use formatMoney. */
 export function formatChartCurrency(
   value: number | null | undefined,
   options: ChartCurrencyFormatOptions = {}
@@ -69,6 +81,7 @@ export function formatChartCurrency(
   }).format(value);
 }
 
+/** @deprecated Use formatPercentage. */
 export function formatChartPercent(
   value: number | null | undefined,
   options: ChartPercentFormatOptions = {}
@@ -84,6 +97,7 @@ export function formatChartPercent(
   }).format(value);
 }
 
+/** @deprecated Use formatDate. */
 export function formatChartDate(
   value: string | number | Date | null | undefined,
   options: ChartDateFormatOptions = {}
@@ -100,6 +114,7 @@ export function formatChartDate(
   }).format(new Date(value));
 }
 
+/** @deprecated Use a specific display formatter. */
 export function formatChartValue(
   value: NullableChartValue,
   format: ChartFormat = 'number',
@@ -133,6 +148,29 @@ export function formatChartValue(
   });
 }
 
+export function formatNumber(value: number | null | undefined, options: FormatNumberOptions = {}): string {
+  return formatChartNumber(value, options);
+}
+
+export function formatCompactNumber(value: number | null | undefined, options: FormatCompactNumberOptions = {}): string {
+  return formatChartNumber(value, { ...options, notation: 'compact' });
+}
+
+export function formatMoney(value: number | null | undefined, options: FormatMoneyOptions = {}): string {
+  return formatChartCurrency(value, options);
+}
+
+export function formatPercentage(value: number | null | undefined, options: FormatPercentageOptions = {}): string {
+  const { input = 'ratio', ...formatOptions } = options;
+
+  return formatChartPercent(value === null || value === undefined || input === 'ratio' ? value : value / 100, formatOptions);
+}
+
+export function formatDate(value: string | number | Date | null | undefined, options: FormatDateOptions = {}): string {
+  return formatChartDate(value, options);
+}
+
+/** @deprecated Use the named display formatter functions. */
 export const chartFormatters = {
   currency: formatChartCurrency,
   date: formatChartDate,
