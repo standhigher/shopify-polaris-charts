@@ -612,14 +612,22 @@ on a different API request.
 |---|---|---:|---:|---|---|
 | `ChartSkeletonLayout` | `ariaLabel` | `string` | No | `'Charts loading'` | Accessible label for the dashboard loading container. |
 | `ChartSkeletonLayout` | `children` | `ReactNode` | Yes | - | Reveal regions or chart cards. |
+| `ChartSkeletonLayout` | `columns` | `number \| string` | No | - | Grid column template. A number maps to `repeat(n, minmax(0, 1fr))`; a string is used directly. |
+| `ChartSkeletonLayout` | `gap` | `number \| string` | No | `16` | Grid gap. A number is treated as pixels. |
+| `ChartSkeletonLayout` | `className` | `string` | No | - | Optional class name for the layout wrapper. |
+| `ChartSkeletonLayout` | `style` | `CSSProperties` | No | - | Optional inline style overrides. |
 | `ChartRevealRegion` | `label` | `string` | Yes | - | Accessible region label and default skeleton text prefix. |
 | `ChartRevealRegion` | `ready` | `boolean` | Yes | - | When true, renders children; otherwise renders a chart-area skeleton. |
 | `ChartRevealRegion` | `children` | `ReactNode` | Yes | - | Ready content. |
 | `ChartRevealRegion` | `skeleton` | `ReactNode` | No | - | Custom skeleton content for the region. |
+| `ChartRevealRegion` | `mode` | `'replace' \| 'overlay'` | No | `'replace'` | `replace` swaps children for skeleton; `overlay` keeps children mounted behind a skeleton overlay. |
+| `ChartRevealRegion` | `minHeight` | `number` | No | `220` | Minimum region height in pixels while loading. |
+| `ChartRevealRegion` | `className` | `string` | No | - | Optional class name for the region wrapper. |
+| `ChartRevealRegion` | `style` | `CSSProperties` | No | - | Optional inline style overrides. |
 
 ```tsx
-<ChartSkeletonLayout ariaLabel="Revenue dashboard loading">
-  <ChartRevealRegion label="Revenue chart" ready={revenueReady}>
+<ChartSkeletonLayout ariaLabel="Revenue dashboard loading" columns={2} gap={20}>
+  <ChartRevealRegion label="Revenue chart" mode="overlay" ready={revenueReady}>
     <TrendChart {...revenueChartProps} />
   </ChartRevealRegion>
   <ChartRevealRegion label="Orders chart" ready={ordersReady}>
@@ -627,6 +635,10 @@ on a different API request.
   </ChartRevealRegion>
 </ChartSkeletonLayout>
 ```
+
+Use `mode="replace"` when the child chart should not mount until its API data
+is ready. Use `mode="overlay"` when the chart should stay mounted behind the
+skeleton overlay to preserve measurement or chart animation state.
 
 ### Analytics-style customization example
 

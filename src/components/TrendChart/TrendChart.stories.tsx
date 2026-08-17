@@ -255,8 +255,8 @@ export const RevealOverlay: Story = {
 
 export const DashboardPhasedReveal: Story = {
   render: () => (
-    <ChartSkeletonLayout ariaLabel="Revenue dashboard loading">
-      <ChartRevealRegion label="Revenue chart" ready={false}>
+    <ChartSkeletonLayout ariaLabel="Revenue dashboard loading" columns={2} gap={20}>
+      <ChartRevealRegion label="Revenue chart" minHeight={300} mode="overlay" ready={false}>
         <TrendChart
           data={revenueComparisonData}
           format="currency"
@@ -264,7 +264,7 @@ export const DashboardPhasedReveal: Story = {
           xKey="date"
         />
       </ChartRevealRegion>
-      <ChartRevealRegion label="Orders chart" ready>
+      <ChartRevealRegion label="Orders chart" minHeight={300} ready>
         <ChartCard title="Orders by channel" subtitle="Ready region" metric="1,433" state="ready">
           <TrendChart
             data={orderTrendData}
