@@ -4,6 +4,16 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning while the public API is stabilizing.
 
+## 0.6.0 - 2026-08-17
+
+### Added
+
+- Added `ChartSkeletonLayout` grid density controls with `columns`, `gap`, `className`, and `style`.
+- Added `ChartRevealRegion` `mode="overlay"` to keep chart content mounted behind a skeleton overlay during reveal transitions.
+- Added `ChartRevealRegion` `minHeight`, `className`, and `style` options for dashboard-level skeleton layout control.
+- Added dedicated Storybook examples for two-column dashboard skeletons and overlay reveal behavior.
+- Updated English and Chinese API/usage documentation for the enhanced dashboard skeleton and reveal APIs.
+
 ## 0.5.0 - 2026-08-17
 
 ### Added

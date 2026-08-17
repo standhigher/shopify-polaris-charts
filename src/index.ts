@@ -1,5 +1,5 @@
 export const packageName = '@standhigher/charts';
-export const packageVersion = '0.5.0';
+export const packageVersion = '0.6.0';
 
 export * from './formatters';
 export * from './components/ChartCard';
