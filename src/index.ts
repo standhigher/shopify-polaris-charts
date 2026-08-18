@@ -8,6 +8,7 @@ export * from './components/ChartLocalization';
 export * from './components/ChartSkeletonLayout';
 export * from './components/ChartState';
 export * from './components/ComboChart';
+export * from './components/ComparisonChart';
 export * from './components/DonutChart';
 export * from './components/MetricCard';
 export * from './components/StackedBarChart';

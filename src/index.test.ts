@@ -18,4 +18,8 @@ describe('@standhigher/charts package entry', () => {
     expect(Charts.createAnalyticsSeries).toBeDefined();
     expect(Charts.normalizePercentageData).toBeDefined();
   });
+
+  it('exports ComparisonChart', () => {
+    expect(Charts.ComparisonChart).toBeDefined();
+  });
 });
