@@ -13,4 +13,9 @@ describe('@standhigher/charts package entry', () => {
     expect(Charts.formatMoney).toBeDefined();
     expect(Charts.formatPercentage).toBeDefined();
   });
+
+  it('exports analytics helpers', () => {
+    expect(Charts.createAnalyticsSeries).toBeDefined();
+    expect(Charts.normalizePercentageData).toBeDefined();
+  });
 });

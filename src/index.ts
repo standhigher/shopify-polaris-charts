@@ -2,6 +2,7 @@ export const packageName = '@standhigher/charts';
 export const packageVersion = '0.8.0';
 
 export * from './formatters';
+export * from './components/Analytics';
 export * from './components/ChartCard';
 export * from './components/ChartLocalization';
 export * from './components/ChartSkeletonLayout';
