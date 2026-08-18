@@ -4,6 +4,20 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning while the public API is stabilizing.
 
+## 0.9.0 - 2026-08-18
+
+### Added
+
+- Added `AnalyticsSeries` and percentage-input contracts for typed Analytics presentation adapters.
+- Added `ComparisonChart` for aligned current-versus-previous period trends with comparison defaults.
+- Added `ConversionChart` for ratio or percent conversion trends, multiple series, and optional target lines.
+- Added a responsive Shopify App Analytics Dashboard Storybook example with metric, comparison, and conversion cards.
+
+### Changed
+
+- Positioned the package around Polaris-style Shopify App analytics and app-owned data, with documented data-layer boundaries.
+- Hardened percentage normalization and conversion target-field collision handling without mutating caller data.
+
 ## 0.8.0 - 2026-08-18
 
 ### Added

@@ -8,7 +8,9 @@
 
 语言：[English](README.md) | 中文
 
-面向 Shopify App 仪表盘的 Polaris 风格 React 图表组件库。
+**Polaris-style charts for Shopify App analytics and app-owned data.**
+
+面向 Shopify App Analytics 与应用自有数据的 Polaris 风格图表组件库。
 
 该包提供可复用的 Polaris 风格图表体验组件，包括卡片外壳、趋势图、
 指标卡片、环形图、堆叠柱状图和组合图。
@@ -39,6 +41,8 @@ npm install @standhigher/charts react react-dom recharts
 | `MetricCard` | 可访问的核心指标卡片，支持对比、趋势与加载 skeleton。 | 收入、订单、转化率、AOV、客户数。 |
 | `ChartStateRegion` | 共享图表区域状态渲染器，支持 loading、empty、error/retry、skeleton 与 reveal。 | 为所有主图表保持一致状态体验。 |
 | `TrendChart` | 单线或多线趋势图，用于时间序列指标。 | 收入、订单、转化率等趋势分析。 |
+| `ComparisonChart` | 统一对比样式的本期与上期趋势适配器。 | 收入、订单、客户等周期对比。 |
+| `ConversionChart` | 支持 ratio/percent 输入归一化与可选目标线的百分比趋势适配器。 | 店铺、结账、加购和渠道转化。 |
 | `DonutChart` | 分类占比图，支持图例开关。 | 渠道、市场、来源或分群占比。 |
 | `StackedBarChart` | 堆叠或分组柱状图，支持坐标轴、网格、提示框和边距配置。 | 对比不同时间或分类下的多指标。 |
 | `ComboChart` | 柱状图和折线图组合。 | 同时查看数量类指标和比率类指标。 |
@@ -91,6 +95,39 @@ export function RevenueCard() {
   <TrendChart {...props} />
 </ChartLocalizationProvider>
 ```
+
+## v0.9 Analytics 组件
+
+`ComparisonChart` 与 `ConversionChart` 是基于 `TrendChart` 的强类型
+Analytics 适配器。使用 `AnalyticsSeries` 定义序列，`dataKey` 指向每条 datum
+中的字段。对比数据必须由调用方按 X 轴预先对齐，并让同一 datum 包含两个周期
+字段，例如 `{ date, currentRevenue, previousRevenue }`。数据请求、日期区间对齐、
+聚合及缺失周期处理仍由业务应用负责。
+
+`ConversionChart` 默认接收 ratio（`0.042` 显示为 `4.2%`）。只有源数据已经是
+0–100 标度（例如 `4.2`）时才设置 `input="percent"`；可选 `target` 与数据使用
+相同输入基准。两个组件均继承统一的 loading、empty、error/retry、skeleton、
+reveal、本地化、格式化、Tooltip、坐标轴和受控 Recharts 展示配置。
+
+```tsx
+<ComparisonChart
+  currentSeries={{ dataKey: 'currentRevenue', label: '本期' }}
+  comparisonSeries={{ dataKey: 'previousRevenue', label: '上期' }}
+  data={comparisonData}
+  format="currency"
+  xKey="date"
+/>
+
+<ConversionChart
+  data={conversionData}
+  series={[{ dataKey: 'conversion', label: '店铺转化率' }]}
+  target={{ label: '目标', value: 0.05 }}
+  xKey="date"
+/>
+```
+
+组件库不会请求 Shopify 数据、计算 Analytics 指标、存储数据、对齐报告周期，
+也不提供完整 Dashboard Framework。
 
 ## 示例与 Storybook
 

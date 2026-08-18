@@ -16,6 +16,8 @@ import {
   ChartSkeletonLayout,
   ChartStateRegion,
   ComboChart,
+  ComparisonChart,
+  ConversionChart,
   DonutChart,
   MetricCard,
   StackedBarChart,
@@ -34,7 +36,12 @@ import {
   formatChartValue,
   packageName,
   packageVersion,
+  type AnalyticsSeries,
   type CartesianAxisOptions,
+  type ComparisonChartProps,
+  type ConversionChartProps,
+  type ConversionTarget,
+  type PercentageInput,
   type ChartActiveDotOptions,
   type ChartDatum,
   type ChartDotOptions,
@@ -81,6 +88,8 @@ Runtime peer dependencies:
 | `ChartSkeletonLayout` | component | Dashboard-level skeleton container for independently revealed chart regions. |
 | `ChartRevealRegion` | component | Region wrapper that swaps a chart-area skeleton for ready children. |
 | `TrendChart` | component | Line or area chart for trends. |
+| `ComparisonChart` | component | Current-versus-comparison period adapter over `TrendChart`. |
+| `ConversionChart` | component | Ratio/percentage trend adapter over `TrendChart`, with an optional target line. |
 | `DonutChart` | component | Donut chart for parts-of-a-whole data. |
 | `StackedBarChart` | component | Stacked bar chart for category composition. |
 | `ComboChart` | component | Combined bar and line chart. |
@@ -100,6 +109,11 @@ Runtime peer dependencies:
 | `packageVersion` | constant | Package version string exported from the entry point. |
 | `ChartCardProps` | type | Props for `ChartCard`. |
 | `TrendChartProps` | type | Props for `TrendChart`. |
+| `AnalyticsSeries` | type | Datum-key-based series definition for Analytics adapters. |
+| `PercentageInput` | type | Input basis: `'ratio' | 'percent'`. |
+| `ComparisonChartProps` | type | Props for `ComparisonChart`. |
+| `ConversionChartProps` | type | Props for `ConversionChart`. |
+| `ConversionTarget` | type | Optional conversion target-line definition. |
 | `DonutChartProps` | type | Props for `DonutChart`. |
 | `StackedBarChartProps` | type | Props for `StackedBarChart`. |
 | `ComboChartProps` | type | Props for `ComboChart`. |
@@ -1109,6 +1123,69 @@ series={[
 - Per-bar colors are not supported by the current public API. If a design needs
   individual bar colors, extend the component with a future `colorKey` or
   `colorAccessor` API.
+
+## Analytics Components
+
+### `AnalyticsSeries<TDatum>`
+
+```ts
+interface AnalyticsSeries<TDatum extends object> {
+  dataKey: keyof TDatum & string;
+  label: string;
+  color?: string;
+  opacity?: number;
+  strokeDasharray?: string | number;
+  strokeWidth?: number;
+}
+
+type PercentageInput = 'ratio' | 'percent';
+```
+
+`dataKey` identifies a numeric field on each datum. Analytics adapters preserve
+the shared `TrendChart` state, localization, formatter, tooltip, axis, grid,
+margin, skeleton, reveal, retry, and controlled Recharts presentation props.
+
+### `ComparisonChart<TDatum>`
+
+`ComparisonChartProps<TDatum>` extends `TrendChartProps<TDatum>` except for
+`series`, replacing it with required `currentSeries` and `comparisonSeries`
+definitions. Current series renders first. When omitted, comparison styling
+defaults to `opacity: 0.64` and `strokeDasharray: '6 4'`; explicit values,
+including zero, are preserved.
+
+All periods must be aligned by the caller into the same datum and X-axis row:
+
+```ts
+type RevenueDatum = {
+  date: string;
+  currentRevenue: number | null;
+  previousRevenue: number | null;
+};
+```
+
+The component does not fetch, aggregate, shift dates, align periods, or choose
+a missing-value policy.
+
+### `ConversionChart<TDatum>`
+
+```ts
+interface ConversionTarget {
+  color?: string;
+  label: string;
+  value: number;
+}
+```
+
+`ConversionChartProps<TDatum>` accepts `data`, one or more `AnalyticsSeries`, an
+optional `input`, and an optional `target`. `input` defaults to `'ratio'`, so
+`0.042` renders as `4.2%`. With `input="percent"`, `4.2` renders as `4.2%`.
+The target value uses the same basis as the data and renders as a dashed neutral
+line by default. Percent normalization is immutable and leaves non-selected
+fields, `Date`, strings, `null`, zero, and negative numeric semantics intact.
+
+These components are presentation infrastructure only: Shopify API requests,
+analytics calculations, storage, aggregation, period alignment, and a complete
+dashboard framework are non-goals.
 
 ## Theme
 

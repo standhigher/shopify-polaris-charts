@@ -45,6 +45,51 @@ chart-area states instead of replacing the whole card with `ChartCard` state UI:
 Use `state="loading"` for a line-chart skeleton, and `reveal` when the real
 chart should stay mounted behind a temporary overlay to avoid a static flash.
 
+## ComparisonChart
+
+Use `ComparisonChart` for same-metric period comparisons. Put both periods on
+the same pre-aligned datum; the application owns fetching, aggregation, time
+shifting, alignment, and the policy for missing comparison values.
+
+```tsx
+<ComparisonChart
+  data={revenueByDay}
+  currentSeries={{ dataKey: 'currentRevenue', label: 'Current period' }}
+  comparisonSeries={{ dataKey: 'previousRevenue', label: 'Previous period' }}
+  format="currency"
+  xKey="date"
+/>
+```
+
+The comparison series is dashed and softened by default. Override its
+`strokeDasharray`, `opacity`, `color`, or `strokeWidth` through
+`AnalyticsSeries`. All shared chart-area states are supported, including
+`state="loading"`, automatic empty detection, `state="error"`, `retryAction`,
+`skeleton`, and `reveal`.
+
+## ConversionChart
+
+Use `ConversionChart` for store, checkout, upsell, or channel conversion trends.
+Ratio input is the default: `0.042` displays as `4.2%`. Set `input="percent"`
+only when the source is already on a 0–100 scale, where `4.2` means `4.2%`.
+
+```tsx
+<ConversionChart
+  data={conversionByDay}
+  input="ratio"
+  series={[{ dataKey: 'storeConversion', label: 'Store conversion' }]}
+  target={{ label: 'Goal', value: 0.05 }}
+  xKey="date"
+/>
+```
+
+The optional target uses the same input basis. Multiple series are supported,
+and percent normalization does not mutate caller data. The component inherits
+the complete shared state and presentation contract from `TrendChart`.
+
+Neither Analytics component calculates conversion, requests Shopify data,
+stores metrics, aligns periods, or supplies a dashboard data layer.
+
 ## DonutChart
 
 Use `DonutChart` for a small number of parts-of-a-whole categories, such as traffic source mix, order status share, or revenue by plan. Keep categories limited so the legend stays scannable in a dashboard card.

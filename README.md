@@ -8,7 +8,7 @@
 
 Language: English | [中文](README.zh-CN.md)
 
-Reusable React chart components for Shopify App dashboards built with Polaris.
+**Polaris-style charts for Shopify App analytics and app-owned data.**
 
 This package provides reusable React chart components for Polaris-style chart
 experiences, including card shells, metric cards, trend charts, donut charts,
@@ -40,6 +40,8 @@ npm install @standhigher/charts react react-dom recharts
 | `MetricCard` | Accessible headline metric with comparison, trend, and loading skeleton. | Revenue, orders, conversion rate, AOV, and customer KPIs. |
 | `ChartStateRegion` | Shared chart-area loading, empty, error/retry, skeleton, and reveal renderer. | Consistent states across all primary charts. |
 | `TrendChart` | Single or multi-series line charts for time-series metrics. | Use for revenue, orders, conversion rate, and other trends. |
+| `ComparisonChart` | Current-versus-previous period adapter with consistent comparison styling. | Revenue, orders, customers, and other period comparisons. |
+| `ConversionChart` | Percentage trend adapter with ratio/percent input normalization and optional target line. | Store, checkout, upsell, and channel conversion. |
 | `DonutChart` | Category share visualization with optional legend controls. | Use for channel, market, source, or segment breakdowns. |
 | `StackedBarChart` | Stacked or grouped bar charts with axis, grid, tooltip, and margin customization. | Use for comparing multiple metrics across time or categories. |
 | `ComboChart` | Bar plus line composition for mixed metric dashboards. | Use when volume and rate metrics need to be read together. |
@@ -93,6 +95,40 @@ Standalone formatters stay pure functions; use `formatPercentage` with
   <TrendChart {...props} />
 </ChartLocalizationProvider>
 ```
+
+## v0.9 analytics components
+
+`ComparisonChart` and `ConversionChart` are typed Analytics adapters over
+`TrendChart`. Define series with `AnalyticsSeries`, whose `dataKey` points to a
+field on each datum. Comparison data must use one aligned datum per X-axis value
+(for example, `{ date, currentRevenue, previousRevenue }`); fetching, date-range
+alignment, aggregation, and missing-period policy remain caller responsibilities.
+
+`ConversionChart` accepts ratios by default (`0.042` renders as `4.2%`). Set
+`input="percent"` only when source values are already on a 0–100 scale (`4.2`).
+Its optional `target` uses the same input basis. Both components retain the
+shared loading, empty, error/retry, skeleton, reveal, localization, formatting,
+tooltip, axis, and controlled Recharts presentation props.
+
+```tsx
+<ComparisonChart
+  currentSeries={{ dataKey: 'currentRevenue', label: 'Current period' }}
+  comparisonSeries={{ dataKey: 'previousRevenue', label: 'Previous period' }}
+  data={comparisonData}
+  format="currency"
+  xKey="date"
+/>
+
+<ConversionChart
+  data={conversionData}
+  series={[{ dataKey: 'conversion', label: 'Store conversion' }]}
+  target={{ label: 'Goal', value: 0.05 }}
+  xKey="date"
+/>
+```
+
+The package intentionally does not fetch Shopify data, calculate analytics,
+store metrics, align reporting periods, or provide a full dashboard framework.
 
 ## Examples and Storybook
 

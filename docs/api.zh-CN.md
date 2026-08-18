@@ -15,6 +15,8 @@ import {
   ChartSkeletonLayout,
   ChartStateRegion,
   ComboChart,
+  ComparisonChart,
+  ConversionChart,
   DonutChart,
   MetricCard,
   StackedBarChart,
@@ -33,7 +35,12 @@ import {
   formatChartValue,
   packageName,
   packageVersion,
+  type AnalyticsSeries,
   type CartesianAxisOptions,
+  type ComparisonChartProps,
+  type ConversionChartProps,
+  type ConversionTarget,
+  type PercentageInput,
   type ChartActiveDotOptions,
   type ChartDatum,
   type ChartDotOptions,
@@ -80,6 +87,8 @@ import {
 | `ChartSkeletonLayout` | component | 仪表盘级 skeleton 容器，支持图表区域独立 reveal。 |
 | `ChartRevealRegion` | component | 区域包装组件，未 ready 时显示区域 skeleton，ready 后显示 children。 |
 | `TrendChart` | component | 趋势折线图或面积图。 |
+| `ComparisonChart` | component | 基于 `TrendChart` 的本期与对比周期适配器。 |
+| `ConversionChart` | component | 基于 `TrendChart` 的 ratio/百分比趋势适配器，支持可选目标线。 |
 | `DonutChart` | component | 用于构成占比的环形图。 |
 | `StackedBarChart` | component | 用于类别组成对比的堆叠柱状图。 |
 | `ComboChart` | component | 柱线组合图。 |
@@ -99,6 +108,11 @@ import {
 | `packageVersion` | constant | 入口导出的包版本字符串。 |
 | `ChartCardProps` | type | `ChartCard` props。 |
 | `TrendChartProps` | type | `TrendChart` props。 |
+| `AnalyticsSeries` | type | Analytics 适配器使用的 datum 字段序列定义。 |
+| `PercentageInput` | type | 输入基准：`'ratio' | 'percent'`。 |
+| `ComparisonChartProps` | type | `ComparisonChart` props。 |
+| `ConversionChartProps` | type | `ConversionChart` props。 |
+| `ConversionTarget` | type | 可选转化目标线定义。 |
 | `DonutChartProps` | type | `DonutChart` props。 |
 | `StackedBarChartProps` | type | `StackedBarChart` props。 |
 | `ComboChartProps` | type | `ComboChart` props。 |
@@ -860,6 +874,65 @@ interface ComboChartSeries<TDatum extends object = ChartDatum>
 `ComboChart` 支持基础 `format` 加一种额外 series format。额外 format 会走右侧
 Y 轴。例如 base 是 `number`，折线是 `percent`。如果出现两个不同的额外格式，
 组件会抛错。
+
+## Analytics 组件
+
+### `AnalyticsSeries<TDatum>`
+
+```ts
+interface AnalyticsSeries<TDatum extends object> {
+  dataKey: keyof TDatum & string;
+  label: string;
+  color?: string;
+  opacity?: number;
+  strokeDasharray?: string | number;
+  strokeWidth?: number;
+}
+
+type PercentageInput = 'ratio' | 'percent';
+```
+
+`dataKey` 指向每条 datum 中的数值字段。Analytics 适配器保留 `TrendChart`
+统一的状态、本地化、格式化、Tooltip、坐标轴、网格、边距、skeleton、reveal、
+retry 及受控 Recharts 展示属性。
+
+### `ComparisonChart<TDatum>`
+
+`ComparisonChartProps<TDatum>` 继承除 `series` 外的 `TrendChartProps<TDatum>`，
+并要求传入 `currentSeries` 与 `comparisonSeries`。本期序列始终在前；对比序列
+未显式配置时默认使用 `opacity: 0.64` 与 `strokeDasharray: '6 4'`，显式值
+（包括零）会被保留。
+
+调用方必须按 X 轴预先对齐周期，并让同一 datum 同时包含两个周期字段：
+
+```ts
+type RevenueDatum = {
+  date: string;
+  currentRevenue: number | null;
+  previousRevenue: number | null;
+};
+```
+
+组件不负责请求、聚合、日期平移、周期对齐或决定缺失值策略。
+
+### `ConversionChart<TDatum>`
+
+```ts
+interface ConversionTarget {
+  color?: string;
+  label: string;
+  value: number;
+}
+```
+
+`ConversionChartProps<TDatum>` 接收 `data`、一个或多个 `AnalyticsSeries`、
+可选 `input` 和可选 `target`。`input` 默认是 `'ratio'`，因此 `0.042` 显示为
+`4.2%`；使用 `input="percent"` 时，`4.2` 显示为 `4.2%`。目标线与数据使用
+相同输入基准，默认显示为中性虚线。percent 归一化不会修改调用方数据，并保留
+非选中字段、`Date`、字符串、`null`、零以及负数的语义。
+
+这些组件仅负责展示：Shopify API 请求、Analytics 指标计算、数据存储、聚合、
+周期对齐及完整 Dashboard Framework 均不在组件库范围内。
 
 ## AI 组件选择规则
 

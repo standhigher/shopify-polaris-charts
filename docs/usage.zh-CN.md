@@ -51,6 +51,49 @@ Revenue 当前周期 vs 上一周期对比时，把线型配置放在单条 seri
 `state="loading"` 会显示折线图 skeleton；如果希望真实图表保持挂载、只在上层盖一层
 过渡遮罩，使用 `reveal`。
 
+## ComparisonChart
+
+使用 `ComparisonChart` 展示同一指标的周期对比。调用方需要把两个周期预先对齐
+到同一 datum；数据请求、聚合、时间平移、周期对齐及缺失对比值策略都由业务
+应用负责。
+
+```tsx
+<ComparisonChart
+  data={revenueByDay}
+  currentSeries={{ dataKey: 'currentRevenue', label: '本期' }}
+  comparisonSeries={{ dataKey: 'previousRevenue', label: '上期' }}
+  format="currency"
+  xKey="date"
+/>
+```
+
+对比序列默认使用较淡的虚线。可以通过 `AnalyticsSeries` 覆盖
+`strokeDasharray`、`opacity`、`color` 或 `strokeWidth`。组件支持全部共享图表
+状态，包括 `state="loading"`、自动 empty、`state="error"`、`retryAction`、
+`skeleton` 与 `reveal`。
+
+## ConversionChart
+
+使用 `ConversionChart` 展示店铺、结账、加购或渠道转化趋势。默认接收 ratio：
+`0.042` 显示为 `4.2%`。只有数据已经采用 0–100 标度时才设置
+`input="percent"`，此时 `4.2` 表示 `4.2%`。
+
+```tsx
+<ConversionChart
+  data={conversionByDay}
+  input="ratio"
+  series={[{ dataKey: 'storeConversion', label: '店铺转化率' }]}
+  target={{ label: '目标', value: 0.05 }}
+  xKey="date"
+/>
+```
+
+可选目标线与数据使用相同输入基准。组件支持多序列，percent 归一化不会修改
+调用方数据，并继承 `TrendChart` 完整的共享状态与展示契约。
+
+两个 Analytics 组件都不会计算转化率、请求 Shopify 数据、存储指标、对齐周期，
+也不提供 Dashboard 数据层。
+
 ## DonutChart
 
 使用 `DonutChart` 展示少量部分占整体的类别，例如流量来源占比、订单状态占比，
