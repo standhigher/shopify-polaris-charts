@@ -44,15 +44,21 @@ describe('ConversionChart', () => {
       <ConversionChart
         data={data}
         input="percent"
-        series={series}
+        series={[
+          ...series,
+          { dataKey: '__conversionTarget', label: 'Existing target field' },
+          { dataKey: '__conversionTarget1', label: 'Existing suffixed field' }
+        ]}
         target={{ label: 'Goal', value: 5 }}
         rechartsProps={{ line: { isAnimationActive: false } }}
         xKey="date"
       />
     );
 
-    expect(screen.getByLabelText('Chart legend')).toHaveTextContent('Conversion4.2%Goal5%');
-    expect(container.querySelectorAll('.recharts-line-curve')[1]).toHaveAttribute('stroke-dasharray');
+    expect(screen.getByLabelText('Chart legend')).toHaveTextContent(
+      'Conversion4.2%Existing target field91%Existing suffixed field92%Goal5%'
+    );
+    expect(container.querySelectorAll('.recharts-line-curve')[3]).toHaveAttribute('stroke-dasharray');
     expect(data).toEqual([
       { date: 'Aug 1', conversion: 4.2, __conversionTarget: 91, __conversionTarget1: 92 },
       { date: 'Aug 2', conversion: 4.4, __conversionTarget: 93, __conversionTarget1: 94 }
