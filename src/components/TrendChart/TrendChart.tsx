@@ -69,6 +69,7 @@ export interface TrendChartProps<TDatum extends object = ChartDatum> {
   onRetry?: () => void;
   retryLabel?: ReactNode;
   reveal?: boolean | TrendChartRevealOptions;
+  retryAction?: ReactNode;
   skeleton?: boolean | TrendChartSkeletonOptions;
   state?: ChartContentState;
 }
@@ -365,6 +366,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
   onRetry,
   rechartsProps,
   retryLabel,
+  retryAction,
   reveal,
   series,
   showLegend = true,
@@ -551,6 +553,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
         minHeight={height}
         onRetry={onRetry}
         reveal={reveal}
+        retryAction={retryAction}
         retryLabel={retryLabel}
         skeleton={skeleton}
         state={resolvedState}

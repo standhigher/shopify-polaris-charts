@@ -45,6 +45,20 @@ describe('DonutChart', () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it('forwards a custom retry action to the error state', () => {
+    render(
+      <DonutChart
+        categoryKey="status"
+        data={orderStatusData}
+        retryAction={<a href="#support">Contact support</a>}
+        state="error"
+        valueKey="value"
+      />
+    );
+
+    expect(screen.getByRole('alert')).toContainElement(screen.getByRole('link', { name: 'Contact support' }));
+  });
+
   it('renders chart title, center label, legend labels, and formatted values', () => {
     render(
       <DonutChart

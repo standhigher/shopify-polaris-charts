@@ -72,7 +72,7 @@ fulfilled、pending 和 returned orders。它最适合每个类别共享同一�
 
 `TrendChart`、`ComboChart`、`StackedBarChart` 和 `DonutChart` 都提供相同的图表区域
 状态契约：`state`、`emptyMessage`、`errorMessage`、`loadingLabel`、`onRetry`、
-`retryLabel`、`skeleton` 和 `reveal`。显式传入的 `loading`、`empty` 或 `error` 优先；
+`retryLabel`、`retryAction`、`skeleton` 和 `reveal`。显式传入的 `loading`、`empty` 或 `error` 优先；
 默认 `state="ready"` 时，没有可渲染数值会自动解析为空状态。
 
 ```tsx
@@ -84,6 +84,17 @@ fulfilled、pending 和 returned orders。它最适合每个类别共享同一�
   retryLabel="重试"
   state="error"
   valueKey="visits"
+/>
+```
+
+通过 `retryAction` 可以用业务侧节点替换整个重试控件。非空的自定义操作优先于
+`onRetry` 和 `retryLabel`；否则 `onRetry` 会渲染库内置的黑色默认按钮。
+
+```tsx
+<TrendChart
+  {...props}
+  retryAction={<a href="/support">联系支持</a>}
+  state="error"
 />
 ```
 

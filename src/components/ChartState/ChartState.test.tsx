@@ -5,6 +5,39 @@ import { ChartLocalizationProvider } from '../ChartLocalization';
 import { ChartStateRegion } from './ChartState';
 
 describe('ChartState', () => {
+  it('renders a custom retry action instead of the default button', () => {
+    const onCustomRetry = vi.fn();
+    const onRetry = vi.fn();
+
+    render(
+      <ChartStateRegion
+        onRetry={onRetry}
+        retryAction={<button onClick={onCustomRetry}>Contact support</button>}
+        state="error"
+      >
+        <div>Ready chart</div>
+      </ChartStateRegion>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Contact support' }));
+    expect(onCustomRetry).toHaveBeenCalledTimes(1);
+    expect(onRetry).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();
+  });
+
+  it('uses the neutral black style for the default retry button', () => {
+    render(
+      <ChartStateRegion onRetry={() => undefined} state="error">
+        <div>Ready chart</div>
+      </ChartStateRegion>
+    );
+
+    expect(screen.getByRole('button', { name: 'Retry' })).toHaveStyle({
+      background: '#202223',
+      color: '#ffffff'
+    });
+  });
+
   it('renders a localized error panel and invokes retry', () => {
     const onRetry = vi.fn();
 

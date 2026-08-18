@@ -61,7 +61,7 @@ Use `ComboChart` when two related measures need to be read together, such as ord
 
 `TrendChart`, `ComboChart`, `StackedBarChart`, and `DonutChart` expose the same
 chart-area state contract: `state`, `emptyMessage`, `errorMessage`,
-`loadingLabel`, `onRetry`, `retryLabel`, `skeleton`, and `reveal`. An explicit
+`loadingLabel`, `onRetry`, `retryLabel`, `retryAction`, `skeleton`, and `reveal`. An explicit
 `loading`, `empty`, or `error` state wins. With `state="ready"` (the default),
 no renderable values automatically resolve to an empty state.
 
@@ -74,6 +74,18 @@ no renderable values automatically resolve to an empty state.
   retryLabel="Try again"
   state="error"
   valueKey="visits"
+/>
+```
+
+Pass `retryAction` to replace the complete retry control with a consumer-owned
+node. A non-null custom action takes precedence over `onRetry` and `retryLabel`;
+otherwise `onRetry` renders the library's black fallback button.
+
+```tsx
+<TrendChart
+  {...props}
+  retryAction={<a href="/support">Contact support</a>}
+  state="error"
 />
 ```
 

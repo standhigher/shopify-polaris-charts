@@ -378,6 +378,7 @@ interface ChartLocalizationProviderProps {
 | `loadingLabel` | `ReactNode` | No | 本地化 `chartLoading` | 可访问 loading 文案。 |
 | `onRetry` | `() => void` | No | - | error 状态展示重试按钮。 |
 | `retryLabel` | `ReactNode` | No | 本地化 `retry` | 重试按钮文案。 |
+| `retryAction` | `ReactNode` | No | - | 自定义错误操作，优先于默认重试按钮。 |
 | `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | skeleton 选项，`lineCount` 默认是 `3`。 |
 | `reveal` | `boolean \| ChartRevealOptions` | No | - | ready 内容遮罩，支持 `active`、`delayMs`、`durationMs` 和 `label`。 |
 | `minHeight` | `number` | No | - | 状态面板最小高度。 |
@@ -601,6 +602,7 @@ const chartFormatters = {
 | `errorMessage` | `ReactNode` | No | - | 图表区域 error 面板的补充说明。 |
 | `onRetry` | `() => void` | No | - | 传入后在 error 面板渲染重试按钮。 |
 | `retryLabel` | `ReactNode` | No | 本地化 `retry` | 重试按钮文案。 |
+| `retryAction` | `ReactNode` | No | - | 自定义错误操作，优先于 `onRetry` 和 `retryLabel`。 |
 | `loadingLabel` | `ReactNode` | No | 本地化 `chartLoading` | 图表 skeleton 的可访问文案。 |
 | `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | 图表 skeleton 选项，例如 `lineCount` 和自定义 label。 |
 | `reveal` | `boolean \| ChartRevealOptions` | No | - | 保持图表挂载，并在图表区域上方显示 reveal overlay。 |
@@ -769,6 +771,7 @@ function RevenueTooltip({ active, formatLabel, formatValue, label, payload }) {
 | `errorMessage` | `ReactNode` | No | - | error 面板的补充说明。 |
 | `onRetry` | `() => void` | No | - | error 面板展示重试按钮。 |
 | `retryLabel` | `ReactNode` | No | 本地化 `retry` | 重试按钮文案。 |
+| `retryAction` | `ReactNode` | No | - | 自定义错误操作，优先于 `onRetry` 和 `retryLabel`。 |
 | `loadingLabel` | `ReactNode` | No | 本地化 `chartLoading` | skeleton 的可访问文案。 |
 | `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | skeleton 线条选项。 |
 | `reveal` | `boolean \| ChartRevealOptions` | No | - | ready 内容遮罩选项。 |
@@ -802,6 +805,7 @@ function RevenueTooltip({ active, formatLabel, formatValue, label, payload }) {
 | `errorMessage` | `ReactNode` | No | - | error 面板的补充说明。 |
 | `onRetry` | `() => void` | No | - | error 面板展示重试按钮。 |
 | `retryLabel` | `ReactNode` | No | 本地化 `retry` | 重试按钮文案。 |
+| `retryAction` | `ReactNode` | No | - | 自定义错误操作，优先于 `onRetry` 和 `retryLabel`。 |
 | `loadingLabel` | `ReactNode` | No | 本地化 `chartLoading` | skeleton 的可访问文案。 |
 | `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | skeleton 线条选项。 |
 | `reveal` | `boolean \| ChartRevealOptions` | No | - | ready 内容遮罩选项。 |
@@ -848,6 +852,7 @@ interface ComboChartSeries<TDatum extends object = ChartDatum>
 | `errorMessage` | `ReactNode` | No | - | error 面板的补充说明。 |
 | `onRetry` | `() => void` | No | - | error 面板展示重试按钮。 |
 | `retryLabel` | `ReactNode` | No | 本地化 `retry` | 重试按钮文案。 |
+| `retryAction` | `ReactNode` | No | - | 自定义错误操作，优先于 `onRetry` 和 `retryLabel`。 |
 | `loadingLabel` | `ReactNode` | No | 本地化 `chartLoading` | skeleton 的可访问文案。 |
 | `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | skeleton 线条选项。 |
 | `reveal` | `boolean \| ChartRevealOptions` | No | - | ready 内容遮罩选项。 |

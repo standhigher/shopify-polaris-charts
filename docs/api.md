@@ -436,6 +436,7 @@ custom chart content.
 | `loadingLabel` | `ReactNode` | No | localized `chartLoading` | Accessible loading label. |
 | `onRetry` | `() => void` | No | - | Shows a retry button for the error state. |
 | `retryLabel` | `ReactNode` | No | localized `retry` | Retry button label. |
+| `retryAction` | `ReactNode` | No | - | Custom error action. Takes precedence over the default retry button. |
 | `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | Skeleton line options; `lineCount` defaults to `3`. |
 | `reveal` | `boolean \| ChartRevealOptions` | No | - | Ready-content overlay, with `active`, `delayMs`, `durationMs`, and `label`. |
 | `minHeight` | `number` | No | - | Minimum height for state panels. |
@@ -724,6 +725,7 @@ const data = [
 | `errorMessage` | `ReactNode` | No | - | Optional body content for the inline chart error panel. |
 | `onRetry` | `() => void` | No | - | Renders a retry button in the inline error panel. |
 | `retryLabel` | `ReactNode` | No | localized `retry` | Retry button label. |
+| `retryAction` | `ReactNode` | No | - | Custom error action. Takes precedence over `onRetry` and `retryLabel`. |
 | `loadingLabel` | `ReactNode` | No | localized `chartLoading` | Accessible label shown in the chart skeleton. |
 | `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | Enables skeleton options such as `lineCount` and custom label. |
 | `reveal` | `boolean \| ChartRevealOptions` | No | - | Keeps the chart mounted and places a chart-area reveal overlay above it. |
@@ -923,6 +925,7 @@ const data = [
 | `errorMessage` | `ReactNode` | No | - | Supporting content for the error panel. |
 | `onRetry` | `() => void` | No | - | Shows a retry button for the error panel. |
 | `retryLabel` | `ReactNode` | No | localized `retry` | Retry button label. |
+| `retryAction` | `ReactNode` | No | - | Custom error action. Takes precedence over `onRetry` and `retryLabel`. |
 | `loadingLabel` | `ReactNode` | No | localized `chartLoading` | Accessible label shown in the skeleton. |
 | `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | Skeleton line options. |
 | `reveal` | `boolean \| ChartRevealOptions` | No | - | Ready-content overlay options. |
@@ -980,6 +983,7 @@ const data = [
 | `errorMessage` | `ReactNode` | No | - | Supporting content for the error panel. |
 | `onRetry` | `() => void` | No | - | Shows a retry button for the error panel. |
 | `retryLabel` | `ReactNode` | No | localized `retry` | Retry button label. |
+| `retryAction` | `ReactNode` | No | - | Custom error action. Takes precedence over `onRetry` and `retryLabel`. |
 | `loadingLabel` | `ReactNode` | No | localized `chartLoading` | Accessible label shown in the skeleton. |
 | `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | Skeleton line options. |
 | `reveal` | `boolean \| ChartRevealOptions` | No | - | Ready-content overlay options. |
@@ -1065,6 +1069,7 @@ interface ComboChartSeries<TDatum extends object = ChartDatum>
 | `errorMessage` | `ReactNode` | No | - | Supporting content for the error panel. |
 | `onRetry` | `() => void` | No | - | Shows a retry button for the error panel. |
 | `retryLabel` | `ReactNode` | No | localized `retry` | Retry button label. |
+| `retryAction` | `ReactNode` | No | - | Custom error action. Takes precedence over `onRetry` and `retryLabel`. |
 | `loadingLabel` | `ReactNode` | No | localized `chartLoading` | Accessible label shown in the skeleton. |
 | `skeleton` | `boolean \| ChartSkeletonOptions` | No | - | Skeleton line options. |
 | `reveal` | `boolean \| ChartRevealOptions` | No | - | Ready-content overlay options. |

@@ -29,6 +29,20 @@ describe('ComboChart', () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it('forwards a custom retry action to the error state', () => {
+    render(
+      <ComboChart
+        data={orderConversionData}
+        retryAction={<a href="#support">Contact support</a>}
+        series={[{ id: 'orders', label: 'Orders', data: orderConversionData, type: 'bar' }]}
+        state="error"
+        xKey="date"
+      />
+    );
+
+    expect(screen.getByRole('alert')).toContainElement(screen.getByRole('link', { name: 'Contact support' }));
+  });
+
   it('renders bar and line series labels', () => {
     render(
       <ComboChart

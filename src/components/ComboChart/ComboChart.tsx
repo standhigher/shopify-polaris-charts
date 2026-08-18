@@ -62,6 +62,7 @@ export interface ComboChartProps<TDatum extends object = ChartDatum> {
   errorMessage?: ReactNode;
   loadingLabel?: ReactNode;
   onRetry?: () => void;
+  retryAction?: ReactNode;
   retryLabel?: ReactNode;
   reveal?: boolean | ChartRevealOptions;
   skeleton?: boolean | ChartSkeletonOptions;
@@ -308,6 +309,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
   onRetry,
   rechartsProps,
   reveal,
+  retryAction,
   retryLabel,
   series,
   showLegend = true,
@@ -369,6 +371,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
         minHeight={height}
         onRetry={onRetry}
         reveal={reveal}
+        retryAction={retryAction}
         retryLabel={retryLabel}
         skeleton={skeleton}
         state={resolvedState}

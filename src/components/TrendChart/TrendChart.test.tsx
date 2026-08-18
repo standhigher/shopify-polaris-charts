@@ -230,6 +230,20 @@ describe('TrendChart', () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it('forwards a custom retry action to the error state', () => {
+    render(
+      <TrendChart
+        data={revenueData}
+        retryAction={<a href="#support">Contact support</a>}
+        state="error"
+        xKey="date"
+        series={[{ id: 'grossSales', label: 'Gross sales', data: revenueData }]}
+      />
+    );
+
+    expect(screen.getByRole('alert')).toContainElement(screen.getByRole('link', { name: 'Contact support' }));
+  });
+
   it('renders a line-chart skeleton for the chart loading state', () => {
     render(
       <TrendChart

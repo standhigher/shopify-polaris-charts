@@ -15,4 +15,12 @@ export const Empty: Story = { args: { children: <Placeholder />, state: 'empty' 
 export const ErrorWithRetry: Story = {
   args: { children: <Placeholder />, errorMessage: 'Revenue API unavailable', onRetry: () => undefined, state: 'error' }
 };
+export const ErrorWithCustomRetryAction: Story = {
+  args: {
+    children: <Placeholder />,
+    errorMessage: 'Revenue API unavailable',
+    retryAction: <a href="#support">Contact support</a>,
+    state: 'error'
+  }
+};
 export const Reveal: Story = { args: { children: <Placeholder />, reveal: { active: true, label: 'Preparing chart' } } };

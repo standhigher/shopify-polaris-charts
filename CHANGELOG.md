@@ -4,6 +4,16 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning while the public API is stabilizing.
 
+## Unreleased
+
+### Added
+
+- Added `retryAction` to `ChartStateRegion`, `TrendChart`, `ComboChart`, `StackedBarChart`, and `DonutChart` for fully custom error actions.
+
+### Changed
+
+- Changed the built-in retry button from blue to a neutral black-and-white style.
+
 ## 0.7.0 - 2026-08-17
 
 ### Added

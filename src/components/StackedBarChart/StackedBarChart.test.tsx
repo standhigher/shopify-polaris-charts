@@ -9,6 +9,20 @@ const channelCompositionData = [
 ];
 
 describe('StackedBarChart', () => {
+  it('forwards a custom retry action to the error state', () => {
+    render(
+      <StackedBarChart
+        data={channelCompositionData}
+        retryAction={<a href="#support">Contact support</a>}
+        series={[{ id: 'fulfilled', label: 'Fulfilled', data: channelCompositionData }]}
+        state="error"
+        xKey="channel"
+      />
+    );
+
+    expect(screen.getByRole('alert')).toContainElement(screen.getByRole('link', { name: 'Contact support' }));
+  });
+
   it('renders the shared loading skeleton', () => {
     render(
       <StackedBarChart

@@ -13,6 +13,7 @@ export interface ChartStateRegionProps {
   minHeight?: number;
   onRetry?: () => void;
   reveal?: boolean | ChartRevealOptions;
+  retryAction?: ReactNode;
   retryLabel?: ReactNode;
   skeleton?: boolean | ChartSkeletonOptions;
   state?: ChartContentState;
@@ -20,7 +21,7 @@ export interface ChartStateRegionProps {
 
 const styles: Record<string, CSSProperties> = {
   action: {
-    background: chartTheme.palette[0], border: 0, borderRadius: 6, color: '#ffffff', cursor: 'pointer', fontSize: 13,
+    background: chartTheme.text.primary, border: 0, borderRadius: 6, color: '#ffffff', cursor: 'pointer', fontSize: 13,
     fontWeight: 650, padding: '8px 12px'
   },
   empty: {
@@ -85,6 +86,7 @@ export function ChartStateRegion({
   minHeight,
   onRetry,
   reveal,
+  retryAction,
   retryLabel,
   skeleton,
   state = 'ready'
@@ -145,11 +147,11 @@ export function ChartStateRegion({
       <div aria-live="assertive" role="alert" style={{ ...styles.error, ...panelStyle }}>
         <p style={styles.errorTitle}>{messages.chartError}</p>
         {errorMessage ? <p style={styles.errorMessage}>{errorMessage}</p> : null}
-        {onRetry ? (
+        {retryAction ?? (onRetry ? (
           <button onClick={onRetry} style={styles.action} type="button">
             {retryLabel ?? messages.retry}
           </button>
-        ) : null}
+        ) : null)}
       </div>
     );
   }
