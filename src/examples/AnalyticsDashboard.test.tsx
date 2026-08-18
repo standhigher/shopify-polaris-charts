@@ -28,5 +28,16 @@ describe('AnalyticsDashboard', () => {
     expect(screen.getAllByTestId('metric-card')).toHaveLength(3);
     expect(screen.getAllByTestId('comparison-chart')).toHaveLength(2);
     expect(screen.getByTestId('conversion-chart')).toBeVisible();
+
+    const metricsHeading = screen.getByRole('heading', { level: 2, name: 'Store metrics' });
+    const chartsHeading = screen.getByRole('heading', { level: 2, name: 'Store analytics charts' });
+    expect(screen.getByRole('region', { name: 'Store metrics' })).toHaveAttribute(
+      'aria-labelledby',
+      metricsHeading.id
+    );
+    expect(screen.getByRole('region', { name: 'Store analytics charts' })).toHaveAttribute(
+      'aria-labelledby',
+      chartsHeading.id
+    );
   });
 });

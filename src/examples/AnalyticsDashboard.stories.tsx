@@ -48,6 +48,16 @@ const styles: Record<string, CSSProperties> = {
     fontWeight: 650,
     lineHeight: 1.3,
     margin: '4px 0'
+  },
+  visuallyHidden: {
+    clip: 'rect(0 0 0 0)',
+    clipPath: 'inset(50%)',
+    height: 1,
+    margin: -1,
+    overflow: 'hidden',
+    position: 'absolute',
+    whiteSpace: 'nowrap',
+    width: 1
   }
 };
 
@@ -68,7 +78,8 @@ export function AnalyticsDashboard({ state = 'ready' }: AnalyticsDashboardProps)
         <p style={styles.kicker}>Last 7 days, compared with previous period</p>
       </header>
 
-      <section aria-label="Store metrics" style={styles.metricGrid}>
+      <section aria-labelledby="store-metrics-heading" style={styles.metricGrid}>
+        <h2 id="store-metrics-heading" style={styles.visuallyHidden}>Store metrics</h2>
         <MetricCard
           comparison="Compared with previous period"
           state={metricState}
@@ -92,7 +103,8 @@ export function AnalyticsDashboard({ state = 'ready' }: AnalyticsDashboardProps)
         />
       </section>
 
-      <section aria-label="Store analytics charts" style={styles.chartGrid}>
+      <section aria-labelledby="store-analytics-charts-heading" style={styles.chartGrid}>
+        <h2 id="store-analytics-charts-heading" style={styles.visuallyHidden}>Store analytics charts</h2>
         <ChartCard
           metric="$173.3K"
           state="ready"
