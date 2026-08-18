@@ -22,4 +22,8 @@ describe('@standhigher/charts package entry', () => {
   it('exports ComparisonChart', () => {
     expect(Charts.ComparisonChart).toBeDefined();
   });
+
+  it('exports ConversionChart', () => {
+    expect(Charts.ConversionChart).toBeDefined();
+  });
 });
