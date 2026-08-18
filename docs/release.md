@@ -30,6 +30,10 @@ The workflow at `.github/workflows/publish.yml` only runs when a `v*` tag is
 pushed. The tag must match the package version exactly, such as `v0.1.1` for
 `"version": "0.1.1"`.
 
+Trusted Publishing requires npm 11.5.1 or later and Node.js 22.14.0 or later.
+The release workflow uses Node.js 24 so its bundled npm CLI supports OIDC
+publishing without a long-lived npm token.
+
 ## Package Scope and Access
 
 - Package name: `@standhigher/charts`
