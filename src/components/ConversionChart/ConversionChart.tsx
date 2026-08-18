@@ -24,11 +24,14 @@ export interface ConversionChartProps<TDatum extends object = ChartDatum>
 
 const TARGET_FIELD = '__conversionTarget';
 
-function findTargetField(data: object[]): string {
+function findTargetField(data: object[], reservedKeys: ReadonlySet<string>): string {
   let suffix = 0;
   let candidate = TARGET_FIELD;
 
-  while (data.some((datum) => Object.prototype.hasOwnProperty.call(datum, candidate))) {
+  while (
+    reservedKeys.has(candidate) ||
+    data.some((datum) => Object.prototype.hasOwnProperty.call(datum, candidate))
+  ) {
     suffix += 1;
     candidate = `${TARGET_FIELD}${suffix}`;
   }
@@ -54,7 +57,7 @@ export function ConversionChart<TDatum extends object = ChartDatum>({
   );
 
   if (target) {
-    const targetField = findTargetField(data);
+    const targetField = findTargetField(data, new Set(series.map(({ dataKey }) => dataKey)));
     const targetValue = input === 'percent' ? target.value / 100 : target.value;
     chartData = normalizedData.map((datum) => ({ ...datum, [targetField]: targetValue }));
     chartSeries.push({

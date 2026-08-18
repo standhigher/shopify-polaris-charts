@@ -53,4 +53,30 @@ describe('ConversionChart adapter', () => {
     expect(targetSeries?.id).not.toBe('__conversionTarget1');
     expect(targetSeries?.data[0]?.[targetSeries.id]).toBe(0.05);
   });
+
+  it('reserves declared series keys even when they are absent from every row', () => {
+    const data: Array<{ date: string; conversion: number; __conversionTarget?: number }> = [
+      { date: 'Aug 1', conversion: 0.042 }
+    ];
+
+    render(
+      <ConversionChart
+        data={data}
+        series={[
+          { dataKey: 'conversion', label: 'Conversion' },
+          { dataKey: '__conversionTarget', label: 'Optional benchmark' }
+        ]}
+        target={{ label: 'Goal', value: 0.05 }}
+        xKey="date"
+      />
+    );
+
+    const props = capture.props;
+    const optionalSeries = props?.series.find(({ id }) => id === '__conversionTarget');
+    const targetSeries = props?.series[props.series.length - 1];
+
+    expect(optionalSeries).toBeDefined();
+    expect(targetSeries?.id).not.toBe(optionalSeries?.id);
+    expect(targetSeries?.data[0]?.[targetSeries.id]).toBe(0.05);
+  });
 });

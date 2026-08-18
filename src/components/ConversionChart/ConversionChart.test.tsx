@@ -108,4 +108,21 @@ describe('ConversionChart', () => {
 
     expect(screen.getByLabelText('Chart legend')).toHaveTextContent('Conversion4.25%');
   });
+
+  it('preserves negative ratios and normalizes negative percent input', () => {
+    const { rerender } = render(
+      <ConversionChart data={[{ date: 'Aug 1', conversion: -0.042 }]} series={series} xKey="date" />
+    );
+    expect(screen.getByLabelText('Chart legend')).toHaveTextContent('Conversion-4.2%');
+
+    rerender(
+      <ConversionChart
+        data={[{ date: 'Aug 1', conversion: -4.2 }]}
+        input="percent"
+        series={series}
+        xKey="date"
+      />
+    );
+    expect(screen.getByLabelText('Chart legend')).toHaveTextContent('Conversion-4.2%');
+  });
 });
