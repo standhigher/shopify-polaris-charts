@@ -48,3 +48,33 @@ export const overviewMetrics = [
   { label: 'Conversion rate', value: '4.0%', delta: '+0.4 pts' },
   { label: 'Returning customers', value: '31.7%', delta: '+2.1 pts' }
 ];
+
+export const revenueComparisonData = [
+  { date: '2026-08-11', currentRevenue: 21840, previousRevenue: 19420 },
+  { date: '2026-08-12', currentRevenue: 22680, previousRevenue: 20180 },
+  { date: '2026-08-13', currentRevenue: 24120, previousRevenue: 21560 },
+  { date: '2026-08-14', currentRevenue: 23840, previousRevenue: 22120 },
+  { date: '2026-08-15', currentRevenue: 25960, previousRevenue: 22840 },
+  { date: '2026-08-16', currentRevenue: 26720, previousRevenue: 24180 },
+  { date: '2026-08-17', currentRevenue: 28140, previousRevenue: 24960 }
+];
+
+export const orderComparisonData = [
+  { date: '2026-08-11', currentOrders: 318, previousOrders: 286 },
+  { date: '2026-08-12', currentOrders: 334, previousOrders: 301 },
+  { date: '2026-08-13', currentOrders: 352, previousOrders: 316 },
+  { date: '2026-08-14', currentOrders: 346, previousOrders: 327 },
+  { date: '2026-08-15', currentOrders: 381, previousOrders: 339 },
+  { date: '2026-08-16', currentOrders: 396, previousOrders: 358 },
+  { date: '2026-08-17', currentOrders: 412, previousOrders: 371 }
+];
+
+export const storeConversionData = [
+  { date: '2026-08-11', conversionRate: 0.036 },
+  { date: '2026-08-12', conversionRate: 0.038 },
+  { date: '2026-08-13', conversionRate: 0.041 },
+  { date: '2026-08-14', conversionRate: 0.039 },
+  { date: '2026-08-15', conversionRate: 0.043 },
+  { date: '2026-08-16', conversionRate: 0.045 },
+  { date: '2026-08-17', conversionRate: 0.047 }
+];
