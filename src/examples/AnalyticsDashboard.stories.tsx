@@ -61,14 +61,16 @@ const styles: Record<string, CSSProperties> = {
   }
 };
 
-type AnalyticsDashboardState = Extract<ChartContentState, 'error' | 'loading' | 'ready'>;
+type AnalyticsDashboardState = Extract<ChartContentState, 'empty' | 'error' | 'loading' | 'ready'>;
 
 export interface AnalyticsDashboardProps {
+  onRetry?: () => void;
   state?: AnalyticsDashboardState;
 }
 
-export function AnalyticsDashboard({ state = 'ready' }: AnalyticsDashboardProps) {
+export function AnalyticsDashboard({ onRetry, state = 'ready' }: AnalyticsDashboardProps) {
   const metricState = state === 'loading' ? 'loading' : 'ready';
+  const unaffectedChartState = state === 'error' ? 'ready' : state;
 
   return (
     <main style={styles.dashboard}>
@@ -116,10 +118,11 @@ export function AnalyticsDashboard({ state = 'ready' }: AnalyticsDashboardProps)
             comparisonSeries={{ dataKey: 'previousRevenue', label: 'Previous period' }}
             currentSeries={{ dataKey: 'currentRevenue', label: 'Current period', color: '#202223' }}
             data={revenueComparisonData}
+            emptyMessage="No revenue data for this period"
             format="currency"
             height={260}
             mode="area"
-            state={state}
+            state={unaffectedChartState}
             xFormat="date"
             xKey="date"
           />
@@ -136,8 +139,12 @@ export function AnalyticsDashboard({ state = 'ready' }: AnalyticsDashboardProps)
             comparisonSeries={{ dataKey: 'previousOrders', label: 'Previous period' }}
             currentSeries={{ dataKey: 'currentOrders', label: 'Current period', color: '#202223' }}
             data={orderComparisonData}
+            emptyMessage="No order data for this period"
+            errorMessage="Orders comparison could not be loaded"
             format="number"
             height={260}
+            onRetry={onRetry ?? (() => undefined)}
+            retryLabel="Retry orders comparison"
             state={state}
             xFormat="date"
             xKey="date"
@@ -153,9 +160,10 @@ export function AnalyticsDashboard({ state = 'ready' }: AnalyticsDashboardProps)
         >
           <ConversionChart
             data={storeConversionData}
+            emptyMessage="No conversion data for this period"
             height={260}
             series={[{ dataKey: 'conversionRate', label: 'Conversion rate', color: '#202223' }]}
-            state={state}
+            state={unaffectedChartState}
             target={{ label: 'Goal', value: 0.05 }}
             xFormat="date"
             xKey="date"
@@ -184,6 +192,11 @@ export const Loading: Story = {
   args: { state: 'loading' }
 };
 
+export const Empty: Story = {
+  args: { state: 'empty' }
+};
+
 export const Error: Story = {
+  name: 'Partial error with retry',
   args: { state: 'error' }
 };

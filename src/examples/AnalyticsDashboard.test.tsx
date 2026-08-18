@@ -1,16 +1,51 @@
-import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
 vi.mock('../components/ComparisonChart', () => ({
-  ComparisonChart: () => <div data-testid="comparison-chart" />
+  ComparisonChart: ({
+    currentSeries,
+    emptyMessage,
+    errorMessage,
+    onRetry,
+    retryLabel,
+    state = 'ready'
+  }: {
+    currentSeries: { dataKey: string };
+    emptyMessage?: ReactNode;
+    errorMessage?: ReactNode;
+    onRetry?: () => void;
+    retryLabel?: ReactNode;
+    state?: string;
+  }) => (
+    <div
+      aria-label={`${currentSeries.dataKey} chart`}
+      data-chart-state={state}
+      data-testid="comparison-chart"
+    >
+      {state === 'empty' ? <div role="status">{emptyMessage}</div> : null}
+      {state === 'error' ? (
+        <div role="alert">
+          {errorMessage}
+          {onRetry ? <button onClick={onRetry}>{retryLabel}</button> : null}
+        </div>
+      ) : null}
+    </div>
+  )
 }));
 
 vi.mock('../components/ConversionChart', () => ({
-  ConversionChart: () => <div data-testid="conversion-chart" />
+  ConversionChart: ({ emptyMessage, state = 'ready' }: { emptyMessage?: ReactNode; state?: string }) => (
+    <div aria-label="conversionRate chart" data-chart-state={state} data-testid="conversion-chart">
+      {state === 'empty' ? <div role="status">{emptyMessage}</div> : null}
+    </div>
+  )
 }));
 
 vi.mock('../components/MetricCard', () => ({
-  MetricCard: ({ title }: { title: React.ReactNode }) => <div data-testid="metric-card">{title}</div>
+  MetricCard: ({ state = 'ready', title }: { state?: string; title: ReactNode }) => (
+    <div data-metric-state={state} data-testid="metric-card">{title}</div>
+  )
 }));
 
 import { AnalyticsDashboard } from './AnalyticsDashboard.stories';
@@ -39,5 +74,33 @@ describe('AnalyticsDashboard', () => {
       'aria-labelledby',
       chartsHeading.id
     );
+  });
+
+  it('renders an accessible empty dashboard state', () => {
+    render(<AnalyticsDashboard state="empty" />);
+
+    expect(screen.getAllByRole('status')).toHaveLength(3);
+    expect(screen.getByLabelText('currentRevenue chart')).toHaveAttribute('data-chart-state', 'empty');
+    expect(screen.getByLabelText('currentOrders chart')).toHaveAttribute('data-chart-state', 'empty');
+    expect(screen.getByLabelText('conversionRate chart')).toHaveAttribute('data-chart-state', 'empty');
+    expect(screen.getByText('No revenue data for this period')).toBeVisible();
+    expect(screen.getByText('No order data for this period')).toBeVisible();
+    expect(screen.getByText('No conversion data for this period')).toBeVisible();
+  });
+
+  it('keeps unaffected content ready when the orders chart fails and retries it', () => {
+    const onRetry = vi.fn();
+    render(<AnalyticsDashboard onRetry={onRetry} state="error" />);
+
+    expect(screen.getByLabelText('currentRevenue chart')).toHaveAttribute('data-chart-state', 'ready');
+    expect(screen.getByLabelText('conversionRate chart')).toHaveAttribute('data-chart-state', 'ready');
+    expect(screen.getByLabelText('currentOrders chart')).toHaveAttribute('data-chart-state', 'error');
+    screen.getAllByTestId('metric-card').forEach((card) =>
+      expect(card).toHaveAttribute('data-metric-state', 'ready')
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent('Orders comparison could not be loaded');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry orders comparison' }));
+    expect(onRetry).toHaveBeenCalledOnce();
   });
 });
