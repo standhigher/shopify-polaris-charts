@@ -1,1 +1,6 @@
-export * from './analytics';
+export {
+  createAnalyticsSeries,
+  normalizePercentageData,
+  type AnalyticsSeries,
+  type PercentageInput,
+} from './analytics';

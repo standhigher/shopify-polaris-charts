@@ -1,6 +1,10 @@
 import {describe, expect, it} from 'vitest';
 
-import {createAnalyticsSeries, normalizePercentageData} from './analytics';
+import {
+  createAnalyticsSeries,
+  findAvailableDataKey,
+  normalizePercentageData,
+} from './analytics';
 
 interface RevenueDatum {
   month: string;
@@ -45,6 +49,21 @@ describe('createAnalyticsSeries', () => {
     expect(current.data).toBe(data);
     expect(previous.data).toBe(data);
   });
+
+  it('preserves explicit zero presentation values', () => {
+    const data: RevenueDatum[] = [
+      {month: 'Jan', currentRevenue: 420, previousRevenue: 390},
+    ];
+
+    expect(
+      createAnalyticsSeries(data, {
+        dataKey: 'currentRevenue',
+        label: 'Current revenue',
+        opacity: 0,
+        strokeDasharray: 0,
+      })
+    ).toMatchObject({opacity: 0, strokeDasharray: 0});
+  });
 });
 
 describe('normalizePercentageData', () => {
@@ -87,5 +106,52 @@ describe('normalizePercentageData', () => {
       unavailable: Number.POSITIVE_INFINITY,
     });
     expect(data[0].currentRevenue).toBe(4.2);
+  });
+
+  it('retains Date and string x values while normalizing selected value semantics', () => {
+    const date = new Date('2026-08-18T00:00:00.000Z');
+    const data = [
+      {
+        date,
+        label: 'Aug 18',
+        negative: -4.2,
+        zero: 0,
+        unavailable: null as number | null,
+        untouched: 42,
+      },
+    ];
+
+    const normalized = normalizePercentageData(
+      data,
+      ['negative', 'zero', 'unavailable'],
+      'percent'
+    );
+
+    expect(normalized[0].date).toBe(date);
+    expect(normalized[0].label).toBe('Aug 18');
+    expect(normalized[0]).toMatchObject({
+      negative: -0.042,
+      zero: 0,
+      unavailable: null,
+      untouched: 42,
+    });
+  });
+});
+
+describe('findAvailableDataKey', () => {
+  it('uses the base key when rows and declared keys do not reserve it', () => {
+    expect(findAvailableDataKey([{value: 1}], new Set(['value']), '__target')).toBe('__target');
+  });
+
+  it('uses deterministic numeric suffixes for row and declared-key collisions', () => {
+    const data = [{__target: 1}, {__target1: 2}];
+
+    expect(findAvailableDataKey(data, new Set(['__target2']), '__target')).toBe('__target3');
+  });
+
+  it('reserves declared keys that are absent from every row', () => {
+    expect(findAvailableDataKey([{value: 1}], new Set(['__target']), '__target')).toBe(
+      '__target1'
+    );
   });
 });

@@ -11,6 +11,25 @@ export interface AnalyticsSeries<TDatum extends object> {
 
 export type PercentageInput = 'percent' | 'ratio';
 
+export function findAvailableDataKey(
+  data: object[],
+  reservedKeys: ReadonlySet<string>,
+  baseKey: string
+): string {
+  let suffix = 0;
+  let candidate = baseKey;
+
+  while (
+    reservedKeys.has(candidate) ||
+    data.some((datum) => Object.prototype.hasOwnProperty.call(datum, candidate))
+  ) {
+    suffix += 1;
+    candidate = `${baseKey}${suffix}`;
+  }
+
+  return candidate;
+}
+
 export function createAnalyticsSeries<TDatum extends object>(
   data: TDatum[],
   definition: AnalyticsSeries<TDatum>
