@@ -131,15 +131,16 @@ reveal、本地化、格式化、Tooltip、坐标轴和受控 Recharts 展示配
 
 ## 示例与 Storybook
 
-本地运行 Storybook 查看单个组件示例，以及用于产品和设计评审的第一阶段总览：
+本地运行 Storybook 查看单个组件及组合式仪表盘：
 
 ```bash
 npm run storybook
 ```
 
-打开 `Examples/Phase One Overview`，即可在接近 Shopify App 仪表盘密度的
-静态示例数据中查看 `ChartCard`、`TrendChart`、`DonutChart`、
-`StackedBarChart` 和 `ComboChart`。
+优先打开 `Examples/Analytics Dashboard` 查看 v0.9 Shopify App Analytics
+体验：Metric Cards 依次连接收入趋势、周期对比与店铺转化视图。
+`Examples/Phase One Overview` 仍保留，用于集中评审底层 `ChartCard`、
+`TrendChart`、`DonutChart`、`StackedBarChart` 和 `ComboChart` 基础组件。
 
 按图表类型查看使用建议，请阅读
 [docs/usage.zh-CN.md](docs/usage.zh-CN.md)。

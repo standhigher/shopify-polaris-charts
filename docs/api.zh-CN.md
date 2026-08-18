@@ -23,6 +23,7 @@ import {
   TrendChart,
   chartFormatters,
   chartTheme,
+  createAnalyticsSeries,
   formatCompactNumber,
   formatDate,
   formatMoney,
@@ -33,6 +34,7 @@ import {
   formatChartNumber,
   formatChartPercent,
   formatChartValue,
+  normalizePercentageData,
   packageName,
   packageVersion,
   type AnalyticsSeries,
@@ -92,6 +94,8 @@ import {
 | `DonutChart` | component | 用于构成占比的环形图。 |
 | `StackedBarChart` | component | 用于类别组成对比的堆叠柱状图。 |
 | `ComboChart` | component | 柱线组合图。 |
+| `createAnalyticsSeries` | function | 将 `AnalyticsSeries` 定义转换为共享 `ChartSeries`。 |
+| `normalizePercentageData` | function | 不可变地将选中的 percent 字段归一化为 ratio。 |
 | `formatChartNumber` | function | 格式化可空数字。 |
 | `formatChartCurrency` | function | 将可空数字格式化为货币。 |
 | `formatChartPercent` | function | 将可空数字格式化为百分比。 |
@@ -895,6 +899,33 @@ type PercentageInput = 'ratio' | 'percent';
 `dataKey` 指向每条 datum 中的数值字段。Analytics 适配器保留 `TrendChart`
 统一的状态、本地化、格式化、Tooltip、坐标轴、网格、边距、skeleton、reveal、
 retry 及受控 Recharts 展示属性。
+
+### `createAnalyticsSeries(data, definition)`
+
+```ts
+function createAnalyticsSeries<TDatum extends object>(
+  data: TDatum[],
+  definition: AnalyticsSeries<TDatum>
+): ChartSeries<TDatum>;
+```
+
+返回的 `ChartSeries` 以 `definition.dataKey` 作为 `id`，保留原始 `data` 数组
+引用，并复制定义中的 label 及可选展示字段。该函数不会复制、对齐或转换 datum。
+
+### `normalizePercentageData(data, dataKeys, input)`
+
+```ts
+function normalizePercentageData<TDatum extends object>(
+  data: TDatum[],
+  dataKeys: ReadonlyArray<keyof TDatum & string>,
+  input: PercentageInput
+): TDatum[];
+```
+
+当 `input: 'ratio'` 时，原样返回输入数组引用。当 `input: 'percent'` 时，返回
+逐行浅拷贝的新数组，并将选中字段中的有限数值除以 100。非选中字段，以及选中
+字段中的 `null`、字符串、日期、非有限数值或其他非数值内容保持不变；函数不会
+修改调用方 datum。
 
 ### `ComparisonChart<TDatum>`
 

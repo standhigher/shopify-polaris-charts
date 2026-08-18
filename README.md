@@ -132,16 +132,17 @@ store metrics, align reporting periods, or provide a full dashboard framework.
 
 ## Examples and Storybook
 
-Run Storybook locally to view individual component stories and the phase one
-overview for product and design review:
+Run Storybook locally to view individual components and composed dashboards:
 
 ```bash
 npm run storybook
 ```
 
-Open `Examples/Phase One Overview` to see `ChartCard`, `TrendChart`,
-`DonutChart`, `StackedBarChart`, and `ComboChart` together with Shopify App
-dashboard-style sample data.
+Open `Examples/Analytics Dashboard` first for the v0.9 Shopify App Analytics
+experience: Metric Cards flow into revenue trend, period comparison, and store
+conversion views. `Examples/Phase One Overview` remains available for reviewing
+the lower-level `ChartCard`, `TrendChart`, `DonutChart`, `StackedBarChart`, and
+`ComboChart` primitives together.
 
 For usage guidance by chart type, see [docs/usage.md](docs/usage.md).
 For detailed component props and AI-readable API guidance, see

@@ -24,6 +24,7 @@ import {
   TrendChart,
   chartFormatters,
   chartTheme,
+  createAnalyticsSeries,
   formatCompactNumber,
   formatDate,
   formatMoney,
@@ -34,6 +35,7 @@ import {
   formatChartNumber,
   formatChartPercent,
   formatChartValue,
+  normalizePercentageData,
   packageName,
   packageVersion,
   type AnalyticsSeries,
@@ -93,6 +95,8 @@ Runtime peer dependencies:
 | `DonutChart` | component | Donut chart for parts-of-a-whole data. |
 | `StackedBarChart` | component | Stacked bar chart for category composition. |
 | `ComboChart` | component | Combined bar and line chart. |
+| `createAnalyticsSeries` | function | Converts an `AnalyticsSeries` definition into a shared `ChartSeries`. |
+| `normalizePercentageData` | function | Immutably normalizes selected percent fields to ratios. |
 | `formatChartNumber` | function | Formats nullable numbers. |
 | `formatChartCurrency` | function | Formats nullable numbers as currency. |
 | `formatChartPercent` | function | Formats nullable numbers as percentages. |
@@ -1144,6 +1148,35 @@ type PercentageInput = 'ratio' | 'percent';
 `dataKey` identifies a numeric field on each datum. Analytics adapters preserve
 the shared `TrendChart` state, localization, formatter, tooltip, axis, grid,
 margin, skeleton, reveal, retry, and controlled Recharts presentation props.
+
+### `createAnalyticsSeries(data, definition)`
+
+```ts
+function createAnalyticsSeries<TDatum extends object>(
+  data: TDatum[],
+  definition: AnalyticsSeries<TDatum>
+): ChartSeries<TDatum>;
+```
+
+Returns a `ChartSeries` whose `id` is `definition.dataKey`, whose `data` is the
+original array reference, and whose label and optional presentation fields are
+copied from the definition. It does not clone, align, or transform datum rows.
+
+### `normalizePercentageData(data, dataKeys, input)`
+
+```ts
+function normalizePercentageData<TDatum extends object>(
+  data: TDatum[],
+  dataKeys: ReadonlyArray<keyof TDatum & string>,
+  input: PercentageInput
+): TDatum[];
+```
+
+With `input: 'ratio'`, returns the original array reference unchanged. With
+`input: 'percent'`, returns new shallow-copied rows and divides finite numeric
+values in the selected fields by 100. Non-selected fields and selected values
+that are `null`, strings, dates, non-finite numbers, or otherwise non-numeric
+are retained unchanged; the caller's rows are never mutated.
 
 ### `ComparisonChart<TDatum>`
 
