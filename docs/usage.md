@@ -90,6 +90,49 @@ the complete shared state and presentation contract from `TrendChart`.
 Neither Analytics component calculates conversion, requests Shopify data,
 stores metrics, aligns periods, or supplies a dashboard data layer.
 
+## FunnelChart
+
+Use `FunnelChart` for ordered product, checkout, or upsell stages. Supply stages
+in display order with unique IDs and caller-calculated values. Conversion and
+drop-off default to ratio input; missing values display as an em dash and zero
+stages remain visible.
+
+```tsx
+<FunnelChart
+  data={[
+    { id: 'view', label: 'Product view', value: 12000 },
+    { id: 'cart', label: 'Added to cart', value: 1800, conversion: 0.15, dropOff: 0.85 },
+    { id: 'purchase', label: 'Purchased', value: 620, conversion: 0.344, dropOff: 0.656 }
+  ]}
+  title="Checkout funnel"
+/>
+```
+
+Set `percentageInput="percent"` only for 0–100 inputs. The chart preserves
+order and does not derive, sort, aggregate, or fetch stages.
+
+## Shopify Analytics presets
+
+The six presets are presentation recipes, not data adapters. Add datum-specific
+keys and spread nested series styles locally:
+
+```tsx
+<ComparisonChart
+  data={revenueByDay}
+  currentSeries={{ dataKey: 'currentRevenue', ...revenueTrendPreset.currentSeries }}
+  comparisonSeries={{ dataKey: 'previousRevenue', ...revenueTrendPreset.comparisonSeries! }}
+  format={revenueTrendPreset.format}
+  xKey="date"
+/>
+
+<FunnelChart {...funnelPreset} data={funnelStages} />
+```
+
+Available presets are `revenueTrendPreset`, `orderTrendPreset`,
+`conversionTrendPreset`, `customerTrendPreset`, `upsellConversionPreset`, and
+`funnelPreset`. All are frozen and tree-shakeable. Override a nested field with
+another spread; do not pass the trend preset's `axis` object directly to a chart.
+
 ## DonutChart
 
 Use `DonutChart` for a small number of parts-of-a-whole categories, such as traffic source mix, order status share, or revenue by plan. Keep categories limited so the legend stays scannable in a dashboard card.
@@ -104,7 +147,8 @@ Use `ComboChart` when two related measures need to be read together, such as ord
 
 ## Shared chart states
 
-`TrendChart`, `ComboChart`, `StackedBarChart`, and `DonutChart` expose the same
+`TrendChart`, `ComparisonChart`, `ConversionChart`, `FunnelChart`, `ComboChart`,
+`StackedBarChart`, and `DonutChart` expose the same
 chart-area state contract: `state`, `emptyMessage`, `errorMessage`,
 `loadingLabel`, `onRetry`, `retryLabel`, `retryAction`, `skeleton`, and `reveal`. An explicit
 `loading`, `empty`, or `error` state wins. With `state="ready"` (the default),
@@ -215,6 +259,23 @@ Choose `mode="overlay"` for chart regions that should stay mounted behind a
 skeleton overlay during reveal transitions. Keep the default `mode="replace"`
 for regions that should not mount until their API data is ready.
 
+For the complete Shopify pattern, compose six app-formatted `MetricCard`s with
+Trend, Comparison, Conversion, and Funnel sections. The application owns date
+selection, Shopify requests, alignment, calculations, partial-failure state,
+and retry callbacks. The package owns only accessible presentation, states,
+skeletons, reveal, localization, and formatting.
+
+Use the deterministic local baselines when changing dashboard rendering:
+
+```bash
+npm run benchmark:analytics
+npm run recharts:legacy-smoke
+```
+
+The benchmark covers 5/10/20 charts with 100/500/1000 points in JSDOM; it is a
+comparison baseline, not a browser-performance guarantee. The smoke command
+packs the current build and imports its public API with Recharts 2.15.4.
+
 ## Controlled Recharts props
 
 `TrendChart`, `StackedBarChart`, and `ComboChart` accept a focused
@@ -252,7 +313,8 @@ Run Storybook to inspect the examples:
 npm run storybook
 ```
 
-Then open the `Examples/Phase One Overview` story.
+Then open the `Examples/Shopify Analytics Dashboard` story. It includes 7-day
+and 30-day data, ready/loading/empty/error states, partial retry, and reveal.
 
 The `Components/ChartStateRegion` and `Components/MetricCard` stories
 demonstrate the new state and accessibility behavior.

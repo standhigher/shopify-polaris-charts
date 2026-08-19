@@ -18,6 +18,7 @@ import {
   ComparisonChart,
   ConversionChart,
   DonutChart,
+  FunnelChart,
   MetricCard,
   StackedBarChart,
   TrendChart,
@@ -35,13 +36,27 @@ import {
   formatChartPercent,
   formatChartValue,
   normalizePercentageData,
+  normalizeFunnelData,
   packageName,
   packageVersion,
+  revenueTrendPreset,
+  orderTrendPreset,
+  conversionTrendPreset,
+  customerTrendPreset,
+  upsellConversionPreset,
+  funnelPreset,
   type AnalyticsSeries,
   type CartesianAxisOptions,
   type ComparisonChartProps,
   type ConversionChartProps,
   type ConversionTarget,
+  type FunnelChartProps,
+  type FunnelDatum,
+  type FunnelPercentageInput,
+  type AnalyticsAxisPreset,
+  type AnalyticsFunnelPreset,
+  type AnalyticsSeriesPreset,
+  type AnalyticsTrendPreset,
   type PercentageInput,
   type ChartActiveDotOptions,
   type ChartDatum,
@@ -91,11 +106,14 @@ import {
 | `TrendChart` | component | 趋势折线图或面积图。 |
 | `ComparisonChart` | component | 基于 `TrendChart` 的本期与对比周期适配器。 |
 | `ConversionChart` | component | 基于 `TrendChart` 的 ratio/百分比趋势适配器，支持可选目标线。 |
+| `FunnelChart` | component | 每阶段展示数量、转化率和流失率的可访问垂直漏斗。 |
 | `DonutChart` | component | 用于构成占比的环形图。 |
 | `StackedBarChart` | component | 用于类别组成对比的堆叠柱状图。 |
 | `ComboChart` | component | 柱线组合图。 |
 | `createAnalyticsSeries` | function | 将 `AnalyticsSeries` 定义转换为共享 `ChartSeries`。 |
 | `normalizePercentageData` | function | 不可变地将选中的 percent 字段归一化为 ratio。 |
+| `normalizeFunnelData` | function | 不可变地归一化漏斗 conversion 与 drop-off 字段。 |
+| `revenueTrendPreset`、`orderTrendPreset`、`conversionTrendPreset`、`customerTrendPreset`、`upsellConversionPreset`、`funnelPreset` | constant | 可 tree-shaking 的 Shopify Analytics 展示预设。 |
 | `formatChartNumber` | function | 格式化可空数字。 |
 | `formatChartCurrency` | function | 将可空数字格式化为货币。 |
 | `formatChartPercent` | function | 将可空数字格式化为百分比。 |
@@ -117,6 +135,10 @@ import {
 | `ComparisonChartProps` | type | `ComparisonChart` props。 |
 | `ConversionChartProps` | type | `ConversionChart` props。 |
 | `ConversionTarget` | type | 可选转化目标线定义。 |
+| `FunnelChartProps` | type | `FunnelChart` props。 |
+| `FunnelDatum` | type | 有序垂直漏斗阶段契约。 |
+| `FunnelPercentageInput` | type | 漏斗百分比基准：`'ratio' | 'percent'`。 |
+| `AnalyticsAxisPreset`、`AnalyticsFunnelPreset`、`AnalyticsSeriesPreset`、`AnalyticsTrendPreset` | type | 展示预设契约。 |
 | `DonutChartProps` | type | `DonutChart` props。 |
 | `StackedBarChartProps` | type | `StackedBarChart` props。 |
 | `ComboChartProps` | type | `ComboChart` props。 |
@@ -363,6 +385,10 @@ interface ChartMessages {
   chartNoPermission: ReactNode;
   chartPreparing: ReactNode;
   chartStale: ReactNode;
+  funnelConversion: ReactNode;
+  funnelDropOff: ReactNode;
+  funnelStage: ReactNode;
+  funnelValue: ReactNode;
   metricLoading: ReactNode;
   retry: ReactNode;
 }
@@ -385,7 +411,7 @@ interface ChartLocalizationProviderProps {
 ### `ChartStateRegion`
 
 `ChartStateRegion` 是 `TrendChart`、`ComboChart`、`StackedBarChart` 和
-`DonutChart` 使用的共享图表区域渲染器，也可以包裹自定义图表内容。
+`DonutChart` 和 `FunnelChart` 使用的共享图表区域渲染器，也可以包裹自定义图表内容。
 
 | Prop | Type | Required | Default | 说明 |
 |---|---|---:|---|---|
@@ -965,12 +991,58 @@ interface ConversionTarget {
 这些组件仅负责展示：Shopify API 请求、Analytics 指标计算、数据存储、聚合、
 周期对齐及完整 Dashboard Framework 均不在组件库范围内。
 
+### `FunnelChart`
+
+```ts
+interface FunnelDatum {
+  id: string;
+  label: ReactNode;
+  value: number;
+  conversion?: number;
+  dropOff?: number;
+}
+
+type FunnelPercentageInput = 'ratio' | 'percent';
+```
+
+`FunnelChart` 按调用方原始顺序，为每条 datum 渲染一个语义化有序列表项。`id`
+必须稳定且唯一。label 可为任意 `ReactNode`；数量、转化率和流失率始终以文本显示，
+并在鼠标或键盘 tooltip 中重复展示。零值是有效阶段，仍保留最小可见轮廓；缺失
+百分比显示为 `—`。
+
+| 属性 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---:|---|---|
+| `data` | `FunnelDatum[]` | 是 | - | 调用方预先计算并排序的漏斗阶段。 |
+| `title` | `ReactNode` | 否 | - | 可选漏斗标题。 |
+| `colors` | `readonly string[]` | 否 | 主题色板 | 按顺序循环使用的阶段颜色。 |
+| `format` | `ChartFormat` | 否 | `'number'` | 阶段数量格式。 |
+| `formatOptions` | `ChartValueFormatOptions` | 否 | 本地化默认值 | 数量与百分比展示选项。 |
+| `percentageInput` | `'ratio' \| 'percent'` | 否 | `'ratio'` | 转化率与流失率输入基准。 |
+| `height` | `number` | 否 | `360` | ready/state 区域最小高度。 |
+| `state`、`emptyMessage`、`errorMessage`、`loadingLabel`、`onRetry`、`retryLabel`、`retryAction`、`skeleton`、`reveal` | 共享状态属性 | 否 | 共享默认值 | loading、empty、error/retry、skeleton 与 reveal。 |
+
+`normalizeFunnelData(data, percentageInput)` 在 ratio 输入时返回原数组；percent
+输入时逐行浅拷贝，并把有限数值的 `conversion` 与 `dropOff` 除以 100，不修改
+调用方数据。组件不会排序阶段、推导转化/流失率，也不提供其他方向布局。
+
+### Shopify Analytics 展示预设
+
+包导出 `revenueTrendPreset`、`orderTrendPreset`、`conversionTrendPreset`、
+`customerTrendPreset`、`upsellConversionPreset` 与 `funnelPreset`。这些冻结且可
+tree-shaking 的对象只包含展示信息：序列标签/颜色/线条样式、格式建议，或漏斗
+颜色与输入基准；不会包含 `dataKey`、数据、请求、聚合或业务计算。
+
+趋势预设实现 `AnalyticsTrendPreset`，漏斗预设实现 `AnalyticsFunnelPreset`。
+请把 `currentSeries` 与 `comparisonSeries` 映射到具体 datum 的
+`AnalyticsSeries`，再通过对象展开做局部覆盖。`axis` 是展示建议，不是组件 prop。
+
 ## AI 组件选择规则
 
 | 用户意图 | 推荐组件 | 数据结构 |
 |---|---|---|
 | 需要带标题、指标、操作和状态的仪表盘卡片 | `ChartCard` | 任意 React children |
 | 查看时间趋势或有序类别走势 | `TrendChart` | 一个 X 字段加一个或多个数值字段 |
+| 查看商品、结账或加购的有序转化阶段 | `FunnelChart` | 调用方预先计算的有序 `FunnelDatum[]` |
 | 查看占比或构成 | `DonutChart` | 一个类别字段加一个正数值字段 |
 | 比较类别总量及组成 | `StackedBarChart` | 一个类别字段加多个数值片段字段 |
 | 同时查看 volume 和 rate | `ComboChart` | 一个 X 字段加 bar/line series 字段 |

@@ -12,7 +12,7 @@ Language: English | [中文](README.zh-CN.md)
 
 This package provides reusable React chart components for Polaris-style chart
 experiences, including card shells, metric cards, trend charts, donut charts,
-stacked bar charts, and combo charts.
+stacked bar charts, combo charts, and vertical conversion funnels.
 
 ## Links
 
@@ -42,6 +42,7 @@ npm install @standhigher/charts react react-dom recharts
 | `TrendChart` | Single or multi-series line charts for time-series metrics. | Use for revenue, orders, conversion rate, and other trends. |
 | `ComparisonChart` | Current-versus-previous period adapter with consistent comparison styling. | Revenue, orders, customers, and other period comparisons. |
 | `ConversionChart` | Percentage trend adapter with ratio/percent input normalization and optional target line. | Store, checkout, upsell, and channel conversion. |
+| `FunnelChart` | Accessible vertical funnel with value, conversion, and drop-off details per stage. | Product, checkout, and upsell funnels. |
 | `DonutChart` | Category share visualization with optional legend controls. | Use for channel, market, source, or segment breakdowns. |
 | `StackedBarChart` | Stacked or grouped bar charts with axis, grid, tooltip, and margin customization. | Use for comparing multiple metrics across time or categories. |
 | `ComboChart` | Bar plus line composition for mixed metric dashboards. | Use when volume and rate metrics need to be read together. |
@@ -130,6 +131,33 @@ tooltip, axis, and controlled Recharts presentation props.
 The package intentionally does not fetch Shopify data, calculate analytics,
 store metrics, align reporting periods, or provide a full dashboard framework.
 
+## v0.10 Shopify analytics patterns
+
+`FunnelChart` completes the primary analytics sequence:
+
+```text
+Metric Cards → Trend → Comparison → Conversion → Funnel
+```
+
+Funnel stages render vertically and keep caller order. Each stage requires a
+stable unique `id`, a label, and a value; optional `conversion` and `dropOff`
+values use ratio input by default. Set `percentageInput="percent"` for 0–100
+inputs. Zero remains a valid stage, while missing percentages render as an em
+dash. The application remains responsible for calculating funnel metrics.
+
+Six tree-shakeable presentation presets cover revenue, orders, conversion,
+customers, upsell conversion, and funnels. Presets contain labels, formatting,
+colors, and line presentation only. Map their values onto component props and
+override locally; they never supply data keys, Shopify queries, or calculations.
+
+```tsx
+<FunnelChart
+  {...funnelPreset}
+  data={funnelStages}
+  title="Checkout funnel"
+/>
+```
+
 ## Examples and Storybook
 
 Run Storybook locally to view individual components and composed dashboards:
@@ -138,9 +166,10 @@ Run Storybook locally to view individual components and composed dashboards:
 npm run storybook
 ```
 
-Open `Examples/Analytics Dashboard` first for the v0.9 Shopify App Analytics
-experience: Metric Cards flow into revenue trend, period comparison, and store
-conversion views. `Examples/Phase One Overview` remains available for reviewing
+Open `Examples/Shopify Analytics Dashboard` first for the complete v0.10
+experience: six metric cards flow into trend, comparison, conversion, upsell,
+and funnel views, including date-range and partial-state examples.
+`Examples/Analytics Dashboard` and `Examples/Phase One Overview` remain available for reviewing
 the lower-level `ChartCard`, `TrendChart`, `DonutChart`, `StackedBarChart`, and
 `ComboChart` primitives together.
 
@@ -183,6 +212,8 @@ npm run typecheck
 npm run test
 npm run build
 npm run build-storybook
+npm run benchmark:analytics
+npm run recharts:legacy-smoke
 npm pack --dry-run
 ```
 
