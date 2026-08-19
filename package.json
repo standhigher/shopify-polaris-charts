@@ -1,6 +1,6 @@
 {
   "name": "@standhigher/charts",
-  "version": "0.10.0",
+  "version": "1.0.0",
   "description": "Reusable React chart components for Shopify Polaris-style dashboards.",
   "license": "MIT",
   "author": "Standhigher",
@@ -45,6 +45,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./formatters": {
+      "types": "./dist/formatters.d.ts",
+      "import": "./dist/formatters.js"
     }
   },
   "scripts": {
@@ -57,14 +61,13 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "pack:dry-run": "npm pack --dry-run",
-    "prepublishOnly": "npm run lint && npm run test && npm run typecheck && npm run build && npm run build-storybook",
-    "recharts:legacy-smoke": "npm run build && node scripts/recharts-legacy-smoke.mjs"
+    "prepublishOnly": "npm run lint && npm run test && npm run typecheck && npm run build && npm run build-storybook"
   },
   "peerDependencies": {
     "@shopify/polaris": ">=12",
-    "react": ">=18",
-    "react-dom": ">=18",
-    "recharts": ">=2"
+    "react": ">=18.3 <20",
+    "react-dom": ">=18.3 <20",
+    "recharts": ">=3 <4"
   },
   "peerDependenciesMeta": {
     "@shopify/polaris": {
@@ -96,6 +99,6 @@
     "registry": "https://registry.npmjs.org/"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20 <25"
   }
 }

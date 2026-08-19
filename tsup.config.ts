@@ -1,10 +1,22 @@
 import { defineConfig } from 'tsup';
 
-export default defineConfig({
-  entry: ['src/index.ts'],
-  format: ['esm'],
+const sharedConfig = {
   dts: true,
-  clean: true,
+  external: ['react', 'react-dom', '@shopify/polaris', 'recharts'],
+  format: 'esm' as const,
   sourcemap: true,
-  external: ['react', 'react-dom', '@shopify/polaris', 'recharts']
-});
+  splitting: false
+};
+
+export default defineConfig([
+  {
+    ...sharedConfig,
+    clean: true,
+    entry: { index: 'src/index.ts' }
+  },
+  {
+    ...sharedConfig,
+    clean: false,
+    entry: { formatters: 'src/formatters/index.ts' }
+  }
+]);
