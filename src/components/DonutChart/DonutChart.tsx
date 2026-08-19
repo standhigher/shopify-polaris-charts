@@ -67,12 +67,14 @@ const styles: Record<string, CSSProperties> = {
     transform: 'translate(-50%, -50%)'
   },
   container: {
+    boxSizing: 'border-box',
     color: chartTheme.text.primary,
     display: 'flex',
     flexDirection: 'column',
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, "Helvetica Neue", sans-serif',
     gap: 12,
+    minWidth: 0,
     width: '100%'
   },
   empty: {
@@ -96,7 +98,9 @@ const styles: Record<string, CSSProperties> = {
   legend: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '8px 16px'
+    gap: '8px 16px',
+    minWidth: 0,
+    width: '100%'
   },
   legendItem: {
     alignItems: 'center',

@@ -53,6 +53,18 @@ describe('chart theme', () => {
     expect(exportedChartTheme).toBe(chartTheme);
   });
 
+  it('is deeply frozen so shared visual defaults cannot drift at runtime', () => {
+    expect(Object.isFrozen(chartTheme)).toBe(true);
+    expect(Object.isFrozen(chartTheme.axis)).toBe(true);
+    expect(Object.isFrozen(chartTheme.grid)).toBe(true);
+    expect(Object.isFrozen(chartTheme.legend)).toBe(true);
+    expect(Object.isFrozen(chartTheme.palette)).toBe(true);
+    expect(Object.isFrozen(chartTheme.status)).toBe(true);
+    expect(Object.isFrozen(chartTheme.surface)).toBe(true);
+    expect(Object.isFrozen(chartTheme.text)).toBe(true);
+    expect(Object.isFrozen(chartTheme.tooltip)).toBe(true);
+  });
+
   it('meets text and meaningful graphical contrast thresholds', () => {
     expect(contrastRatio(chartTheme.text.primary, chartTheme.surface.background)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(chartTheme.text.secondary, chartTheme.surface.background)).toBeGreaterThanOrEqual(4.5);

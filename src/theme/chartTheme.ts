@@ -1,58 +1,58 @@
 export interface ChartTheme {
-  surface: {
-    background: string;
-    border: string;
-    subtleBackground: string;
+  readonly surface: {
+    readonly background: string;
+    readonly border: string;
+    readonly subtleBackground: string;
   };
-  text: {
-    primary: string;
-    secondary: string;
+  readonly text: {
+    readonly primary: string;
+    readonly secondary: string;
   };
-  status: {
-    negative: string;
-    neutral: string;
-    positive: string;
+  readonly status: {
+    readonly negative: string;
+    readonly neutral: string;
+    readonly positive: string;
   };
-  palette: string[];
-  axis: {
-    fontSize: number;
-    lineColor: string;
-    tickColor: string;
+  readonly palette: readonly string[];
+  readonly axis: {
+    readonly fontSize: number;
+    readonly lineColor: string;
+    readonly tickColor: string;
   };
-  grid: {
-    stroke: string;
-    strokeDasharray: string;
+  readonly grid: {
+    readonly stroke: string;
+    readonly strokeDasharray: string;
   };
-  tooltip: {
-    background: string;
-    border: string;
-    borderRadius: number;
-    boxShadow: string;
-    textColor: string;
+  readonly tooltip: {
+    readonly background: string;
+    readonly border: string;
+    readonly borderRadius: number;
+    readonly boxShadow: string;
+    readonly textColor: string;
   };
-  legend: {
-    fontSize: number;
-    markerSize: number;
-    textColor: string;
+  readonly legend: {
+    readonly fontSize: number;
+    readonly markerSize: number;
+    readonly textColor: string;
   };
 }
 
-export const chartTheme: ChartTheme = {
-  axis: {
+export const chartTheme: ChartTheme = Object.freeze({
+  axis: Object.freeze({
     fontSize: 12,
     lineColor: '#dcdfe4',
     tickColor: '#6d7175'
-  },
-  grid: {
+  }),
+  grid: Object.freeze({
     stroke: '#ebeef2',
     strokeDasharray: '3 3'
-  },
-  legend: {
+  }),
+  legend: Object.freeze({
     fontSize: 12,
     markerSize: 10,
     textColor: '#6d7175'
-  },
-  palette: [
+  }),
+  palette: Object.freeze([
     '#2c6ecb',
     '#008060',
     '#b98900',
@@ -61,26 +61,26 @@ export const chartTheme: ChartTheme = {
     '#007ace',
     '#409c32',
     '#9c6ade'
-  ],
-  surface: {
+  ]),
+  surface: Object.freeze({
     background: '#ffffff',
     border: '#dcdfe4',
     subtleBackground: '#f6f6f7'
-  },
-  status: {
+  }),
+  status: Object.freeze({
     negative: '#d72c0d',
     neutral: '#6d7175',
     positive: '#008060'
-  },
-  text: {
+  }),
+  text: Object.freeze({
     primary: '#202223',
     secondary: '#6d7175'
-  },
-  tooltip: {
+  }),
+  tooltip: Object.freeze({
     background: '#ffffff',
     border: '#dcdfe4',
     borderRadius: 8,
     boxShadow: '0 1px 0 rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.08)',
     textColor: '#202223'
-  }
-};
+  })
+});

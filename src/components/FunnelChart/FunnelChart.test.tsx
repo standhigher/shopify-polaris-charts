@@ -101,8 +101,11 @@ describe('FunnelChart', () => {
       </div>
     );
 
-    expect(screen.getByTestId('funnel-chart')).toHaveStyle({ width: '100%' });
-    expect(screen.getByTestId('funnel-chart').style.minWidth).toBe('');
+    expect(screen.getByTestId('funnel-chart')).toHaveStyle({
+      boxSizing: 'border-box',
+      minWidth: 0,
+      width: '100%'
+    });
     expect(screen.getByTestId('funnel-stage-label')).toHaveStyle({ overflowWrap: 'anywhere' });
   });
 

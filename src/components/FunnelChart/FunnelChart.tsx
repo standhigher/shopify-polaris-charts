@@ -38,12 +38,14 @@ export interface FunnelChartProps {
 
 const styles: Record<string, CSSProperties> = {
   chart: {
+    boxSizing: 'border-box',
     color: chartTheme.text.primary,
     display: 'flex',
     flexDirection: 'column',
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, "Helvetica Neue", sans-serif',
     gap: 12,
+    minWidth: 0,
     width: '100%'
   },
   funnel: {

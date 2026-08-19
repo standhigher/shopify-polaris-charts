@@ -36,7 +36,7 @@ export function ChartAccessibilityRegion({
       aria-describedby={accessibility.description ? descriptionId : undefined}
       aria-label={accessibility.label}
       role="region"
-      style={{ minWidth: 0, width: '100%' }}
+      style={{ boxSizing: 'border-box', minWidth: 0, width: '100%' }}
     >
       {children}
       {accessibility.description ? (
