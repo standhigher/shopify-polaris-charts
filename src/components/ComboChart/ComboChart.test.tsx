@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
+import { ChartLocalizationProvider } from '../ChartLocalization';
 import { ComboChart } from './ComboChart';
 
 const orderConversionData = [
@@ -83,6 +84,31 @@ describe('ComboChart', () => {
 
     expect(screen.getByText('138')).toBeVisible();
     expect(screen.getAllByText('3.2%')[0]).toBeVisible();
+  });
+
+  it('merges provider defaults into partial series format options in the legend', () => {
+    render(
+      <ChartLocalizationProvider currency="CNY" locale="zh-CN" timeZone="Asia/Shanghai">
+        <ComboChart
+          data={[{ date: '2026-07-01', revenue: 12430.4 }]}
+          format="number"
+          series={[
+            {
+              data: [],
+              format: 'currency',
+              formatOptions: { maximumFractionDigits: 0 },
+              id: 'revenue',
+              label: 'Revenue',
+              type: 'line'
+            }
+          ]}
+          xKey="date"
+        />
+      </ChartLocalizationProvider>
+    );
+
+    expect(screen.getByLabelText('Chart legend')).toHaveTextContent('¥12,430');
+    expect(screen.getByLabelText('Chart legend')).not.toHaveTextContent('$12,430');
   });
 
   it('hides the built-in legend when showLegend is false', () => {

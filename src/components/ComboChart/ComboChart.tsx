@@ -416,7 +416,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                       formatChartValue(
                         toChartValue(value),
                         rightAxisSeries.format ?? format,
-                        rightAxisSeries.formatOptions ?? formatOptions
+                        { ...formatOptions, ...rightAxisSeries.formatOptions }
                       )
                     }
                     tickLine={yAxis?.tickLine}
@@ -496,7 +496,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                       {formatChartValue(
                         toChartValue(getDatumValue(firstDatum, item.id)),
                         item.format ?? format,
-                        item.formatOptions ?? formatOptions
+                        { ...formatOptions, ...item.formatOptions }
                       )}
                     </span>
                   </span>
