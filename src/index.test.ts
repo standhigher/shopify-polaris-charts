@@ -31,4 +31,13 @@ describe('@standhigher/charts package entry', () => {
     expect(Charts.FunnelChart).toBeDefined();
     expect(Charts.normalizeFunnelData).toBeDefined();
   });
+
+  it('exports Shopify analytics presets', () => {
+    expect(Charts.revenueTrendPreset).toBeDefined();
+    expect(Charts.orderTrendPreset).toBeDefined();
+    expect(Charts.conversionTrendPreset).toBeDefined();
+    expect(Charts.customerTrendPreset).toBeDefined();
+    expect(Charts.upsellConversionPreset).toBeDefined();
+    expect(Charts.funnelPreset).toBeDefined();
+  });
 });
