@@ -1339,3 +1339,48 @@ Important fields:
 4. Use `xFormat="date"` when `xKey` contains dates.
 5. Wrap charts in `ChartCard state="ready"` for dashboard layouts.
 6. Keep chart `height` stable inside cards to avoid layout shift.
+
+## v1 production-wide contracts
+
+### Accessibility
+
+`TrendChart`, `ComparisonChart`, `ConversionChart`, `ComboChart`,
+`StackedBarChart`, `DonutChart`, and `FunnelChart` accept:
+
+```ts
+interface ChartAccessibilityOptions {
+  label: string;
+  description?: ReactNode;
+  dataTable?: ReactNode;
+}
+```
+
+When supplied, the chart is exposed as a named region. Description and table
+remain visually hidden but semantic. The library never derives table rows,
+totals, comparisons, or business summaries. `ChartMessages.chartLegend`
+localizes built-in legend labels. The Recharts accessibility layer cannot be
+disabled through controlled props, and reduced-motion preferences override
+library-controlled animation.
+
+### SSR and package entries
+
+The root entry is safe to import and render during SSR, but interactive charts
+belong in a Next.js client component. `@standhigher/charts/formatters` is a
+React/Recharts-free server-safe entry. Both entries are ESM and tree-shakeable.
+
+### Defaults and missing values
+
+Unless a component table says otherwise: state defaults to `ready`, Cartesian
+and donut height to `280`, funnel height to `360`, legends to visible, formats
+to `number`, Conversion/Funnel percentage input to `ratio`, and localization to
+`en-US`/`USD`. `null` and `undefined` are missing; finite zero and negative
+values are preserved by charts whose data model permits them. Donut slices
+require positive finite values. Funnel keeps zero stages and does not calculate
+conversion or drop-off.
+
+### Compatibility
+
+v1 supports React/React DOM `>=18.3 <20`, Recharts `>=3 <4`, Node `>=20 <25`
+for tooling, TypeScript 5.4.5/current declarations, and modern evergreen Chrome,
+Firefox, Safari, and Edge. Deprecated v0.x aliases remain through 1.x and are
+scheduled for v2 removal.

@@ -113,5 +113,7 @@ jobs:
         run: npm ci
       - name: Enforce analytics performance budgets
         run: npm run benchmark:analytics
+      - name: Verify public API reports
+        run: npm run api:check
       - name: Verify npm package contents
         run: npm run pack:dry-run

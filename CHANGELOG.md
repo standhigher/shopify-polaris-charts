@@ -2,7 +2,33 @@
 
 All notable changes to `@standhigher/charts` are documented in this file.
 
-This project follows semantic versioning while the public API is stabilizing.
+This project follows semantic versioning.
+
+## 1.0.0 - 2026-08-19
+
+### Added
+
+- Added a stable optional chart accessibility contract with named regions,
+  caller-owned semantic tables, localized legends, protected Recharts
+  accessibility, and reduced-motion behavior.
+- Added an isolated `@standhigher/charts/formatters` ESM entry for server usage.
+- Added SSR/hydration, Next.js 16 App Router, Vite 8, React 18/19, TypeScript
+  5.4/current, and Chromium/Firefox/WebKit compatibility gates.
+- Added byte-for-byte public declaration reports, enforced analytics performance
+  budgets, migration/upgrade/rollback guides, and Shopify Analytics patterns.
+
+### Changed
+
+- Declared stable support for React/React DOM `>=18.3 <20`, Recharts `>=3 <4`,
+  Node tooling `>=20 <25`, and modern evergreen merchant-admin browsers.
+- Deep-froze the readonly chart theme, improved responsive shrink/wrap behavior,
+  and darkened one green palette value to meet graphical contrast requirements.
+- Memoized localization and derived chart presentation data for repeated
+  Dashboard renders. Deprecated v0.x aliases remain available through 1.x.
+
+### Removed
+
+- Removed Recharts 2 compatibility; applications must migrate to Recharts 3.
 
 ## 0.10.0 - 2026-08-19
 

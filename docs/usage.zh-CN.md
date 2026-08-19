@@ -266,12 +266,12 @@ reveal、本地化与格式化。
 
 ```bash
 npm run benchmark:analytics
-npm run recharts:legacy-smoke
+npm run peer:smoke
 ```
 
 基准覆盖 JSDOM 中 5/10/20 张图表与 100/500/1000 个点，用于版本间对比，
-不代表浏览器性能承诺。smoke 命令会打包当前构建，并在 Recharts 2.15.4 下导入
-公开 API。
+不代表浏览器性能承诺。peer smoke 会打包当前构建，并验证 React 18/19、Recharts 3
+以及 TypeScript 5.4/当前版本。
 
 ## 受控 Recharts props
 
@@ -316,3 +316,20 @@ ready/loading/empty/error、局部 retry 与 reveal 示例。
 可访问性行为。
 
 查看详细 props、默认值和适合 AI 阅读的实现指引，请阅读 [api.zh-CN.md](api.zh-CN.md)。
+
+## v1 SSR、无障碍与响应式用法
+
+Next.js App Router 中，将交互图表放在 `'use client'` 组件内；服务端组件从
+`@standhigher/charts/formatters` 使用不依赖 React/Recharts 的 formatter。
+Vite 可直接导入根入口与相同子入口。
+
+```tsx
+import {TrendChart} from '@standhigher/charts';
+import {formatMoney} from '@standhigher/charts/formatters';
+```
+
+主要图表支持 `accessibility={{label, description, dataTable}}`。label 应稳定且
+简洁，description 用于补充语境；dataTable 由业务应用生成。组件库不会推导表格行、
+日期对齐、null 含义、汇总或业务结论。`null`/`undefined` 作为缺失值；支持的图表会
+保留有限的 0 与负数；未传可选属性时使用 API 文档中的默认值。Dashboard 组合应在
+320、768、1280px 验证。

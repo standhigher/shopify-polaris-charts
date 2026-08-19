@@ -13,6 +13,7 @@ describe('v1 CI compatibility contract', () => {
     expect(workflow).toContain('npm run test:browser');
     expect(workflow).toContain('playwright install --with-deps chromium firefox webkit');
     expect(workflow).toContain('npm run benchmark:analytics');
+    expect(workflow).toContain('npm run api:check');
     expect(workflow).toContain('npm run pack:dry-run');
   });
 });

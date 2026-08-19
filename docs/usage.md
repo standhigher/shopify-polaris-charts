@@ -269,12 +269,12 @@ Use the deterministic local baselines when changing dashboard rendering:
 
 ```bash
 npm run benchmark:analytics
-npm run recharts:legacy-smoke
+npm run peer:smoke
 ```
 
 The benchmark covers 5/10/20 charts with 100/500/1000 points in JSDOM; it is a
-comparison baseline, not a browser-performance guarantee. The smoke command
-packs the current build and imports its public API with Recharts 2.15.4.
+comparison baseline, not a browser-performance guarantee. The peer smoke packs
+the build and checks React 18/19 with Recharts 3 plus TypeScript 5.4/current.
 
 ## Controlled Recharts props
 
@@ -321,3 +321,45 @@ demonstrate the new state and accessibility behavior.
 
 For detailed props, defaults, and AI-readable implementation guidance, see
 [api.md](api.md).
+
+## v1 SSR, accessibility, and responsive usage
+
+Use interactive charts from a client component in Next.js App Router. Keep
+display formatting in server components through the React-free subpath:
+
+```tsx
+// Server component
+import {formatMoney} from '@standhigher/charts/formatters';
+
+// chart.tsx
+'use client';
+import {TrendChart} from '@standhigher/charts';
+```
+
+Vite consumers import the same root and formatter subpath directly. For an
+accessible chart region, provide a stable label and optional explanation/table:
+
+```tsx
+// Vite client entry
+import {TrendChart} from '@standhigher/charts';
+import {formatMoney} from '@standhigher/charts/formatters';
+```
+
+```tsx
+<TrendChart
+  accessibility={{
+    label: 'Revenue trend',
+    description: 'Daily gross sales for the selected date range.',
+    dataTable: <RevenueDataTable rows={data} />
+  }}
+  data={data}
+  series={[{id: 'revenue', label: 'Revenue', data}]}
+  xKey="date"
+/>
+```
+
+The application owns the table content, date alignment, null interpretation,
+totals, and business summary. The chart treats `null`/`undefined` as missing,
+preserves finite zero and negative values where the chart supports them, and
+uses the documented component defaults when optional props are omitted. Test
+Dashboard compositions at 320, 768, and 1280px.

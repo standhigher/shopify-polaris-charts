@@ -21,6 +21,8 @@ stacked bar charts, combo charts, and vertical conversion funnels.
 - GitHub repository: [standhigher/shopify-polaris-charts](https://github.com/standhigher/shopify-polaris-charts)
 - API reference: [docs/api.md](docs/api.md)
 - Usage guide: [docs/usage.md](docs/usage.md)
+- v1 migration: [docs/migration-v1.md](docs/migration-v1.md)
+- Shopify Analytics patterns: [docs/shopify-analytics-patterns.md](docs/shopify-analytics-patterns.md)
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
 - Contributing guide: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Security policy: [SECURITY.md](SECURITY.md)
@@ -51,11 +53,13 @@ npm install @standhigher/charts react react-dom recharts
 
 | Dependency | Supported range |
 | --- | --- |
-| React | `>=18` |
-| React DOM | `>=18` |
+| React | `>=18.3 <20` |
+| React DOM | `>=18.3 <20` |
 | Shopify Polaris | Optional `>=12` peer; no runtime import |
-| Recharts | `>=2` |
-| Node.js for local development | `>=20` |
+| Recharts | `>=3 <4` |
+| Node.js for local development | `>=20 <25` |
+| TypeScript declarations | `5.4.5` and current (`5.9.3`) |
+| Browsers | Modern evergreen Chrome, Firefox, Safari, and Edge |
 
 ## Basic Usage
 
@@ -185,8 +189,9 @@ The package publishes TypeScript declarations, tree-shakeable ESM output, and a
 small npm tarball containing only runtime build output, README files, API docs,
 usage docs, changelog, license, and npm metadata.
 
-The CI workflow runs linting, type checking, tests, package build, Storybook
-build, and `npm pack --dry-run` on pull requests and pushes to `main`.
+CI runs Node 20/22/24 quality checks, React/TypeScript and Next/Vite consumer
+matrices, Playwright Chromium/Firefox/WebKit tests, API reports, performance
+budgets, Storybook build, and npm package inspection.
 
 ## Local Development
 
@@ -213,7 +218,11 @@ npm run test
 npm run build
 npm run build-storybook
 npm run benchmark:analytics
-npm run recharts:legacy-smoke
+npm run api:check
+npm run peer:smoke
+npm run next:smoke
+npm run vite:smoke
+npm run test:browser
 npm pack --dry-run
 ```
 
@@ -243,8 +252,20 @@ npm run build-storybook
 npm pack --dry-run --registry=https://registry.npmjs.org/
 ```
 
-The `prepublishOnly` script runs the same lint, test, typecheck, build, and
-Storybook build checks automatically when `npm publish` is invoked. This
+The `prepublishOnly` script runs the complete non-browser release checks
+automatically when `npm publish` is invoked. Browser engines remain a CI release
+gate so publishing does not download them. This
 repository is configured for manual release review; do not publish until the
 package name, scope permissions, version, dry-run package contents, and npm
 dist-tag are intentionally confirmed.
+
+## v1 production contract
+
+Charts are SSR-import and render safe; in Next.js App Router, put interactive
+Recharts components behind a `'use client'` boundary. Server components can use
+`@standhigher/charts/formatters` without installing React or Recharts. Primary
+charts accept optional `accessibility={{label, description, dataTable}}`; the
+table and all business summaries remain caller-owned. Layout is verified at
+320/768/1280px and reduced-motion preferences disable library-controlled chart
+animation. Deprecated v0.x aliases remain through 1.x and are planned for v2
+removal. See the migration and upgrade guides for details.

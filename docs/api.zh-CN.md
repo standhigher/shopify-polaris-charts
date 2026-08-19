@@ -927,6 +927,39 @@ type PercentageInput = 'ratio' | 'percent';
 统一的状态、本地化、格式化、Tooltip、坐标轴、网格、边距、skeleton、reveal、
 retry 及受控 Recharts 展示属性。
 
+## v1 生产级统一契约
+
+### 无障碍
+
+`TrendChart`、`ComparisonChart`、`ConversionChart`、`ComboChart`、
+`StackedBarChart`、`DonutChart`、`FunnelChart` 支持：
+
+```ts
+interface ChartAccessibilityOptions {
+  label: string;
+  description?: ReactNode;
+  dataTable?: ReactNode;
+}
+```
+
+传入后图表成为具名 region，description 与 table 在视觉隐藏时仍保留语义。
+组件库不会推导表格行、汇总、对比或业务结论。`ChartMessages.chartLegend` 用于
+本地化内置图例。受控 props 不能关闭 Recharts accessibility layer；系统减少动态
+效果设置优先于组件库控制的动画。
+
+### SSR、入口与默认值
+
+根入口可在 SSR 导入和渲染，但 Next.js 中交互图表应放在客户端组件。
+`@standhigher/charts/formatters` 不依赖 React/Recharts，可在服务端使用。默认 state
+为 `ready`；Cartesian/Donut 高度为 `280`，Funnel 为 `360`；图例默认显示；format
+为 `number`；Conversion/Funnel 百分比输入为 `ratio`；本地化为 `en-US`/`USD`。
+`null`/`undefined` 表示缺失；数据模型允许时保留有限的 0 与负数；Donut 只接受正的
+有限值；Funnel 保留零值阶段且不计算 conversion/drop-off。
+
+v1 支持 React/React DOM `>=18.3 <20`、Recharts `>=3 <4`、工具链 Node
+`>=20 <25`、TypeScript 5.4.5/当前版本，以及现代主流 Chrome、Firefox、Safari、
+Edge。v0.x deprecated 别名在整个 1.x 保留，计划于 v2 移除。
+
 ### `createAnalyticsSeries(data, definition)`
 
 ```ts

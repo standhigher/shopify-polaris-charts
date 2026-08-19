@@ -33,6 +33,16 @@
     "docs/api.zh-CN.md",
     "docs/usage.md",
     "docs/usage.zh-CN.md",
+    "docs/migration-v1.md",
+    "docs/migration-v1.zh-CN.md",
+    "docs/upgrade-guide.md",
+    "docs/upgrade-guide.zh-CN.md",
+    "docs/release-checklist.md",
+    "docs/shopify-analytics-patterns.md",
+    "docs/shopify-analytics-patterns.zh-CN.md",
+    "docs/performance/v1.0-budget.md",
+    "docs/public-api/index.d.ts",
+    "docs/public-api/formatters.d.ts",
     "README.md",
     "README.zh-CN.md",
     "CHANGELOG.md",
@@ -52,6 +62,8 @@
     }
   },
   "scripts": {
+    "api:check": "node scripts/public-api-report.mjs",
+    "api:write": "node scripts/public-api-report.mjs --write",
     "benchmark:analytics": "npm run build && node --expose-gc scripts/benchmark-analytics.mjs",
     "build": "tsup",
     "test": "vitest run",
@@ -65,7 +77,7 @@
     "next:smoke": "npm run build && node scripts/next-app-smoke.mjs",
     "pack:dry-run": "npm pack --dry-run",
     "peer:smoke": "npm run build && node scripts/peer-matrix-smoke.mjs",
-    "prepublishOnly": "npm run lint && npm run test && npm run typecheck && npm run build && npm run build-storybook",
+    "prepublishOnly": "npm run lint && npm run test && npm run typecheck && npm run build && npm run api:check && npm run build-storybook && npm run benchmark:analytics && npm run peer:smoke && npm run formatters:smoke && npm run next:smoke && npm run vite:smoke && npm run pack:dry-run",
     "vite:smoke": "npm run build && node scripts/vite-consumer-smoke.mjs"
   },
   "peerDependencies": {

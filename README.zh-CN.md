@@ -22,6 +22,8 @@
 - GitHub 仓库：[standhigher/shopify-polaris-charts](https://github.com/standhigher/shopify-polaris-charts)
 - API 参考：[docs/api.zh-CN.md](docs/api.zh-CN.md)
 - 使用指南：[docs/usage.zh-CN.md](docs/usage.zh-CN.md)
+- v1 迁移：[docs/migration-v1.zh-CN.md](docs/migration-v1.zh-CN.md)
+- Shopify Analytics 模式：[docs/shopify-analytics-patterns.zh-CN.md](docs/shopify-analytics-patterns.zh-CN.md)
 - 更新日志：[CHANGELOG.md](CHANGELOG.md)
 - 贡献指南：[CONTRIBUTING.md](CONTRIBUTING.md)
 - 安全策略：[SECURITY.md](SECURITY.md)
@@ -52,11 +54,13 @@ npm install @standhigher/charts react react-dom recharts
 
 | 依赖 | 支持范围 |
 | --- | --- |
-| React | `>=18` |
-| React DOM | `>=18` |
+| React | `>=18.3 <20` |
+| React DOM | `>=18.3 <20` |
 | Shopify Polaris | 可选 `>=12` peer，不在运行时导入 |
-| Recharts | `>=2` |
-| 本地开发 Node.js | `>=20` |
+| Recharts | `>=3 <4` |
+| 本地开发 Node.js | `>=20 <25` |
+| TypeScript 类型 | `5.4.5` 与当前版本（`5.9.3`） |
+| 浏览器 | 现代主流 Chrome、Firefox、Safari、Edge |
 
 ## 基础用法
 
@@ -207,7 +211,11 @@ npm run test
 npm run build
 npm run build-storybook
 npm run benchmark:analytics
-npm run recharts:legacy-smoke
+npm run api:check
+npm run peer:smoke
+npm run next:smoke
+npm run vite:smoke
+npm run test:browser
 npm pack --dry-run
 ```
 
@@ -236,7 +244,16 @@ npm run build-storybook
 npm pack --dry-run --registry=https://registry.npmjs.org/
 ```
 
-调用 `npm publish` 时，`prepublishOnly` 脚本会自动运行相同的 lint、test、
-typecheck、build 和 Storybook build 检查。该仓库采用手动发布审核流程；
+调用 `npm publish` 时，`prepublishOnly` 会自动运行完整的非浏览器发布门禁；
+浏览器引擎由 CI 验证，发布时不会重复下载。该仓库采用手动发布审核流程；
 在包名、scope 权限、版本、dry-run 打包内容和 npm dist-tag 都被明确确认前，
 不要发布。
+
+## v1 生产契约
+
+图表可以安全地在 SSR 阶段导入和渲染；Next.js App Router 中，交互式 Recharts
+组件应放在 `'use client'` 边界。服务端可从 `@standhigher/charts/formatters` 使用
+不依赖 React/Recharts 的 formatter。主要图表支持可选
+`accessibility={{label, description, dataTable}}`，表格和业务总结由调用方负责。
+布局在 320/768/1280px 验证，系统减少动态效果设置会关闭组件库控制的动画。
+v0.x deprecated 别名在 1.x 保留，计划于 v2 移除。
