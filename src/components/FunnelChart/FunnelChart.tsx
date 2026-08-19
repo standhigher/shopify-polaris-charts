@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { formatChartValue, type ChartValueFormatOptions } from '../../formatters';
@@ -158,7 +158,7 @@ export function FunnelChart({
   emptyMessage,
   errorMessage,
   format = 'number',
-  formatOptions: suppliedFormatOptions = {},
+  formatOptions: suppliedFormatOptions,
   height = 360,
   loadingLabel,
   onRetry,
@@ -174,19 +174,22 @@ export function FunnelChart({
   const prefersReducedMotion = usePrefersReducedMotion();
   const tooltipId = useId();
   const [activeStageId, setActiveStageId] = useState<string>();
-  const normalizedData = normalizeFunnelData(data, percentageInput);
+  const normalizedData = useMemo(
+    () => normalizeFunnelData(data, percentageInput),
+    [data, percentageInput]
+  );
   const palette = colors?.length ? colors : chartTheme.palette;
   const maxValue = normalizedData.reduce(
     (maximum, stage) =>
       Number.isFinite(stage.value) && stage.value >= 0 ? Math.max(maximum, stage.value) : maximum,
     0
   );
-  const formatOptions = {
+  const formatOptions = useMemo(() => ({
     currency: localization.currency,
     locale: localization.locale,
     timeZone: localization.timeZone,
     ...suppliedFormatOptions
-  };
+  }), [localization.currency, localization.locale, localization.timeZone, suppliedFormatOptions]);
   const resolvedState = state === 'ready' && normalizedData.length === 0 ? 'empty' : state;
   const activeStage = normalizedData.find((stage) => stage.id === activeStageId);
   const formatValue = (value: number | undefined) => displayMetric(value, format, formatOptions);

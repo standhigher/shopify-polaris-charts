@@ -6,6 +6,13 @@ import { performance } from 'node:perf_hooks';
 
 export const CHART_COUNTS = Object.freeze([5, 10, 20]);
 export const POINT_COUNTS = Object.freeze([100, 500, 1000]);
+export const BENCHMARK_BUDGETS = Object.freeze({
+  bundleGzipBytes: 18 * 1024,
+  bundleRawBytes: 100 * 1024,
+  heapDeltaBytes: 256 * 1024 * 1024,
+  initialRenderMs: 2500,
+  updateMs: 2500
+});
 
 export function createTimeSeries(pointCount) {
   return Array.from({ length: pointCount }, (_, index) => {
@@ -47,13 +54,60 @@ export async function collectBenchmarkResults(measureCell, bundle) {
   };
 }
 
-export async function measureBundleSizes(bundlePath = resolve('dist/index.js')) {
-  const source = await readFile(bundlePath);
+export async function measureBundleSizes(
+  bundlePaths = [resolve('dist/index.js'), resolve('dist/formatters.js')]
+) {
+  const paths = Array.isArray(bundlePaths) ? bundlePaths : [bundlePaths];
+  const sources = await Promise.all(paths.map((bundlePath) => readFile(bundlePath)));
 
   return {
-    gzipBytes: gzipSync(source).byteLength,
-    rawBytes: source.byteLength
+    gzipBytes: sources.reduce((total, source) => total + gzipSync(source).byteLength, 0),
+    rawBytes: sources.reduce((total, source) => total + source.byteLength, 0)
   };
+}
+
+export function assertBenchmarkBudgets(report) {
+  const expectedCells = new Set(
+    CHART_COUNTS.flatMap((chartCount) =>
+      POINT_COUNTS.map((pointCount) => `${chartCount}:${pointCount}`)
+    )
+  );
+  const actualCells = new Set(
+    report.results.map(({ chartCount, pointCount }) => `${chartCount}:${pointCount}`)
+  );
+
+  if (
+    report.results.length !== expectedCells.size ||
+    actualCells.size !== expectedCells.size ||
+    [...expectedCells].some((cell) => !actualCells.has(cell))
+  ) {
+    throw new Error('Benchmark matrix is incomplete or contains duplicate cells.');
+  }
+
+  for (const result of report.results) {
+    for (const field of ['heapDeltaBytes', 'initialRenderMs', 'updateMs']) {
+      if (!Number.isFinite(result[field])) {
+        throw new Error(`Benchmark ${field} must be finite for ${result.chartCount}:${result.pointCount}.`);
+      }
+    }
+
+    if (result.initialRenderMs > BENCHMARK_BUDGETS.initialRenderMs) {
+      throw new Error(`Initial render exceeded the budget for ${result.chartCount}:${result.pointCount}.`);
+    }
+    if (result.updateMs > BENCHMARK_BUDGETS.updateMs) {
+      throw new Error(`Update exceeded the budget for ${result.chartCount}:${result.pointCount}.`);
+    }
+    if (result.heapDeltaBytes > BENCHMARK_BUDGETS.heapDeltaBytes) {
+      throw new Error(`Heap delta exceeded the budget for ${result.chartCount}:${result.pointCount}.`);
+    }
+  }
+
+  if (!Number.isFinite(report.bundle.rawBytes) || report.bundle.rawBytes > BENCHMARK_BUDGETS.bundleRawBytes) {
+    throw new Error('Bundle raw bytes exceeded the budget or were not finite.');
+  }
+  if (!Number.isFinite(report.bundle.gzipBytes) || report.bundle.gzipBytes > BENCHMARK_BUDGETS.bundleGzipBytes) {
+    throw new Error('Bundle gzip bytes exceeded the budget or were not finite.');
+  }
 }
 
 function installDom(dom) {
@@ -208,6 +262,7 @@ export async function runAnalyticsBenchmark() {
 
 async function main() {
   const report = await runAnalyticsBenchmark();
+  assertBenchmarkBudgets(report);
   globalThis.console.log('ANALYTICS_BENCHMARK_JSON');
   globalThis.console.log(JSON.stringify(report, null, 2));
   globalThis.console.log('ANALYTICS_BENCHMARK_MARKDOWN');

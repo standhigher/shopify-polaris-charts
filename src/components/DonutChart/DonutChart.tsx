@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -188,7 +189,7 @@ export function DonutChart<TDatum extends object = ChartDatum>({
   emptyMessage,
   errorMessage,
   format = 'number',
-  formatOptions: suppliedFormatOptions = {},
+  formatOptions: suppliedFormatOptions,
   height = 280,
   loadingLabel,
   onRetry,
@@ -203,21 +204,24 @@ export function DonutChart<TDatum extends object = ChartDatum>({
 }: DonutChartProps<TDatum>) {
   const localization = useChartLocalization();
   const prefersReducedMotion = usePrefersReducedMotion();
-  const formatOptions = {
+  const formatOptions = useMemo(() => ({
     currency: localization.currency,
     locale: localization.locale,
     timeZone: localization.timeZone,
     ...suppliedFormatOptions
-  };
-  const slices = data
-    .map((datum, index) => ({
-      ...datum,
-      __color: chartTheme.palette[index % chartTheme.palette.length],
-      __key: `${String(getDatumValue(datum, categoryKey) ?? '')}-${index}`,
-      __name: String(getDatumValue(datum, categoryKey) ?? ''),
-      __value: toPositiveNumber(getDatumValue(datum, valueKey))
-  }))
-    .filter((datum): datum is typeof datum & { __value: number } => datum.__value !== null);
+  }), [localization.currency, localization.locale, localization.timeZone, suppliedFormatOptions]);
+  const slices = useMemo(
+    () => data
+      .map((datum, index) => ({
+        ...datum,
+        __color: chartTheme.palette[index % chartTheme.palette.length],
+        __key: `${String(getDatumValue(datum, categoryKey) ?? '')}-${index}`,
+        __name: String(getDatumValue(datum, categoryKey) ?? ''),
+        __value: toPositiveNumber(getDatumValue(datum, valueKey))
+      }))
+      .filter((datum): datum is typeof datum & { __value: number } => datum.__value !== null),
+    [categoryKey, data, valueKey]
+  );
   const hasData = slices.length > 0;
   const resolvedState = state === 'ready' && !hasData ? 'empty' : state;
 

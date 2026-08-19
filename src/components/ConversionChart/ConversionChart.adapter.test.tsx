@@ -9,10 +9,14 @@ interface CapturedTrendChartProps {
   }>;
 }
 
-const capture = vi.hoisted(() => ({ props: undefined as CapturedTrendChartProps | undefined }));
+const capture = vi.hoisted(() => ({
+  calls: [] as CapturedTrendChartProps[],
+  props: undefined as CapturedTrendChartProps | undefined
+}));
 
 vi.mock('../TrendChart', () => ({
   TrendChart: (props: CapturedTrendChartProps) => {
+    capture.calls.push(props);
     capture.props = props;
     return null;
   }
@@ -78,5 +82,20 @@ describe('ConversionChart adapter', () => {
     expect(optionalSeries).toBeDefined();
     expect(targetSeries?.id).not.toBe(optionalSeries?.id);
     expect(targetSeries?.data[0]?.[targetSeries.id]).toBe(0.05);
+  });
+
+  it('reuses normalized data and derived series across unrelated rerenders', () => {
+    const data = [{ date: 'Aug 1', conversion: 4.2 }];
+    const series = [{ dataKey: 'conversion' as const, label: 'Conversion' }];
+    capture.calls = [];
+
+    const { rerender } = render(
+      <ConversionChart data={data} input="percent" series={series} title="First title" xKey="date" />
+    );
+    rerender(<ConversionChart data={data} input="percent" series={series} title="Second title" xKey="date" />);
+
+    expect(capture.calls).toHaveLength(2);
+    expect(capture.calls[1].data).toBe(capture.calls[0].data);
+    expect(capture.calls[1].series).toBe(capture.calls[0].series);
   });
 });

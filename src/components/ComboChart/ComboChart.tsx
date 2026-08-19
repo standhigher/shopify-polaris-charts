@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
@@ -309,7 +310,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
   emptyMessage,
   errorMessage,
   format = 'number',
-  formatOptions: suppliedFormatOptions = {},
+  formatOptions: suppliedFormatOptions,
   grid,
   height = 280,
   line,
@@ -327,45 +328,55 @@ export function ComboChart<TDatum extends object = ChartDatum>({
   title,
   tooltip,
   xFormat,
-  xFormatOptions: suppliedXFormatOptions = {},
+  xFormatOptions: suppliedXFormatOptions,
   xAxis,
   yAxis,
   xKey
 }: ComboChartProps<TDatum>) {
   const localization = useChartLocalization();
   const prefersReducedMotion = usePrefersReducedMotion();
-  const formatOptions = {
+  const formatOptions = useMemo(() => ({
     currency: localization.currency,
     locale: localization.locale,
     timeZone: localization.timeZone,
     ...suppliedFormatOptions
-  };
-  const xFormatOptions = {
+  }), [localization.currency, localization.locale, localization.timeZone, suppliedFormatOptions]);
+  const xFormatOptions = useMemo(() => ({
     locale: localization.locale,
     timeZone: localization.timeZone,
     ...suppliedXFormatOptions
-  };
-  const seriesWithColor = series.map((item, index) => ({
-    ...item,
-    color: item.color ?? chartTheme.palette[index % chartTheme.palette.length]
-  }));
-  const baseAxisFormatKey = getAxisFormatKey(undefined, undefined, format, formatOptions);
-  const alternateAxisFormatKeys = Array.from(
-    new Set(
-      seriesWithColor
-        .map((item) => getAxisFormatKey(item.format, item.formatOptions, format, formatOptions))
-        .filter((itemFormat) => itemFormat !== baseAxisFormatKey)
-    )
+  }), [localization.locale, localization.timeZone, suppliedXFormatOptions]);
+  const seriesWithColor = useMemo(
+    () => series.map((item, index) => ({
+      ...item,
+      color: item.color ?? chartTheme.palette[index % chartTheme.palette.length]
+    })),
+    [series]
   );
+  const { alternateAxisFormatKeys, rightAxisFormatKey, rightAxisSeries } = useMemo(() => {
+    const baseAxisFormatKey = getAxisFormatKey(undefined, undefined, format, formatOptions);
+    const nextAlternateAxisFormatKeys = Array.from(
+      new Set(
+        seriesWithColor
+          .map((item) => getAxisFormatKey(item.format, item.formatOptions, format, formatOptions))
+          .filter((itemFormat) => itemFormat !== baseAxisFormatKey)
+      )
+    );
+    const nextRightAxisFormatKey = nextAlternateAxisFormatKeys[0];
+
+    return {
+      alternateAxisFormatKeys: nextAlternateAxisFormatKeys,
+      rightAxisFormatKey: nextRightAxisFormatKey,
+      rightAxisSeries: seriesWithColor.find(
+        (item) => getAxisFormatKey(item.format, item.formatOptions, format, formatOptions) === nextRightAxisFormatKey
+      )
+    };
+  }, [format, formatOptions, seriesWithColor]);
 
   if (alternateAxisFormatKeys.length > 1) {
     throw new Error('ComboChart supports one alternate series format. Use the base format plus one secondary format.');
   }
 
-  const rightAxisFormatKey = alternateAxisFormatKeys[0];
-  const rightAxisSeries = seriesWithColor.find(
-    (item) => getAxisFormatKey(item.format, item.formatOptions, format, formatOptions) === rightAxisFormatKey
-  );
   const hasData =
     data.length > 0 &&
     seriesWithColor.some((item) => data.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));

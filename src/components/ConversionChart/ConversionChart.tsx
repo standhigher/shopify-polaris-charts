@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import { chartTheme } from '../../theme';
 import type { ChartDatum, ChartSeries } from '../../types';
 import {
@@ -32,32 +34,29 @@ export function ConversionChart<TDatum extends object = ChartDatum>({
   target,
   ...trendChartProps
 }: ConversionChartProps<TDatum>) {
-  const normalizedData = normalizePercentageData(
-    data,
-    series.map(({ dataKey }) => dataKey),
-    input
-  );
-  let chartData = normalizedData;
-  const chartSeries: Array<ChartSeries<TDatum>> = series.map((definition) =>
-    createAnalyticsSeries(normalizedData, definition)
-  );
-
-  if (target) {
-    const targetField = findAvailableDataKey(
-      data,
-      new Set(series.map(({ dataKey }) => dataKey)),
-      TARGET_FIELD
+  const { chartData, chartSeries } = useMemo(() => {
+    const dataKeys = series.map(({ dataKey }) => dataKey);
+    const normalizedData = normalizePercentageData(data, dataKeys, input);
+    let nextChartData = normalizedData;
+    const nextChartSeries: Array<ChartSeries<TDatum>> = series.map((definition) =>
+      createAnalyticsSeries(normalizedData, definition)
     );
-    const targetValue = input === 'percent' ? target.value / 100 : target.value;
-    chartData = normalizedData.map((datum) => ({ ...datum, [targetField]: targetValue }));
-    chartSeries.push({
-      id: targetField as keyof TDatum & string,
-      data: chartData,
-      label: target.label,
-      color: target.color ?? chartTheme.status.neutral,
-      strokeDasharray: '6 4'
-    });
-  }
+
+    if (target) {
+      const targetField = findAvailableDataKey(data, new Set(dataKeys), TARGET_FIELD);
+      const targetValue = input === 'percent' ? target.value / 100 : target.value;
+      nextChartData = normalizedData.map((datum) => ({ ...datum, [targetField]: targetValue }));
+      nextChartSeries.push({
+        id: targetField as keyof TDatum & string,
+        data: nextChartData,
+        label: target.label,
+        color: target.color ?? chartTheme.status.neutral,
+        strokeDasharray: '6 4'
+      });
+    }
+
+    return { chartData: nextChartData, chartSeries: nextChartSeries };
+  }, [data, input, series, target]);
 
   return <TrendChart {...trendChartProps} data={chartData} format="percent" series={chartSeries} />;
 }

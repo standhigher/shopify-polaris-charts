@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import {
   Area,
@@ -365,7 +366,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
   emptyMessage,
   errorMessage,
   format = 'number',
-  formatOptions: suppliedFormatOptions = {},
+  formatOptions: suppliedFormatOptions,
   grid,
   height = 280,
   line,
@@ -384,28 +385,31 @@ export function TrendChart<TDatum extends object = ChartDatum>({
   title,
   tooltip,
   xFormat,
-  xFormatOptions: suppliedXFormatOptions = {},
+  xFormatOptions: suppliedXFormatOptions,
   xAxis,
   yAxis,
   xKey
 }: TrendChartProps<TDatum>) {
   const localization = useChartLocalization();
   const prefersReducedMotion = usePrefersReducedMotion();
-  const formatOptions = {
+  const formatOptions = useMemo(() => ({
     currency: localization.currency,
     locale: localization.locale,
     timeZone: localization.timeZone,
     ...suppliedFormatOptions
-  };
-  const xFormatOptions = {
+  }), [localization.currency, localization.locale, localization.timeZone, suppliedFormatOptions]);
+  const xFormatOptions = useMemo(() => ({
     locale: localization.locale,
     timeZone: localization.timeZone,
     ...suppliedXFormatOptions
-  };
-  const seriesWithColor = series.map((item, index) => ({
-    ...item,
-    color: item.color ?? chartTheme.palette[index % chartTheme.palette.length]
-  }));
+  }), [localization.locale, localization.timeZone, suppliedXFormatOptions]);
+  const seriesWithColor = useMemo(
+    () => series.map((item, index) => ({
+      ...item,
+      color: item.color ?? chartTheme.palette[index % chartTheme.palette.length]
+    })),
+    [series]
+  );
   const hasData =
     data.length > 0 &&
     seriesWithColor.some((item) => data.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));

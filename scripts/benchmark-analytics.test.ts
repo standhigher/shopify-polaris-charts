@@ -3,6 +3,7 @@
 import {
   CHART_COUNTS,
   POINT_COUNTS,
+  assertBenchmarkBudgets,
   collectBenchmarkResults,
   createChartDescriptors,
   createTimeSeries
@@ -53,5 +54,49 @@ describe('Analytics benchmark workload', () => {
       expect(Number.isFinite(result.updateMs)).toBe(true);
       expect(Number.isFinite(result.heapDeltaBytes)).toBe(true);
     }
+  });
+
+  it('accepts a complete report within the v1 release budgets', async () => {
+    const report = await collectBenchmarkResults(
+      async (chartCount, pointCount) => ({
+        chartCount,
+        heapDeltaBytes: 1024,
+        initialRenderMs: 10,
+        pointCount,
+        updateMs: 5
+      }),
+      { gzipBytes: 10_000, rawBytes: 50_000 }
+    );
+
+    expect(() => assertBenchmarkBudgets(report)).not.toThrow();
+  });
+
+  it('rejects missing, non-finite, slow, memory-heavy, and oversized reports', async () => {
+    const validReport = await collectBenchmarkResults(
+      async (chartCount, pointCount) => ({
+        chartCount,
+        heapDeltaBytes: 1024,
+        initialRenderMs: 10,
+        pointCount,
+        updateMs: 5
+      }),
+      { gzipBytes: 10_000, rawBytes: 50_000 }
+    );
+
+    expect(() => assertBenchmarkBudgets({ ...validReport, results: validReport.results.slice(1) })).toThrow(/matrix/i);
+    expect(() => assertBenchmarkBudgets({
+      ...validReport,
+      results: validReport.results.map((cell, index) => index === 0 ? { ...cell, updateMs: Number.NaN } : cell)
+    })).toThrow(/finite/i);
+    expect(() => assertBenchmarkBudgets({
+      ...validReport,
+      results: validReport.results.map((cell, index) => index === 0 ? { ...cell, initialRenderMs: 2501 } : cell)
+    })).toThrow(/initial/i);
+    expect(() => assertBenchmarkBudgets({
+      ...validReport,
+      results: validReport.results.map((cell, index) => index === 0 ? { ...cell, heapDeltaBytes: 257 * 1024 * 1024 } : cell)
+    })).toThrow(/heap/i);
+    expect(() => assertBenchmarkBudgets({ ...validReport, bundle: { gzipBytes: 10_000, rawBytes: 101 * 1024 } })).toThrow(/raw/i);
+    expect(() => assertBenchmarkBudgets({ ...validReport, bundle: { gzipBytes: 19 * 1024, rawBytes: 50_000 } })).toThrow(/gzip/i);
   });
 });

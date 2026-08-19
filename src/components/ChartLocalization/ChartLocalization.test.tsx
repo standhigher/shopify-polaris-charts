@@ -1,4 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { memo, useState } from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { ComboChart } from '../ComboChart';
 import { DonutChart } from '../DonutChart';
@@ -36,5 +38,33 @@ describe('ChartLocalizationProvider', () => {
     );
 
     expect(screen.getAllByText('暂无数据')).toHaveLength(4);
+  });
+
+  it('does not notify memoized consumers on unrelated parent rerenders', () => {
+    const renderConsumer = vi.fn();
+    const messages = { retry: 'Try again' };
+    const MemoizedConsumer = memo(function MemoizedConsumer() {
+      renderConsumer();
+      useChartLocalization();
+      return <span>Stable consumer</span>;
+    });
+
+    function Harness() {
+      const [count, setCount] = useState(0);
+
+      return (
+        <>
+          <button onClick={() => setCount((value) => value + 1)} type="button">Parent {count}</button>
+          <ChartLocalizationProvider locale="en-US" messages={messages}>
+            <MemoizedConsumer />
+          </ChartLocalizationProvider>
+        </>
+      );
+    }
+
+    render(<Harness />);
+    fireEvent.click(screen.getByRole('button', { name: 'Parent 0' }));
+
+    expect(renderConsumer).toHaveBeenCalledTimes(1);
   });
 });

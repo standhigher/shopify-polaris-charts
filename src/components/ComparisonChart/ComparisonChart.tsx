@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import type { ChartDatum } from '../../types';
 import { type AnalyticsSeries, createAnalyticsSeries } from '../Analytics';
 import { TrendChart, type TrendChartProps } from '../TrendChart';
@@ -14,18 +16,23 @@ export function ComparisonChart<TDatum extends object = ChartDatum>({
   data,
   ...trendChartProps
 }: ComparisonChartProps<TDatum>) {
+  const chartSeries = useMemo(
+    () => [
+      createAnalyticsSeries(data, currentSeries),
+      createAnalyticsSeries(data, {
+        ...comparisonSeries,
+        opacity: comparisonSeries.opacity ?? 0.64,
+        strokeDasharray: comparisonSeries.strokeDasharray ?? '6 4'
+      })
+    ],
+    [comparisonSeries, currentSeries, data]
+  );
+
   return (
     <TrendChart
       {...trendChartProps}
       data={data}
-      series={[
-        createAnalyticsSeries(data, currentSeries),
-        createAnalyticsSeries(data, {
-          ...comparisonSeries,
-          opacity: comparisonSeries.opacity ?? 0.64,
-          strokeDasharray: comparisonSeries.strokeDasharray ?? '6 4'
-        })
-      ]}
+      series={chartSeries}
     />
   );
 }

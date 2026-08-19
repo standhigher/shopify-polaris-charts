@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import type { ReactNode } from 'react';
 
 export interface ChartMessages {
@@ -66,16 +66,22 @@ export function ChartLocalizationProvider({
   timeZone
 }: ChartLocalizationProviderProps) {
   const parent = useContext(ChartLocalizationContext);
+  const mergedMessages = useMemo(
+    () => ({ ...parent.messages, ...messages }),
+    [messages, parent.messages]
+  );
+  const value = useMemo(
+    () => ({
+      currency: currency ?? parent.currency,
+      locale: locale ?? parent.locale,
+      messages: mergedMessages,
+      timeZone: timeZone ?? parent.timeZone
+    }),
+    [currency, locale, mergedMessages, parent.currency, parent.locale, parent.timeZone, timeZone]
+  );
 
   return (
-    <ChartLocalizationContext.Provider
-      value={{
-        currency: currency ?? parent.currency,
-        locale: locale ?? parent.locale,
-        messages: { ...parent.messages, ...messages },
-        timeZone: timeZone ?? parent.timeZone
-      }}
-    >
+    <ChartLocalizationContext.Provider value={value}>
       {children}
     </ChartLocalizationContext.Provider>
   );
