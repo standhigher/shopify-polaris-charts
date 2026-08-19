@@ -26,4 +26,9 @@ describe('@standhigher/charts package entry', () => {
   it('exports ConversionChart', () => {
     expect(Charts.ConversionChart).toBeDefined();
   });
+
+  it('exports FunnelChart', () => {
+    expect(Charts.FunnelChart).toBeDefined();
+    expect(Charts.normalizeFunnelData).toBeDefined();
+  });
 });

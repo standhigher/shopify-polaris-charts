@@ -11,6 +11,7 @@ export * from './components/ComboChart';
 export * from './components/ComparisonChart';
 export * from './components/ConversionChart';
 export * from './components/DonutChart';
+export * from './components/FunnelChart';
 export * from './components/MetricCard';
 export * from './components/StackedBarChart';
 export * from './components/TrendChart';
