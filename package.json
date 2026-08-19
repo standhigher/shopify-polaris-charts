@@ -48,6 +48,7 @@
     }
   },
   "scripts": {
+    "benchmark:analytics": "npm run build && node --expose-gc scripts/benchmark-analytics.mjs",
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
