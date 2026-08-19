@@ -2,8 +2,10 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 import { formatChartValue, type ChartValueFormatOptions } from '../../formatters';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { chartTheme } from '../../theme';
 import type {
+  ChartAccessibilityOptions,
   ChartContentState,
   ChartDatum,
   ChartFormat,
@@ -11,10 +13,12 @@ import type {
   ChartSkeletonOptions,
   ChartValue
 } from '../../types';
+import { ChartAccessibilityRegion } from '../ChartAccessibility';
 import { ChartStateRegion } from '../ChartState';
 import { useChartLocalization } from '../ChartLocalization';
 
 export interface DonutChartProps<TDatum extends object = ChartDatum> {
+  accessibility?: ChartAccessibilityOptions;
   title?: ReactNode;
   data: TDatum[];
   categoryKey: keyof TDatum & string;
@@ -173,6 +177,7 @@ function DonutTooltip({ active, format, formatOptions, payload }: DonutTooltipPr
 }
 
 export function DonutChart<TDatum extends object = ChartDatum>({
+  accessibility,
   categoryKey,
   centerLabel,
   data,
@@ -193,6 +198,7 @@ export function DonutChart<TDatum extends object = ChartDatum>({
   valueKey
 }: DonutChartProps<TDatum>) {
   const localization = useChartLocalization();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const formatOptions = {
     currency: localization.currency,
     locale: localization.locale,
@@ -212,6 +218,7 @@ export function DonutChart<TDatum extends object = ChartDatum>({
   const resolvedState = state === 'ready' && !hasData ? 'empty' : state;
 
   return (
+    <ChartAccessibilityRegion accessibility={accessibility}>
     <div style={styles.container}>
       {title ? <h3 style={styles.heading}>{title}</h3> : null}
       <ChartStateRegion
@@ -229,11 +236,12 @@ export function DonutChart<TDatum extends object = ChartDatum>({
         <>
           <div style={{ ...styles.chartWrap, height }}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
-              <PieChart>
+              <PieChart accessibilityLayer>
                 <Pie
                   data={slices}
                   dataKey="__value"
                   innerRadius="62%"
+                  isAnimationActive={!prefersReducedMotion}
                   nameKey="__name"
                   outerRadius="86%"
                   paddingAngle={2}
@@ -250,7 +258,7 @@ export function DonutChart<TDatum extends object = ChartDatum>({
             {centerLabel ? <div style={styles.centerLabel}>{centerLabel}</div> : null}
           </div>
           {showLegend ? (
-            <div aria-label="Chart legend" style={styles.legend}>
+            <div aria-label={localization.messages.chartLegend} style={styles.legend}>
               {slices.map((item) => (
                 <span key={item.__key} style={styles.legendItem}>
                   <span aria-hidden="true" style={{ ...styles.marker, background: item.__color }} />
@@ -263,5 +271,6 @@ export function DonutChart<TDatum extends object = ChartDatum>({
         </>
       </ChartStateRegion>
     </div>
+    </ChartAccessibilityRegion>
   );
 }

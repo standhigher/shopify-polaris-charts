@@ -12,7 +12,7 @@ import type {
 
 type ControlledCartesianChartProps = Omit<
   ComponentProps<typeof LineChart>,
-  'children' | 'data' | 'dataKey' | 'layout'
+  'accessibilityLayer' | 'children' | 'data' | 'dataKey' | 'layout'
 >;
 
 type ControlledXAxisProps = Omit<

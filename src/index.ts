@@ -4,6 +4,7 @@ export const packageVersion = '1.0.0';
 export * from './formatters';
 export * from './presets';
 export * from './components/Analytics';
+export * from './components/ChartAccessibility';
 export * from './components/ChartCard';
 export * from './components/ChartLocalization';
 export * from './components/ChartSkeletonLayout';

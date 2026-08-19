@@ -2,18 +2,22 @@ import { useId, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { formatChartValue, type ChartValueFormatOptions } from '../../formatters';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { chartTheme } from '../../theme';
 import type {
+  ChartAccessibilityOptions,
   ChartContentState,
   ChartFormat,
   ChartRevealOptions,
   ChartSkeletonOptions
 } from '../../types';
+import { ChartAccessibilityRegion } from '../ChartAccessibility';
 import { useChartLocalization } from '../ChartLocalization';
 import { ChartStateRegion } from '../ChartState';
 import { normalizeFunnelData, type FunnelDatum, type FunnelPercentageInput } from './funnel';
 
 export interface FunnelChartProps {
+  accessibility?: ChartAccessibilityOptions;
   colors?: readonly string[];
   data: FunnelDatum[];
   emptyMessage?: ReactNode;
@@ -146,6 +150,7 @@ const displayMetric = (value: number | undefined, format: ChartFormat, options: 
   typeof value === 'number' && Number.isFinite(value) ? formatChartValue(value, format, options) : '—';
 
 export function FunnelChart({
+  accessibility,
   colors,
   data,
   emptyMessage,
@@ -164,6 +169,7 @@ export function FunnelChart({
   title
 }: FunnelChartProps) {
   const localization = useChartLocalization();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const tooltipId = useId();
   const [activeStageId, setActiveStageId] = useState<string>();
   const normalizedData = normalizeFunnelData(data, percentageInput);
@@ -184,6 +190,7 @@ export function FunnelChart({
   const formatValue = (value: number | undefined) => displayMetric(value, format, formatOptions);
   const formatPercentage = (value: number | undefined) => displayMetric(value, 'percent', formatOptions);
   return (
+    <ChartAccessibilityRegion accessibility={accessibility}>
     <div data-testid="funnel-chart" style={styles.chart}>
       {title ? <h3 style={styles.heading}>{title}</h3> : null}
       <ChartStateRegion
@@ -229,6 +236,7 @@ export function FunnelChart({
                         style={{
                           ...styles.segment,
                           background: palette[index % palette.length],
+                          transition: prefersReducedMotion ? 'none' : styles.segment.transition,
                           width: segmentWidth
                         }}
                       />
@@ -268,5 +276,6 @@ export function FunnelChart({
         </div>
       </ChartStateRegion>
     </div>
+    </ChartAccessibilityRegion>
   );
 }

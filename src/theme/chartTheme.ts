@@ -59,7 +59,7 @@ export const chartTheme: ChartTheme = {
     '#d72c0d',
     '#5c6ac4',
     '#007ace',
-    '#50b83c',
+    '#409c32',
     '#9c6ade'
   ],
   surface: {

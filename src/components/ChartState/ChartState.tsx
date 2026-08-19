@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 
 import { chartTheme } from '../../theme';
 import type { ChartContentState, ChartRevealOptions, ChartSkeletonOptions } from '../../types';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { useChartLocalization } from '../ChartLocalization';
 
 export interface ChartStateRegionProps {
@@ -56,27 +57,6 @@ const normalizeRevealOptions = (reveal: boolean | ChartRevealOptions | undefined
 
 const normalizeSkeletonOptions = (skeleton: boolean | ChartSkeletonOptions | undefined) =>
   typeof skeleton === 'object' ? skeleton : {};
-
-function usePrefersReducedMotion() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-
-    if (!mediaQuery) {
-      return undefined;
-    }
-
-    const update = () => setPrefersReducedMotion(mediaQuery.matches);
-
-    update();
-    mediaQuery.addEventListener?.('change', update);
-
-    return () => mediaQuery.removeEventListener?.('change', update);
-  }, []);
-
-  return prefersReducedMotion;
-}
 
 export function ChartStateRegion({
   children,

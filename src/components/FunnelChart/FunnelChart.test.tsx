@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { ChartLocalizationProvider } from '../ChartLocalization';
@@ -137,5 +137,18 @@ describe('FunnelChart', () => {
 
     expect(screen.queryByText('No data available')).not.toBeInTheDocument();
     expect(screen.getByTestId('funnel-stage')).toHaveTextContent('Purchase');
+  });
+
+  it('removes segment transitions when reduced motion is requested', async () => {
+    vi.stubGlobal('matchMedia', vi.fn(() => ({
+      addEventListener: vi.fn(),
+      matches: true,
+      removeEventListener: vi.fn()
+    })));
+
+    render(<FunnelChart data={productFunnel.slice(0, 1)} />);
+
+    await waitFor(() => expect(screen.getByTestId('funnel-segment')).toHaveStyle({ transition: 'none' }));
+    vi.unstubAllGlobals();
   });
 });

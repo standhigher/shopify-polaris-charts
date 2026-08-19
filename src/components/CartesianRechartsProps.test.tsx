@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import { beforeEach, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { afterEach, beforeEach, expect, vi } from 'vitest';
+import { render, waitFor } from '@testing-library/react';
 
 import { ComboChart } from './ComboChart/ComboChart';
+import { DonutChart } from './DonutChart/DonutChart';
 import { StackedBarChart } from './StackedBarChart/StackedBarChart';
 import { TrendChart } from './TrendChart/TrendChart';
 
@@ -16,10 +17,13 @@ const rechartsMocks = vi.hoisted(() => ({
   areaChart: vi.fn(),
   bar: vi.fn(),
   barChart: vi.fn(),
+  cell: vi.fn(),
   cartesianGrid: vi.fn(),
   composedChart: vi.fn(),
   line: vi.fn(),
   lineChart: vi.fn(),
+  pie: vi.fn(),
+  pieChart: vi.fn(),
   responsiveContainer: vi.fn(),
   tooltip: vi.fn(),
   xAxis: vi.fn(),
@@ -38,10 +42,13 @@ vi.mock('recharts', () => {
     AreaChart: passthrough(rechartsMocks.areaChart),
     Bar: passthrough(rechartsMocks.bar),
     BarChart: passthrough(rechartsMocks.barChart),
+    Cell: passthrough(rechartsMocks.cell),
     CartesianGrid: passthrough(rechartsMocks.cartesianGrid),
     ComposedChart: passthrough(rechartsMocks.composedChart),
     Line: passthrough(rechartsMocks.line),
     LineChart: passthrough(rechartsMocks.lineChart),
+    Pie: passthrough(rechartsMocks.pie),
+    PieChart: passthrough(rechartsMocks.pieChart),
     ResponsiveContainer: passthrough(rechartsMocks.responsiveContainer),
     Tooltip: passthrough(rechartsMocks.tooltip),
     XAxis: passthrough(rechartsMocks.xAxis),
@@ -64,6 +71,49 @@ describe('controlled Recharts props escape hatch', () => {
     for (const mock of Object.values(rechartsMocks)) {
       mock.mockClear();
     }
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('does not allow the Recharts accessibility layer to be disabled', () => {
+    render(
+      <TrendChart
+        data={trendData}
+        rechartsProps={{ chart: { accessibilityLayer: false } } as never}
+        series={[{ id: 'grossSales', label: 'Gross sales', data: trendData }]}
+        xKey="date"
+      />
+    );
+
+    expect(rechartsMocks.lineChart).toHaveBeenCalledWith(
+      expect.objectContaining({ accessibilityLayer: true })
+    );
+  });
+
+  it('disables Recharts line, area, bar, and pie animation for reduced motion', async () => {
+    vi.stubGlobal('matchMedia', vi.fn(() => ({
+      addEventListener: vi.fn(),
+      matches: true,
+      removeEventListener: vi.fn()
+    })));
+
+    render(
+      <>
+        <TrendChart data={trendData} rechartsProps={{ line: { isAnimationActive: true } }} series={[{ id: 'grossSales', label: 'Line', data: trendData }]} xKey="date" />
+        <TrendChart data={trendData} mode="area" rechartsProps={{ area: { isAnimationActive: true } }} series={[{ id: 'grossSales', label: 'Area', data: trendData }]} xKey="date" />
+        <StackedBarChart data={barData} rechartsProps={{ bar: { isAnimationActive: true } }} series={[{ id: 'fulfilled', label: 'Bar', data: barData }]} xKey="channel" />
+        <DonutChart categoryKey="channel" data={barData} valueKey="fulfilled" />
+      </>
+    );
+
+    await waitFor(() => {
+      expect(rechartsMocks.line).toHaveBeenLastCalledWith(expect.objectContaining({ isAnimationActive: false }));
+      expect(rechartsMocks.area).toHaveBeenLastCalledWith(expect.objectContaining({ isAnimationActive: false }));
+      expect(rechartsMocks.bar).toHaveBeenLastCalledWith(expect.objectContaining({ isAnimationActive: false }));
+      expect(rechartsMocks.pie).toHaveBeenLastCalledWith(expect.objectContaining({ isAnimationActive: false }));
+    });
   });
 
   it('forwards TrendChart line props while retaining chart bindings', () => {

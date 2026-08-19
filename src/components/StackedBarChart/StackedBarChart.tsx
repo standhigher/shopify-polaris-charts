@@ -2,9 +2,11 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { formatChartValue, type ChartValueFormatOptions } from '../../formatters';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { chartTheme } from '../../theme';
 import type {
   CartesianAxisOptions,
+  ChartAccessibilityOptions,
   ChartContentState,
   ChartDatum,
   ChartFormat,
@@ -19,6 +21,7 @@ import type {
   ChartValue,
   StackedBarChartRechartsProps
 } from '../../types';
+import { ChartAccessibilityRegion } from '../ChartAccessibility';
 import { ChartStateRegion } from '../ChartState';
 import { useChartLocalization } from '../ChartLocalization';
 import {
@@ -31,6 +34,7 @@ import {
 } from '../cartesianRechartsProps';
 
 export interface StackedBarChartProps<TDatum extends object = ChartDatum> {
+  accessibility?: ChartAccessibilityOptions;
   title?: ReactNode;
   data: TDatum[];
   xKey: keyof TDatum & string;
@@ -248,6 +252,7 @@ function StackedTooltip<TDatum extends object>({
 }
 
 export function StackedBarChart<TDatum extends object = ChartDatum>({
+  accessibility,
   data,
   emptyMessage,
   errorMessage,
@@ -275,6 +280,7 @@ export function StackedBarChart<TDatum extends object = ChartDatum>({
   xKey
 }: StackedBarChartProps<TDatum>) {
   const localization = useChartLocalization();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const formatOptions = {
     currency: localization.currency,
     locale: localization.locale,
@@ -296,6 +302,7 @@ export function StackedBarChart<TDatum extends object = ChartDatum>({
   const resolvedState = state === 'ready' && !hasData ? 'empty' : state;
 
   return (
+    <ChartAccessibilityRegion accessibility={accessibility}>
     <div style={styles.container}>
       {title ? <h3 style={styles.heading}>{title}</h3> : null}
       <ChartStateRegion
@@ -313,7 +320,7 @@ export function StackedBarChart<TDatum extends object = ChartDatum>({
         <>
           <div style={{ height, width: '100%' }}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
-              <BarChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} data={data}>
+              <BarChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>
                 <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
                 <XAxis
                   axisLine={xAxis?.axisLine}
@@ -358,6 +365,7 @@ export function StackedBarChart<TDatum extends object = ChartDatum>({
                     {...getBarRechartsProps(rechartsProps?.bar)}
                     dataKey={item.id}
                     fill={item.color}
+                    isAnimationActive={prefersReducedMotion ? false : rechartsProps?.bar?.isAnimationActive}
                     name={item.label}
                     stackId="stack"
                   />
@@ -366,7 +374,7 @@ export function StackedBarChart<TDatum extends object = ChartDatum>({
             </ResponsiveContainer>
           </div>
           {showLegend ? (
-            <div aria-label="Chart legend" style={styles.legend}>
+            <div aria-label={localization.messages.chartLegend} style={styles.legend}>
               {seriesWithColor.map((item) => {
                 const firstDatum = data.find((datum) => !isEmptyValue(getDatumValue(datum, item.id)));
 
@@ -385,5 +393,6 @@ export function StackedBarChart<TDatum extends object = ChartDatum>({
         </>
       </ChartStateRegion>
     </div>
+    </ChartAccessibilityRegion>
   );
 }

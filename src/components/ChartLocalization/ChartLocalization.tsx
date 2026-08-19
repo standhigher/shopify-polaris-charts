@@ -5,6 +5,7 @@ export interface ChartMessages {
   chartEmpty: ReactNode;
   chartError: ReactNode;
   chartLoading: ReactNode;
+  chartLegend: string;
   chartNoPermission: ReactNode;
   chartPreparing: ReactNode;
   chartStale: ReactNode;
@@ -36,6 +37,7 @@ export const defaultChartMessages: ChartMessages = {
   chartEmpty: 'No data available',
   chartError: 'Unable to load chart',
   chartLoading: 'Loading chart',
+  chartLegend: 'Chart legend',
   chartNoPermission: 'No permission to view this chart',
   chartPreparing: 'Preparing chart',
   chartStale: 'Data may be out of date',

@@ -2,9 +2,11 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { formatChartValue, type ChartValueFormatOptions } from '../../formatters';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { chartTheme } from '../../theme';
 import type {
   CartesianAxisOptions,
+  ChartAccessibilityOptions,
   ChartContentState,
   ChartDatum,
   ChartFormat,
@@ -20,6 +22,7 @@ import type {
   ChartValue,
   ComboChartRechartsProps
 } from '../../types';
+import { ChartAccessibilityRegion } from '../ChartAccessibility';
 import { ChartStateRegion } from '../ChartState';
 import { useChartLocalization } from '../ChartLocalization';
 import {
@@ -41,6 +44,7 @@ export interface ComboChartSeries<TDatum extends object = ChartDatum> extends Ch
 }
 
 export interface ComboChartProps<TDatum extends object = ChartDatum> {
+  accessibility?: ChartAccessibilityOptions;
   title?: ReactNode;
   data: TDatum[];
   xKey: keyof TDatum & string;
@@ -296,6 +300,7 @@ function ComboTooltip<TDatum extends object>({
 }
 
 export function ComboChart<TDatum extends object = ChartDatum>({
+  accessibility,
   data,
   emptyMessage,
   errorMessage,
@@ -324,6 +329,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
   xKey
 }: ComboChartProps<TDatum>) {
   const localization = useChartLocalization();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const formatOptions = {
     currency: localization.currency,
     locale: localization.locale,
@@ -362,6 +368,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
   const resolvedState = state === 'ready' && !hasData ? 'empty' : state;
 
   return (
+    <ChartAccessibilityRegion accessibility={accessibility}>
     <div style={styles.container}>
       {title ? <h3 style={styles.heading}>{title}</h3> : null}
       <ChartStateRegion
@@ -379,7 +386,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
         <>
           <div style={{ height, width: '100%' }}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
-              <ComposedChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} data={data}>
+              <ComposedChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>
                 <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
                 <XAxis
                   axisLine={xAxis?.axisLine}
@@ -448,6 +455,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                       {...getBarRechartsProps(rechartsProps?.bar)}
                       dataKey={item.id}
                       fill={item.color}
+                      isAnimationActive={prefersReducedMotion ? false : rechartsProps?.bar?.isAnimationActive}
                       name={item.label}
                       yAxisId={
                         getAxisFormatKey(item.format, item.formatOptions, format, formatOptions) === rightAxisFormatKey
@@ -463,6 +471,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                       strokeWidth={2}
                       {...getLineRechartsProps(rechartsProps?.line)}
                       dataKey={item.id}
+                      isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
                       name={item.label}
                       stroke={item.color}
                       type="monotone"
@@ -478,7 +487,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
             </ResponsiveContainer>
           </div>
           {showLegend ? (
-            <div aria-label="Chart legend" style={styles.legend}>
+            <div aria-label={localization.messages.chartLegend} style={styles.legend}>
               {seriesWithColor.map((item) => {
                 const firstDatum = data.find((datum) => !isEmptyValue(getDatumValue(datum, item.id)));
 
@@ -507,5 +516,6 @@ export function ComboChart<TDatum extends object = ChartDatum>({
         </>
       </ChartStateRegion>
     </div>
+    </ChartAccessibilityRegion>
   );
 }

@@ -10,6 +10,12 @@ export interface ChartDatum {
   date?: string | number | Date;
 }
 
+export interface ChartAccessibilityOptions {
+  label: string;
+  description?: ReactNode;
+  dataTable?: ReactNode;
+}
+
 export interface ChartSeries<TDatum extends object = ChartDatum> {
   id: string;
   label: string;

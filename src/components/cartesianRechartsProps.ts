@@ -1,4 +1,4 @@
-const chartBindingProps = ['children', 'data', 'dataKey', 'layout'];
+const chartBindingProps = ['accessibilityLayer', 'children', 'data', 'dataKey', 'layout'];
 const axisBindingProps = ['children', 'dataKey', 'tickFormatter', 'type', 'xAxisId', 'yAxisId'];
 const gridBindingProps = ['children', 'xAxisId', 'yAxisId'];
 const tooltipBindingProps = ['axisId', 'content', 'formatter', 'labelFormatter'];

@@ -12,9 +12,11 @@ import {
 } from 'recharts';
 
 import { formatChartValue, type ChartValueFormatOptions } from '../../formatters';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { chartTheme } from '../../theme';
 import type {
   CartesianAxisOptions,
+  ChartAccessibilityOptions,
   ChartContentState,
   ChartDatum,
   ChartFormat,
@@ -30,6 +32,7 @@ import type {
   TrendChartRechartsProps,
   TrendChartSkeletonOptions
 } from '../../types';
+import { ChartAccessibilityRegion } from '../ChartAccessibility';
 import { ChartStateRegion } from '../ChartState';
 import { useChartLocalization } from '../ChartLocalization';
 import {
@@ -45,6 +48,7 @@ import {
 type TrendMode = 'line' | 'area';
 
 export interface TrendChartProps<TDatum extends object = ChartDatum> {
+  accessibility?: ChartAccessibilityOptions;
   title?: ReactNode;
   data: TDatum[];
   xKey: keyof TDatum & string;
@@ -352,6 +356,7 @@ function TrendTooltip<TDatum extends object>({
 }
 
 export function TrendChart<TDatum extends object = ChartDatum>({
+  accessibility,
   data,
   emptyMessage,
   errorMessage,
@@ -381,6 +386,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
   xKey
 }: TrendChartProps<TDatum>) {
   const localization = useChartLocalization();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const formatOptions = {
     currency: localization.currency,
     locale: localization.locale,
@@ -404,7 +410,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
     <div style={{ height, position: 'relative', width: '100%' }}>
       <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
         {mode === 'area' ? (
-          <AreaChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} data={data}>
+          <AreaChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>
             <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
             <XAxis
               axisLine={xAxis?.axisLine}
@@ -454,6 +460,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                 {...getSeriesPresentationProps(item)}
                 dataKey={item.id}
                 fill={item.color}
+                isAnimationActive={prefersReducedMotion ? false : rechartsProps?.area?.isAnimationActive}
                 name={item.label}
                 stroke={item.color}
                 type="monotone"
@@ -461,7 +468,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
             ))}
           </AreaChart>
         ) : (
-          <LineChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} data={data}>
+          <LineChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>
             <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
             <XAxis
               axisLine={xAxis?.axisLine}
@@ -509,6 +516,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                 {...getLineRechartsProps(rechartsProps?.line)}
                 {...getSeriesPresentationProps(item)}
                 dataKey={item.id}
+                isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
                 name={item.label}
                 stroke={item.color}
                 type="monotone"
@@ -524,7 +532,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
     <>
         {renderChart()}
         {showLegend ? (
-          <div aria-label="Chart legend" style={styles.legend}>
+          <div aria-label={localization.messages.chartLegend} style={styles.legend}>
             {seriesWithColor.map((item) => {
               const firstDatum = data.find((datum) => !isEmptyValue(getDatumValue(datum, item.id)));
 
@@ -544,22 +552,24 @@ export function TrendChart<TDatum extends object = ChartDatum>({
   );
 
   return (
-    <div style={styles.container}>
-      {title ? <h3 style={styles.heading}>{title}</h3> : null}
-      <ChartStateRegion
-        emptyMessage={emptyMessage}
-        errorMessage={errorMessage}
-        loadingLabel={loadingLabel}
-        minHeight={height}
-        onRetry={onRetry}
-        reveal={reveal}
-        retryAction={retryAction}
-        retryLabel={retryLabel}
-        skeleton={skeleton}
-        state={resolvedState}
-      >
-        {chartContent}
-      </ChartStateRegion>
-    </div>
+    <ChartAccessibilityRegion accessibility={accessibility}>
+      <div style={styles.container}>
+        {title ? <h3 style={styles.heading}>{title}</h3> : null}
+        <ChartStateRegion
+          emptyMessage={emptyMessage}
+          errorMessage={errorMessage}
+          loadingLabel={loadingLabel}
+          minHeight={height}
+          onRetry={onRetry}
+          reveal={reveal}
+          retryAction={retryAction}
+          retryLabel={retryLabel}
+          skeleton={skeleton}
+          state={resolvedState}
+        >
+          {chartContent}
+        </ChartStateRegion>
+      </div>
+    </ChartAccessibilityRegion>
   );
 }
