@@ -96,6 +96,7 @@ export function ChartStateRegion({
   const skeletonOptions = normalizeSkeletonOptions(skeleton);
   const prefersReducedMotion = usePrefersReducedMotion();
   const isRevealActive = Boolean(revealOptions.active);
+  const revealDurationMs = Math.max(0, revealOptions.durationMs ?? 180);
   const [isOverlayMounted, setIsOverlayMounted] = useState(isRevealActive);
   const [isOverlayVisible, setIsOverlayVisible] = useState(isRevealActive);
 
@@ -112,13 +113,13 @@ export function ChartStateRegion({
     const frame = requestAnimationFrame(() => {
       setIsOverlayVisible(false);
 
-      if (prefersReducedMotion) {
+      if (prefersReducedMotion || revealDurationMs === 0) {
         setIsOverlayMounted(false);
       }
     });
 
     return () => cancelAnimationFrame(frame);
-  }, [isRevealActive, prefersReducedMotion]);
+  }, [isRevealActive, prefersReducedMotion, revealDurationMs]);
 
   const panelStyle = { minHeight, width: '100%' };
 
@@ -179,7 +180,7 @@ export function ChartStateRegion({
             ...styles.overlay,
             opacity: isOverlayVisible ? 1 : 0,
             pointerEvents: isOverlayVisible ? 'auto' : 'none',
-            transition: prefersReducedMotion ? 'none' : `opacity ${revealOptions.durationMs ?? 180}ms ease ${revealOptions.delayMs ?? 0}ms`
+            transition: prefersReducedMotion ? 'none' : `opacity ${revealDurationMs}ms ease ${revealOptions.delayMs ?? 0}ms`
           }}
         >
           {revealOptions.label ?? messages.chartPreparing}

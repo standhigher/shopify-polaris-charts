@@ -4,6 +4,20 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning while the public API is stabilizing.
 
+## 0.10.0 - 2026-08-19
+
+### Added
+
+- Added an accessible vertical `FunnelChart` with ratio/percent inputs, shared chart states, keyboard and pointer details, and zero-stage support.
+- Added tree-shakeable presentation presets for revenue, orders, conversion, customers, upsell conversion, and funnels.
+- Added a complete Shopify Analytics Dashboard example with six KPI cards, date-range variants, partial states, retry, and progressive reveal.
+- Added deterministic 5/10/20-chart performance baselines across 100/500/1000 points and a packaged Recharts 2.15.4 compatibility smoke test.
+
+### Changed
+
+- Hardened zero-duration reveal teardown and merged provider formatting defaults with partial ComboChart series options.
+- Updated English and Chinese documentation for funnels, presets, dashboard composition, performance measurement, and data-layer boundaries.
+
 ## 0.9.0 - 2026-08-18
 
 ### Added

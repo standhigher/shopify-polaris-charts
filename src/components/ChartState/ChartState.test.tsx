@@ -82,4 +82,39 @@ describe('ChartState', () => {
     fireEvent.transitionEnd(overlay, { propertyName: 'opacity' });
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
+
+  it('unmounts a zero-duration reveal without a transition event', () => {
+    vi.useFakeTimers();
+    const animationFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => window.setTimeout(() => callback(0), 0));
+    const cancelAnimationFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation((handle) => window.clearTimeout(handle));
+
+    try {
+      const { rerender } = render(
+        <ChartStateRegion reveal={{ active: true, durationMs: 0, label: 'Preparing chart' }}>
+          <div>Ready chart</div>
+        </ChartStateRegion>
+      );
+
+      act(() => vi.runAllTimers());
+      expect(screen.getByRole('status')).toHaveTextContent('Preparing chart');
+
+      rerender(
+        <ChartStateRegion reveal={{ active: false, durationMs: 0, label: 'Preparing chart' }}>
+          <div>Ready chart</div>
+        </ChartStateRegion>
+      );
+      act(() => vi.runAllTimers());
+
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(screen.getByText('Ready chart').parentElement).toHaveAttribute('aria-busy', 'false');
+    } finally {
+      animationFrame.mockRestore();
+      cancelAnimationFrame.mockRestore();
+      vi.useRealTimers();
+    }
+  });
 });

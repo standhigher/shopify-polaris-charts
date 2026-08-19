@@ -3,7 +3,7 @@ import * as Charts from './index';
 describe('@standhigher/charts package entry', () => {
   it('can be imported from the package entry', () => {
     expect(Charts.packageName).toBe('@standhigher/charts');
-    expect(Charts.packageVersion).toBe('0.9.0');
+    expect(Charts.packageVersion).toBe('0.10.0');
   });
 
   it('exports the v0.7 shared foundation APIs', () => {
@@ -25,5 +25,19 @@ describe('@standhigher/charts package entry', () => {
 
   it('exports ConversionChart', () => {
     expect(Charts.ConversionChart).toBeDefined();
+  });
+
+  it('exports FunnelChart', () => {
+    expect(Charts.FunnelChart).toBeDefined();
+    expect(Charts.normalizeFunnelData).toBeDefined();
+  });
+
+  it('exports Shopify analytics presets', () => {
+    expect(Charts.revenueTrendPreset).toBeDefined();
+    expect(Charts.orderTrendPreset).toBeDefined();
+    expect(Charts.conversionTrendPreset).toBeDefined();
+    expect(Charts.customerTrendPreset).toBeDefined();
+    expect(Charts.upsellConversionPreset).toBeDefined();
+    expect(Charts.funnelPreset).toBeDefined();
   });
 });

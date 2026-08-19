@@ -1,7 +1,8 @@
 export const packageName = '@standhigher/charts';
-export const packageVersion = '0.9.0';
+export const packageVersion = '0.10.0';
 
 export * from './formatters';
+export * from './presets';
 export * from './components/Analytics';
 export * from './components/ChartCard';
 export * from './components/ChartLocalization';
@@ -11,6 +12,7 @@ export * from './components/ComboChart';
 export * from './components/ComparisonChart';
 export * from './components/ConversionChart';
 export * from './components/DonutChart';
+export * from './components/FunnelChart';
 export * from './components/MetricCard';
 export * from './components/StackedBarChart';
 export * from './components/TrendChart';

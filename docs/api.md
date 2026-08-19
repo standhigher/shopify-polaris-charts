@@ -19,6 +19,7 @@ import {
   ComparisonChart,
   ConversionChart,
   DonutChart,
+  FunnelChart,
   MetricCard,
   StackedBarChart,
   TrendChart,
@@ -36,13 +37,27 @@ import {
   formatChartPercent,
   formatChartValue,
   normalizePercentageData,
+  normalizeFunnelData,
   packageName,
   packageVersion,
+  revenueTrendPreset,
+  orderTrendPreset,
+  conversionTrendPreset,
+  customerTrendPreset,
+  upsellConversionPreset,
+  funnelPreset,
   type AnalyticsSeries,
   type CartesianAxisOptions,
   type ComparisonChartProps,
   type ConversionChartProps,
   type ConversionTarget,
+  type FunnelChartProps,
+  type FunnelDatum,
+  type FunnelPercentageInput,
+  type AnalyticsAxisPreset,
+  type AnalyticsFunnelPreset,
+  type AnalyticsSeriesPreset,
+  type AnalyticsTrendPreset,
   type PercentageInput,
   type ChartActiveDotOptions,
   type ChartDatum,
@@ -92,11 +107,14 @@ Runtime peer dependencies:
 | `TrendChart` | component | Line or area chart for trends. |
 | `ComparisonChart` | component | Current-versus-comparison period adapter over `TrendChart`. |
 | `ConversionChart` | component | Ratio/percentage trend adapter over `TrendChart`, with an optional target line. |
+| `FunnelChart` | component | Accessible vertical funnel with per-stage value, conversion, and drop-off details. |
 | `DonutChart` | component | Donut chart for parts-of-a-whole data. |
 | `StackedBarChart` | component | Stacked bar chart for category composition. |
 | `ComboChart` | component | Combined bar and line chart. |
 | `createAnalyticsSeries` | function | Converts an `AnalyticsSeries` definition into a shared `ChartSeries`. |
 | `normalizePercentageData` | function | Immutably normalizes selected percent fields to ratios. |
+| `normalizeFunnelData` | function | Immutably normalizes funnel conversion and drop-off fields. |
+| `revenueTrendPreset`, `orderTrendPreset`, `conversionTrendPreset`, `customerTrendPreset`, `upsellConversionPreset`, `funnelPreset` | constants | Tree-shakeable Shopify Analytics presentation presets. |
 | `formatChartNumber` | function | Formats nullable numbers. |
 | `formatChartCurrency` | function | Formats nullable numbers as currency. |
 | `formatChartPercent` | function | Formats nullable numbers as percentages. |
@@ -118,6 +136,10 @@ Runtime peer dependencies:
 | `ComparisonChartProps` | type | Props for `ComparisonChart`. |
 | `ConversionChartProps` | type | Props for `ConversionChart`. |
 | `ConversionTarget` | type | Optional conversion target-line definition. |
+| `FunnelChartProps` | type | Props for `FunnelChart`. |
+| `FunnelDatum` | type | Ordered vertical-funnel stage contract. |
+| `FunnelPercentageInput` | type | Funnel percentage basis: `'ratio' | 'percent'`. |
+| `AnalyticsAxisPreset`, `AnalyticsFunnelPreset`, `AnalyticsSeriesPreset`, `AnalyticsTrendPreset` | types | Presentation-preset contracts. |
 | `DonutChartProps` | type | Props for `DonutChart`. |
 | `StackedBarChartProps` | type | Props for `StackedBarChart`. |
 | `ComboChartProps` | type | Props for `ComboChart`. |
@@ -407,6 +429,11 @@ interface ChartMessages {
   chartNoPermission: ReactNode;
   chartPreparing: ReactNode;
   chartStale: ReactNode;
+  funnelConversion: ReactNode;
+  funnelDropOff: ReactNode;
+  funnelStage: ReactNode;
+  funnelStages: ReactNode;
+  funnelValue: ReactNode;
   metricLoading: ReactNode;
   retry: ReactNode;
 }
@@ -442,7 +469,7 @@ directly.
 ### `ChartStateRegion`
 
 `ChartStateRegion` is the shared chart-area renderer used by `TrendChart`,
-`ComboChart`, `StackedBarChart`, and `DonutChart`. You may also use it around
+`ComboChart`, `StackedBarChart`, `DonutChart`, and `FunnelChart`. You may also use it around
 custom chart content.
 
 | Prop | Type | Required | Default | Description |
@@ -1220,6 +1247,57 @@ These components are presentation infrastructure only: Shopify API requests,
 analytics calculations, storage, aggregation, period alignment, and a complete
 dashboard framework are non-goals.
 
+### `FunnelChart`
+
+```ts
+interface FunnelDatum {
+  id: string;
+  label: ReactNode;
+  value: number;
+  conversion?: number;
+  dropOff?: number;
+}
+
+type FunnelPercentageInput = 'ratio' | 'percent';
+```
+
+`FunnelChart` renders one semantic ordered-list item per datum in the exact
+caller-provided order. IDs must be stable and unique. Labels may be any
+`ReactNode`; value, conversion, and drop-off are always visible as text and are
+repeated in a pointer/keyboard tooltip. A zero value is valid and retains a
+minimum visible outline. Missing percentages render as `—`.
+
+| Prop | Type | Required | Default | Description |
+|---|---|---:|---|---|
+| `data` | `FunnelDatum[]` | Yes | - | Pre-calculated ordered funnel stages. |
+| `title` | `ReactNode` | No | - | Optional funnel heading. |
+| `colors` | `readonly string[]` | No | theme palette | Stage colors, cycled in order. |
+| `format` | `ChartFormat` | No | `'number'` | Stage-value format. |
+| `formatOptions` | `ChartValueFormatOptions` | No | localization defaults | Value and percentage display options. |
+| `percentageInput` | `'ratio' \| 'percent'` | No | `'ratio'` | Basis for conversion and drop-off values. |
+| `height` | `number` | No | `360` | Minimum ready/state height. |
+| `state`, `emptyMessage`, `errorMessage`, `loadingLabel`, `onRetry`, `retryLabel`, `retryAction`, `skeleton`, `reveal` | shared state props | No | shared defaults | Loading, empty, error/retry, skeleton, and reveal behavior. |
+
+`normalizeFunnelData(data, percentageInput)` returns the original array for
+ratio input. For percent input it shallow-copies rows and divides finite
+`conversion` and `dropOff` values by 100 without mutating caller data. The
+component does not sort stages, derive conversion/drop-off, or expose alternate
+orientations.
+
+### Shopify Analytics presentation presets
+
+The package exports `revenueTrendPreset`, `orderTrendPreset`,
+`conversionTrendPreset`, `customerTrendPreset`, `upsellConversionPreset`, and
+`funnelPreset`. The frozen, tree-shakeable objects contain presentation only:
+series labels/colors/line styling, format advice, or funnel colors and input
+basis. They never contain a `dataKey`, data, requests, aggregation, or business
+calculations.
+
+Trend presets implement `AnalyticsTrendPreset`; funnel presets implement
+`AnalyticsFunnelPreset`. Map `currentSeries` and `comparisonSeries` into your
+datum-specific `AnalyticsSeries`, then locally override fields with object
+spread. The `axis` field is presentation advice rather than a component prop.
+
 ## Theme
 
 ### `chartTheme`
@@ -1245,6 +1323,7 @@ Important fields:
 |---|---|---|
 | Dashboard card shell with title, metric, controls, and state handling | `ChartCard` | Any React children |
 | Time-series trend or ordered category movement | `TrendChart` | One X field plus one or more numeric series fields |
+| Ordered product, checkout, or upsell conversion stages | `FunnelChart` | Ordered `FunnelDatum[]` with caller-calculated metrics |
 | Parts-of-a-whole breakdown | `DonutChart` | One category field plus one positive numeric value field |
 | Compare category totals and composition | `StackedBarChart` | One category field plus multiple numeric segment fields |
 | Compare volume and rate together | `ComboChart` | One X field plus bar/line series fields |

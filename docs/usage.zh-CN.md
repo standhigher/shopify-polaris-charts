@@ -94,6 +94,47 @@ Revenue 当前周期 vs 上一周期对比时，把线型配置放在单条 seri
 两个 Analytics 组件都不会计算转化率、请求 Shopify 数据、存储指标、对齐周期，
 也不提供 Dashboard 数据层。
 
+## FunnelChart
+
+使用 `FunnelChart` 展示有序的商品、结账或加购阶段。请按展示顺序提供稳定且唯一的
+ID，以及由调用方预先计算的数值。转化率和流失率默认使用 ratio；缺失值显示为
+破折号，零值阶段仍然可见。
+
+```tsx
+<FunnelChart
+  data={[
+    { id: 'view', label: '商品浏览', value: 12000 },
+    { id: 'cart', label: '加入购物车', value: 1800, conversion: 0.15, dropOff: 0.85 },
+    { id: 'purchase', label: '购买', value: 620, conversion: 0.344, dropOff: 0.656 }
+  ]}
+  title="结账漏斗"
+/>
+```
+
+只有输入采用 0–100 标度时才设置 `percentageInput="percent"`。组件保持原始顺序，
+不会推导、排序、聚合或请求阶段数据。
+
+## Shopify Analytics 预设
+
+六个预设是展示方案，不是数据适配器。请添加 datum 对应字段，并局部展开嵌套样式：
+
+```tsx
+<ComparisonChart
+  data={revenueByDay}
+  currentSeries={{ dataKey: 'currentRevenue', ...revenueTrendPreset.currentSeries }}
+  comparisonSeries={{ dataKey: 'previousRevenue', ...revenueTrendPreset.comparisonSeries! }}
+  format={revenueTrendPreset.format}
+  xKey="date"
+/>
+
+<FunnelChart {...funnelPreset} data={funnelStages} />
+```
+
+可用预设包括 `revenueTrendPreset`、`orderTrendPreset`、
+`conversionTrendPreset`、`customerTrendPreset`、`upsellConversionPreset` 和
+`funnelPreset`。它们都是冻结且可 tree-shaking 的对象。覆盖嵌套字段时再做一次
+对象展开；趋势预设的 `axis` 是建议，不应直接传给组件。
+
 ## DonutChart
 
 使用 `DonutChart` 展示少量部分占整体的类别，例如流量来源占比、订单状态占比，
@@ -113,7 +154,8 @@ fulfilled、pending 和 returned orders。它最适合每个类别共享同一�
 
 ## 共享图表状态
 
-`TrendChart`、`ComboChart`、`StackedBarChart` 和 `DonutChart` 都提供相同的图表区域
+`TrendChart`、`ComparisonChart`、`ConversionChart`、`FunnelChart`、
+`ComboChart`、`StackedBarChart` 和 `DonutChart` 都提供相同的图表区域
 状态契约：`state`、`emptyMessage`、`errorMessage`、`loadingLabel`、`onRetry`、
 `retryLabel`、`retryAction`、`skeleton` 和 `reveal`。显式传入的 `loading`、`empty` 或 `error` 优先；
 默认 `state="ready"` 时，没有可渲染数值会自动解析为空状态。
@@ -215,6 +257,22 @@ import { MetricCard, formatMoney, formatPercentage } from '@standhigher/charts';
 如果图表需要保持挂载，并在 reveal 期间只覆盖 skeleton，使用 `mode="overlay"`。
 如果希望 API ready 前完全不挂载图表，使用默认 `mode="replace"`。
 
+完整 Shopify 场景可组合六张由应用格式化的 `MetricCard`，再连接 Trend、
+Comparison、Conversion 与 Funnel 区域。应用负责日期选择、Shopify 请求、周期
+对齐、指标计算、局部失败状态和重试回调；组件库只负责可访问展示、状态、skeleton、
+reveal、本地化与格式化。
+
+修改仪表盘渲染时运行确定性的本地基线：
+
+```bash
+npm run benchmark:analytics
+npm run recharts:legacy-smoke
+```
+
+基准覆盖 JSDOM 中 5/10/20 张图表与 100/500/1000 个点，用于版本间对比，
+不代表浏览器性能承诺。smoke 命令会打包当前构建，并在 Recharts 2.15.4 下导入
+公开 API。
+
 ## 受控 Recharts props
 
 `TrendChart`、`StackedBarChart` 和 `ComboChart` 提供聚焦的 `rechartsProps`
@@ -251,7 +309,8 @@ escape hatch，用于当前常规组件 props 未覆盖的小范围视觉调整�
 npm run storybook
 ```
 
-然后打开 `Examples/Phase One Overview` story。
+然后打开 `Examples/Shopify Analytics Dashboard` story。它包含 7 天/30 天数据、
+ready/loading/empty/error、局部 retry 与 reveal 示例。
 
 `Components/ChartStateRegion` 与 `Components/MetricCard` story 展示新的状态和
 可访问性行为。

@@ -8,6 +8,11 @@ export interface ChartMessages {
   chartNoPermission: ReactNode;
   chartPreparing: ReactNode;
   chartStale: ReactNode;
+  funnelConversion: ReactNode;
+  funnelDropOff: ReactNode;
+  funnelStage: ReactNode;
+  funnelStages: ReactNode;
+  funnelValue: ReactNode;
   metricLoading: ReactNode;
   retry: ReactNode;
 }
@@ -34,6 +39,11 @@ export const defaultChartMessages: ChartMessages = {
   chartNoPermission: 'No permission to view this chart',
   chartPreparing: 'Preparing chart',
   chartStale: 'Data may be out of date',
+  funnelConversion: 'Conversion',
+  funnelDropOff: 'Drop-off',
+  funnelStage: 'Stage',
+  funnelStages: 'Funnel stages',
+  funnelValue: 'Value',
   metricLoading: 'Loading metric',
   retry: 'Retry'
 };

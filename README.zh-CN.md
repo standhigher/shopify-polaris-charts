@@ -13,7 +13,7 @@
 面向 Shopify App Analytics 与应用自有数据的 Polaris 风格图表组件库。
 
 该包提供可复用的 Polaris 风格图表体验组件，包括卡片外壳、趋势图、
-指标卡片、环形图、堆叠柱状图和组合图。
+指标卡片、环形图、堆叠柱状图、组合图和垂直转化漏斗。
 
 ## 链接
 
@@ -43,6 +43,7 @@ npm install @standhigher/charts react react-dom recharts
 | `TrendChart` | 单线或多线趋势图，用于时间序列指标。 | 收入、订单、转化率等趋势分析。 |
 | `ComparisonChart` | 统一对比样式的本期与上期趋势适配器。 | 收入、订单、客户等周期对比。 |
 | `ConversionChart` | 支持 ratio/percent 输入归一化与可选目标线的百分比趋势适配器。 | 店铺、结账、加购和渠道转化。 |
+| `FunnelChart` | 每阶段展示数量、转化率和流失率的可访问垂直漏斗。 | 商品、结账和加购漏斗。 |
 | `DonutChart` | 分类占比图，支持图例开关。 | 渠道、市场、来源或分群占比。 |
 | `StackedBarChart` | 堆叠或分组柱状图，支持坐标轴、网格、提示框和边距配置。 | 对比不同时间或分类下的多指标。 |
 | `ComboChart` | 柱状图和折线图组合。 | 同时查看数量类指标和比率类指标。 |
@@ -129,6 +130,31 @@ reveal、本地化、格式化、Tooltip、坐标轴和受控 Recharts 展示配
 组件库不会请求 Shopify 数据、计算 Analytics 指标、存储数据、对齐报告周期，
 也不提供完整 Dashboard Framework。
 
+## v0.10 Shopify Analytics 场景
+
+`FunnelChart` 补全核心 Analytics 阅读路径：
+
+```text
+Metric Cards → Trend → Comparison → Conversion → Funnel
+```
+
+漏斗按调用方顺序垂直展示。每个阶段必须提供稳定且唯一的 `id`、标签和数量；
+可选 `conversion` 与 `dropOff` 默认按 ratio 解释。0–100 输入请设置
+`percentageInput="percent"`。零值阶段仍然有效，缺失百分比显示为破折号。
+漏斗指标的计算始终由业务应用负责。
+
+六个可 tree-shaking 的展示预设覆盖收入、订单、转化率、客户、加购转化和漏斗。
+预设只包含标签、格式、颜色与线条样式；请把字段映射到组件 props 后按需局部覆盖。
+预设不会提供 data key、Shopify 请求或业务计算。
+
+```tsx
+<FunnelChart
+  {...funnelPreset}
+  data={funnelStages}
+  title="结账漏斗"
+/>
+```
+
 ## 示例与 Storybook
 
 本地运行 Storybook 查看单个组件及组合式仪表盘：
@@ -137,8 +163,9 @@ reveal、本地化、格式化、Tooltip、坐标轴和受控 Recharts 展示配
 npm run storybook
 ```
 
-优先打开 `Examples/Analytics Dashboard` 查看 v0.9 Shopify App Analytics
-体验：Metric Cards 依次连接收入趋势、周期对比与店铺转化视图。
+优先打开 `Examples/Shopify Analytics Dashboard` 查看完整 v0.10 体验：
+六张 Metric Card 依次连接趋势、周期对比、转化、加购与漏斗视图，并包含日期区间
+及局部状态示例。`Examples/Analytics Dashboard` 继续保留为 v0.9 示例。
 `Examples/Phase One Overview` 仍保留，用于集中评审底层 `ChartCard`、
 `TrendChart`、`DonutChart`、`StackedBarChart` 和 `ComboChart` 基础组件。
 
@@ -179,6 +206,8 @@ npm run typecheck
 npm run test
 npm run build
 npm run build-storybook
+npm run benchmark:analytics
+npm run recharts:legacy-smoke
 npm pack --dry-run
 ```
 
