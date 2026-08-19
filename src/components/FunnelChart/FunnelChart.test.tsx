@@ -43,6 +43,7 @@ describe('FunnelChart', () => {
           funnelConversion: '转化率',
           funnelDropOff: '流失率',
           funnelStage: '阶段',
+          funnelStages: '漏斗阶段',
           funnelValue: '数量'
         }}
       >
@@ -55,6 +56,7 @@ describe('FunnelChart', () => {
     );
 
     const stage = screen.getByTestId('funnel-stage');
+    expect(screen.getByRole('list', { name: '漏斗阶段' })).toBeVisible();
     expect(stage).toHaveTextContent('阶段');
     expect(stage).toHaveTextContent('数量');
     expect(stage).toHaveTextContent('转化率');

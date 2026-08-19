@@ -11,6 +11,7 @@ export interface ChartMessages {
   funnelConversion: ReactNode;
   funnelDropOff: ReactNode;
   funnelStage: ReactNode;
+  funnelStages: ReactNode;
   funnelValue: ReactNode;
   metricLoading: ReactNode;
   retry: ReactNode;
@@ -41,6 +42,7 @@ export const defaultChartMessages: ChartMessages = {
   funnelConversion: 'Conversion',
   funnelDropOff: 'Drop-off',
   funnelStage: 'Stage',
+  funnelStages: 'Funnel stages',
   funnelValue: 'Value',
   metricLoading: 'Loading metric',
   retry: 'Retry'

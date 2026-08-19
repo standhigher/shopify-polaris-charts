@@ -432,6 +432,7 @@ interface ChartMessages {
   funnelConversion: ReactNode;
   funnelDropOff: ReactNode;
   funnelStage: ReactNode;
+  funnelStages: ReactNode;
   funnelValue: ReactNode;
   metricLoading: ReactNode;
   retry: ReactNode;

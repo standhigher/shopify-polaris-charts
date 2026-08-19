@@ -128,6 +128,17 @@ const styles: Record<string, CSSProperties> = {
     fontSize: 12,
     lineHeight: 1.45,
     padding: 10
+  },
+  visuallyHidden: {
+    border: 0,
+    clip: 'rect(0 0 0 0)',
+    height: 1,
+    margin: -1,
+    overflow: 'hidden',
+    padding: 0,
+    position: 'absolute',
+    whiteSpace: 'nowrap',
+    width: 1
   }
 };
 
@@ -188,7 +199,10 @@ export function FunnelChart({
         state={resolvedState}
       >
         <div style={{ minHeight: height }}>
-          <ol aria-label="Funnel stages" style={styles.funnel}>
+          <span id={`${tooltipId}-list-label`} style={styles.visuallyHidden}>
+            {localization.messages.funnelStages}
+          </span>
+          <ol aria-labelledby={`${tooltipId}-list-label`} style={styles.funnel}>
             {normalizedData.map((stage, index) => {
               const ratio = maxValue > 0 && Number.isFinite(stage.value) && stage.value > 0
                 ? stage.value / maxValue
@@ -208,7 +222,7 @@ export function FunnelChart({
                     style={styles.stage}
                     type="button"
                   >
-                    <div style={styles.segmentTrack}>
+                    <span style={styles.segmentTrack}>
                       <span
                         aria-hidden="true"
                         data-testid="funnel-segment"
@@ -218,8 +232,8 @@ export function FunnelChart({
                           width: segmentWidth
                         }}
                       />
-                    </div>
-                    <div style={styles.metrics}>
+                    </span>
+                    <span style={styles.metrics}>
                       <span style={styles.metric}>
                         <span style={styles.metricLabel}>{localization.messages.funnelStage}</span>
                         <span data-testid="funnel-stage-label" style={styles.label}>{stage.label}</span>
@@ -236,7 +250,7 @@ export function FunnelChart({
                         <span style={styles.metricLabel}>{localization.messages.funnelDropOff}</span>
                         <strong style={styles.metricValue}>{formatPercentage(stage.dropOff)}</strong>
                       </span>
-                    </div>
+                    </span>
                   </button>
                 </li>
               );
