@@ -55,6 +55,7 @@
     "benchmark:analytics": "npm run build && node --expose-gc scripts/benchmark-analytics.mjs",
     "build": "tsup",
     "test": "vitest run",
+    "test:browser": "playwright test",
     "test:watch": "vitest",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -63,6 +64,7 @@
     "formatters:smoke": "npm run build && node scripts/formatter-subpath-smoke.mjs",
     "next:smoke": "npm run build && node scripts/next-app-smoke.mjs",
     "pack:dry-run": "npm pack --dry-run",
+    "peer:smoke": "npm run build && node scripts/peer-matrix-smoke.mjs",
     "prepublishOnly": "npm run lint && npm run test && npm run typecheck && npm run build && npm run build-storybook",
     "vite:smoke": "npm run build && node scripts/vite-consumer-smoke.mjs"
   },
@@ -79,6 +81,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
     "@storybook/addon-docs": "^10.5.7",
     "@storybook/react-vite": "^10.5.7",
     "@testing-library/jest-dom": "^6.6.3",

@@ -3,6 +3,8 @@ dist/
 coverage/
 .storybook-static/
 storybook-static/
+test-results/
+playwright-report/
 .worktrees/
 .DS_Store
 *.log

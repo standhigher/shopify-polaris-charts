@@ -11,36 +11,107 @@ permissions:
 
 jobs:
   quality:
-    name: Quality checks
+    name: Quality / Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22, 24]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Test
+        run: npm run test
+      - name: Build package
+        run: npm run build
+
+  peer-matrix:
+    name: React and TypeScript compatibility
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
-
       - name: Install dependencies
         run: npm ci
+      - name: Run peer and declaration matrices
+        run: npm run peer:smoke
 
-      - name: Lint
-        run: npm run lint
+  framework:
+    name: Next.js and Vite consumers
+    runs-on: ubuntu-latest
 
-      - name: Typecheck
-        run: npm run typecheck
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify formatter isolation
+        run: npm run formatters:smoke
+      - name: Build Next.js App Router consumer
+        run: npm run next:smoke
+      - name: Build Vite consumer
+        run: npm run vite:smoke
 
-      - name: Test
-        run: npm run test
+  browser:
+    name: Browser compatibility
+    runs-on: ubuntu-latest
 
-      - name: Build package
-        run: npm run build
-
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
       - name: Build Storybook
         run: npm run build-storybook
+      - name: Run browser matrix
+        run: npm run test:browser
 
+  release-audit:
+    name: Release artifact and performance
+    needs: [quality, peer-matrix, framework, browser]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Enforce analytics performance budgets
+        run: npm run benchmark:analytics
       - name: Verify npm package contents
-        run: npm pack --dry-run
+        run: npm run pack:dry-run
