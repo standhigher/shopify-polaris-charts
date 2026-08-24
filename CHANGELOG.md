@@ -4,6 +4,14 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning.
 
+## 1.1.0 - 2026-08-24
+
+### Added
+
+- Added opt-in isolated-point dots and configurable dashed gap connectors for line series in `TrendChart` and `ComboChart`.
+- Added `ChartGapConnectorOptions`, `ChartDotOptions.show`, and automatic dot-radius support with `r: 'auto'`.
+- Added browser, tooltip, dual-axis, and axis-domain regression coverage for gap visualization.
+
 ## 1.0.0 - 2026-08-19
 
 ### Added
