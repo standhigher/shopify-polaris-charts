@@ -35,6 +35,17 @@ import {
   getXAxisRechartsProps,
   getYAxisRechartsProps
 } from '../cartesianRechartsProps';
+import type { LineDataKey, LineGapSegment } from '../lineGapUtils';
+import { analyzeLineGaps } from '../lineGapUtils';
+import {
+  GAP_CONNECTOR_DATA_KEY_PREFIX,
+  createGapConnectorData,
+  filterGapConnectorPayload,
+  normalizeLineData,
+  resolveGapConnectorProps,
+  resolveLineActiveDot,
+  resolveLineDot
+} from '../lineGapVisualization';
 
 export type ComboChartSeriesType = 'bar' | 'line';
 
@@ -169,9 +180,43 @@ const styles: Record<string, CSSProperties> = {
   }
 };
 
-const isEmptyValue = (value: unknown) => value === null || value === undefined || value === '';
+const isEmptyValue = (value: unknown) => value === null || value === undefined || value === '' || Number.isNaN(value);
 
 const defaultActiveDot = { r: 4 };
+const defaultStrokeWidth = 2;
+
+const getSeriesPresentationProps = <TDatum extends object>(item: ComboChartSeries<TDatum>) => {
+  const props: { opacity?: number; strokeDasharray?: string | number; strokeWidth?: number } = {};
+
+  if (item.opacity !== undefined) {
+    props.opacity = item.opacity;
+  }
+
+  if (item.strokeDasharray !== undefined) {
+    props.strokeDasharray = item.strokeDasharray;
+  }
+
+  if (item.strokeWidth !== undefined) {
+    props.strokeWidth = item.strokeWidth;
+  }
+
+  return props;
+};
+
+const getEffectiveStrokeWidth = <TDatum extends object>(
+  item: ComboChartSeries<TDatum>,
+  configuredStrokeWidth: number | string | undefined
+) => {
+  const strokeWidth = item.strokeWidth ?? configuredStrokeWidth;
+
+  if (strokeWidth === undefined) {
+    return defaultStrokeWidth;
+  }
+
+  const numericStrokeWidth = typeof strokeWidth === 'number' ? strokeWidth : Number(strokeWidth);
+
+  return Number.isFinite(numericStrokeWidth) ? numericStrokeWidth : defaultStrokeWidth;
+};
 
 const resolveAxisTick = (axis?: CartesianAxisOptions) => ({
   fill: axis?.tickColor ?? chartTheme.axis.tickColor,
@@ -195,6 +240,26 @@ const toChartValue = (value: unknown): ChartValue => {
 
 const getDatumValue = <TDatum extends object>(datum: TDatum | undefined, key: string) =>
   datum ? (datum as Record<string, unknown>)[key] : undefined;
+
+const createFullLengthGapConnectorData = <TDatum extends object>(
+  data: readonly TDatum[],
+  segment: LineGapSegment<TDatum>,
+  dataKey: LineDataKey<TDatum>,
+  xKey: LineDataKey<TDatum>,
+  internalDataKey: string
+): Array<TDatum & Record<string, unknown>> => {
+  const endpointData = createGapConnectorData(segment, dataKey, xKey, internalDataKey);
+
+  return data.map((datum, index) => ({
+    ...datum,
+    [internalDataKey]:
+      index === segment.startIndex
+        ? endpointData[0][internalDataKey]
+        : index === segment.endIndex
+          ? endpointData[1][internalDataKey]
+          : null
+  }));
+};
 
 const formatCategoryValue = (
   value: string | number | Date | null | undefined,
@@ -247,11 +312,13 @@ function ComboTooltip<TDatum extends object>({
   xFormat,
   xFormatOptions
 }: ComboTooltipProps<TDatum>) {
-  if (!active || !payload?.length) {
+  const visiblePayload = filterGapConnectorPayload(payload ?? [], (item) => item.dataKey);
+
+  if (!active || !visiblePayload.length) {
     return null;
   }
 
-  const payloadWithSeries: Array<ChartTooltipPayloadItem<TDatum, ComboChartSeries<TDatum>>> = payload.map((item) => {
+  const payloadWithSeries: Array<ChartTooltipPayloadItem<TDatum, ComboChartSeries<TDatum>>> = visiblePayload.map((item) => {
     const id = String(item.dataKey ?? item.name ?? '');
 
     return {
@@ -377,6 +444,37 @@ export function ComboChart<TDatum extends object = ChartDatum>({
     throw new Error('ComboChart supports one alternate series format. Use the base format plus one secondary format.');
   }
 
+  const lineData = useMemo(
+    () =>
+      seriesWithColor
+        .filter((item) => item.type === 'line')
+        .reduce<TDatum[]>(
+          (normalizedData, item) =>
+            normalizeLineData(normalizedData, item.id as LineDataKey<TDatum>),
+          data
+        ),
+    [data, seriesWithColor]
+  );
+  const lineSeries = useMemo(
+    () =>
+      seriesWithColor
+        .filter((item) => item.type === 'line')
+        .map((item) => {
+          const dataKey = item.id as LineDataKey<TDatum>;
+
+          return {
+            analysis: analyzeLineGaps(lineData, dataKey),
+            dataKey,
+            effectiveStrokeWidth: getEffectiveStrokeWidth(item, rechartsProps?.line?.strokeWidth),
+            item
+          };
+        }),
+    [lineData, rechartsProps?.line?.strokeWidth, seriesWithColor]
+  );
+
+  const getSeriesYAxisId = (item: ComboChartSeries<TDatum>) =>
+    getAxisFormatKey(item.format, item.formatOptions, format, formatOptions) === rightAxisFormatKey ? 'right' : 'left';
+
   const hasData =
     data.length > 0 &&
     seriesWithColor.some((item) => data.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));
@@ -462,6 +560,45 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                     />
                   }
                 />
+                {lineSeries.flatMap(({ analysis, effectiveStrokeWidth, item }) => {
+                  const connectorProps = resolveGapConnectorProps(
+                    item.connectGaps,
+                    item.color,
+                    effectiveStrokeWidth
+                  );
+
+                  if (!connectorProps) {
+                    return [];
+                  }
+
+                  return analysis.segments.map((segment, segmentIndex) => {
+                    const internalDataKey = `${GAP_CONNECTOR_DATA_KEY_PREFIX}${item.id}-${segmentIndex}`;
+
+                    return (
+                      <Line
+                        activeDot={false}
+                        connectNulls
+                        data={createFullLengthGapConnectorData(
+                          lineData,
+                          segment,
+                          item.id as LineDataKey<TDatum>,
+                          xKey,
+                          internalDataKey
+                        )}
+                        dataKey={internalDataKey}
+                        dot={false}
+                        isAnimationActive={false}
+                        key={internalDataKey}
+                        opacity={connectorProps.opacity}
+                        stroke={connectorProps.stroke}
+                        strokeDasharray={connectorProps.strokeDasharray}
+                        strokeWidth={connectorProps.strokeWidth}
+                        type="linear"
+                        yAxisId={getSeriesYAxisId(item)}
+                      />
+                    );
+                  });
+                })}
                 {seriesWithColor.map((item) =>
                   item.type === 'bar' ? (
                     <Bar
@@ -472,32 +609,38 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                       fill={item.color}
                       isAnimationActive={prefersReducedMotion ? false : rechartsProps?.bar?.isAnimationActive}
                       name={item.label}
-                      yAxisId={
-                        getAxisFormatKey(item.format, item.formatOptions, format, formatOptions) === rightAxisFormatKey
-                          ? 'right'
-                          : 'left'
-                      }
+                      yAxisId={getSeriesYAxisId(item)}
                     />
-                  ) : (
-                    <Line
-                      activeDot={line?.activeDot ?? defaultActiveDot}
-                      dot={line?.dot ?? false}
-                      key={item.id}
-                      strokeWidth={2}
-                      {...getLineRechartsProps(rechartsProps?.line)}
-                      dataKey={item.id}
-                      isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
-                      name={item.label}
-                      stroke={item.color}
-                      type="monotone"
-                      yAxisId={
-                        getAxisFormatKey(item.format, item.formatOptions, format, formatOptions) === rightAxisFormatKey
-                          ? 'right'
-                          : 'left'
-                      }
-                    />
-                  )
+                  ) : null
                 )}
+                {lineSeries.map(({ analysis, dataKey, effectiveStrokeWidth, item }) => (
+                  <Line
+                    {...getLineRechartsProps(rechartsProps?.line)}
+                    {...getSeriesPresentationProps(item)}
+                    activeDot={
+                      rechartsProps?.line?.activeDot ??
+                      resolveLineActiveDot(line?.activeDot ?? defaultActiveDot, effectiveStrokeWidth)
+                    }
+                    connectNulls={false}
+                    data={lineData}
+                    dataKey={dataKey}
+                    dot={
+                      rechartsProps?.line?.dot ??
+                      resolveLineDot(line?.dot ?? false, {
+                        effectiveStrokeWidth,
+                        isolatedIndexes: analysis.isolatedIndexes,
+                        seriesColor: item.color
+                      })
+                    }
+                    isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
+                    key={item.id}
+                    name={item.label}
+                    stroke={item.color}
+                    strokeWidth={effectiveStrokeWidth}
+                    type="monotone"
+                    yAxisId={getSeriesYAxisId(item)}
+                  />
+                ))}
               </ComposedChart>
             </ResponsiveContainer>
           </div>

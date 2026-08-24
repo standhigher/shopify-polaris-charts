@@ -10,7 +10,177 @@ const orderConversionData = [
   { date: '2026-07-03', orders: 171, conversionRate: 0.041 }
 ];
 
+const activateTooltip = (container: HTMLElement, clientX = 320) => {
+  const chart = container.querySelector('.recharts-wrapper');
+
+  if (!chart) {
+    throw new Error('Expected the Recharts chart wrapper to render');
+  }
+
+  fireEvent.mouseMove(chart, { clientX, clientY: 120 });
+};
+
 describe('ComboChart', () => {
+  it('uses chart-level line data for normalized gaps and isolated dots while ignoring bar gaps', () => {
+    const data = [
+      { date: '2026-08-01', orders: 10, revenue: 1 },
+      { date: '2026-08-02', orders: 12, revenue: null },
+      { date: '2026-08-03', orders: 14, revenue: 3 },
+      { date: '2026-08-04', orders: 16, revenue: '' },
+      { date: '2026-08-05', orders: 18, revenue: 5 }
+    ];
+    const originalData = data.map((datum) => ({ ...datum }));
+
+    const { container } = render(
+      <ComboChart
+        data={data}
+        line={{ dot: { r: 'auto', show: 'isolated' } }}
+        series={[
+          { connectGaps: true, data: [], id: 'orders', label: 'Orders', type: 'bar' },
+          {
+            color: '#008060',
+            connectGaps: { opacity: 0.4, strokeDasharray: '2 3', strokeWidth: 3 },
+            data: [],
+            id: 'revenue',
+            label: 'Revenue',
+            type: 'line'
+          }
+        ]}
+        xKey="date"
+      />
+    );
+
+    expect(data).toEqual(originalData);
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(3);
+    const dots = [...container.querySelectorAll('.recharts-line-dots .recharts-dot')];
+
+    expect(dots).toHaveLength(3);
+    expect(dots.every((dot) => dot.getAttribute('r') === '1')).toBe(true);
+    expect(dots.every((dot) => dot.getAttribute('fill') === '#008060')).toBe(true);
+  });
+
+  it('uses independent line connector switches and preserves line presentation props', () => {
+    const data = [
+      { date: '2026-08-01', first: 1, second: 10 },
+      { date: '2026-08-02', first: null, second: null },
+      { date: '2026-08-03', first: 3, second: 30 },
+      { date: '2026-08-04', first: 4, second: 40 }
+    ];
+
+    const { container } = render(
+      <ComboChart
+        data={data}
+        rechartsProps={{ line: { isAnimationActive: false } }}
+        series={[
+          {
+            color: '#008060',
+            connectGaps: { color: '#ff0000', opacity: 0.4, strokeDasharray: '2 3', strokeWidth: 4 },
+            data,
+            id: 'first',
+            label: 'First',
+            opacity: 0.6,
+            strokeDasharray: '4 2',
+            strokeWidth: 5,
+            type: 'line'
+          },
+          { data, id: 'second', label: 'Second', type: 'line' }
+        ]}
+        xKey="date"
+      />
+    );
+
+    const paths = [...container.querySelectorAll('.recharts-line-curve')];
+
+    expect(paths).toHaveLength(3);
+    expect(paths[0]).toHaveAttribute('stroke', '#ff0000');
+    expect(paths[0]).toHaveAttribute('stroke-dasharray', '2 3');
+    expect(paths[0]).toHaveAttribute('stroke-width', '4');
+    expect(paths[0]).toHaveAttribute('opacity', '0.4');
+    expect(paths[1]).toHaveAttribute('stroke', '#008060');
+    expect(paths[1]).toHaveAttribute('stroke-dasharray', '4 2');
+    expect(paths[1]).toHaveAttribute('stroke-width', '5');
+    expect(paths[1]).toHaveAttribute('opacity', '0.6');
+  });
+
+  it('keeps right-axis connectors on the right axis', () => {
+    const data = [
+      { date: '2026-08-01', orders: 10, conversionRate: 0.1 },
+      { date: '2026-08-02', orders: 12, conversionRate: null },
+      { date: '2026-08-03', orders: 14, conversionRate: 0.3 },
+      { date: '2026-08-04', orders: 16, conversionRate: 0.4 }
+    ];
+
+    const { container } = render(
+      <ComboChart
+        data={data}
+        series={[
+          { data, format: 'number', id: 'orders', label: 'Orders', type: 'bar' },
+          { connectGaps: true, data, format: 'percent', id: 'conversionRate', label: 'Conversion', type: 'line' }
+        ]}
+        xKey="date"
+      />
+    );
+
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(2);
+    expect(container.querySelectorAll('.recharts-yAxis')).toHaveLength(2);
+  });
+
+  it('keeps non-gap extrema in the Y-axis domain while rendering connectors', () => {
+    const data = [
+      { date: '2026-08-01', orders: 10, revenue: 1 },
+      { date: '2026-08-02', orders: 12, revenue: null },
+      { date: '2026-08-03', orders: 14, revenue: 3 },
+      { date: '2026-08-04', orders: 16, revenue: 1000 }
+    ];
+
+    const { container } = render(
+      <ComboChart
+        data={data}
+        series={[
+          { data, id: 'orders', label: 'Orders', type: 'bar' },
+          { connectGaps: true, data, id: 'revenue', label: 'Revenue', type: 'line' }
+        ]}
+        xKey="date"
+      />
+    );
+
+    expect(container.textContent).toContain('1,000');
+  });
+
+  it('filters connector data keys from custom tooltip payloads', async () => {
+    const data = [
+      { date: '2026-08-01', orders: 10, revenue: 1 },
+      { date: '2026-08-02', orders: 12, revenue: null },
+      { date: '2026-08-03', orders: 14, revenue: 3 }
+    ];
+
+    const { container } = render(
+      <ComboChart
+        data={data}
+        series={[
+          { data, id: 'orders', label: 'Orders', type: 'bar' },
+          { connectGaps: true, data, id: 'revenue', label: 'Revenue', type: 'line' }
+        ]}
+        tooltip={{
+          content: ({ payload }) => (
+            <div data-testid="combo-gap-tooltip-payload">
+              {payload?.map((item) => item.dataKey).join(',')}
+            </div>
+          )
+        }}
+        xKey="date"
+      />
+    );
+
+    activateTooltip(container, 65);
+
+    const payload = await screen.findByTestId('combo-gap-tooltip-payload');
+
+    expect(payload).toHaveTextContent('orders');
+    expect(payload).toHaveTextContent('revenue');
+    expect(payload).not.toHaveTextContent('__standhigher_gap__');
+  });
+
   it('renders the shared error state with a retry action', () => {
     const onRetry = vi.fn();
 
