@@ -104,6 +104,22 @@ describe('isEmptyLineValue', () => {
 });
 
 describe('analyzeLineGaps', () => {
+  it('rejects a data key that is not present on the datum type', () => {
+    const data: TestDatum[] = [{ value: 1 }];
+
+    // @ts-expect-error A key outside TestDatum must be rejected at compile time.
+    analyzeLineGaps(data, 'missing');
+  });
+
+  it('does not modify the input data', () => {
+    const data: TestDatum[] = [{ value: 1 }, { value: null }, { value: 2 }];
+    const originalData = data.map((datum) => ({ ...datum }));
+
+    analyzeLineGaps(data, 'value');
+
+    expect(data).toEqual(originalData);
+  });
+
   it.each(gapCases)('$name', ({ data, isolatedIndexes, segments }) => {
     const result = analyzeLineGaps(data, 'value');
 

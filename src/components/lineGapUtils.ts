@@ -11,12 +11,16 @@ export interface LineGapAnalysis<TDatum extends object> {
 }
 
 export function isEmptyLineValue(value: unknown): boolean {
+  // NaN is intentionally outside this product contract; chart adapters must normalize or reject it.
   return value === null || value === undefined || value === '';
 }
 
-export function analyzeLineGaps<TDatum extends object>(
+export function analyzeLineGaps<
+  TDatum extends object,
+  TKey extends keyof TDatum & string
+>(
   data: readonly TDatum[],
-  dataKey: string
+  dataKey: TKey
 ): LineGapAnalysis<TDatum> {
   const isolatedIndexes = new Set<number>();
   const segments: LineGapSegment<TDatum>[] = [];
@@ -27,11 +31,11 @@ export function analyzeLineGaps<TDatum extends object>(
       return true;
     }
 
-    return isEmptyLineValue(data[index][dataKey as keyof TDatum]);
+    return isEmptyLineValue(data[index][dataKey]);
   };
 
   for (const [index, datum] of data.entries()) {
-    if (isEmptyLineValue(datum[dataKey as keyof TDatum])) {
+    if (isEmptyLineValue(datum[dataKey])) {
       continue;
     }
 
