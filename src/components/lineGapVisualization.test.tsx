@@ -16,6 +16,7 @@ import {
   isGapConnectorDataKey,
   normalizeLineData,
   resolveGapConnectorProps,
+  resolveLineActiveDot,
   resolveLineDot
 } from './lineGapVisualization';
 import type { LineGapSegment } from './lineGapUtils';
@@ -75,16 +76,12 @@ describe('public line gap types', () => {
   it('keeps show and auto radius exclusive to ordinary dots', () => {
     const dot: ChartDotOptions = { r: 'auto', show: 'all' };
     const activeDot: ChartActiveDotOptions = { r: '4' };
-    type ActiveDotRadiusExcludesAuto = Extract<NonNullable<ChartActiveDotOptions['r']>, 'auto'> extends never
-      ? true
-      : false;
+    const activeDotWithAutoRadius: ChartActiveDotOptions = { r: 'auto' };
 
     // @ts-expect-error Active dots retain their original shape and do not accept show.
     const invalidShow: ChartActiveDotOptions = { show: 'all' };
 
-    const activeDotRadiusExcludesAuto: ActiveDotRadiusExcludesAuto = true;
-
-    expect({ activeDot, activeDotRadiusExcludesAuto, dot, invalidShow }).toBeDefined();
+    expect({ activeDot, activeDotWithAutoRadius, dot, invalidShow }).toBeDefined();
   });
 });
 
@@ -237,6 +234,16 @@ describe('line dot resolution', () => {
     });
   });
 
+  it.each([3, '3'])('keeps an explicit isolated radius %s', (radius) => {
+    const resolved = resolveLineDot(
+      { r: radius, show: 'isolated' },
+      { effectiveStrokeWidth: 4, isolatedIndexes: new Set([0]), seriesColor: '#008060' }
+    );
+    const element = (resolved as (props: DotItemDotProps) => ReactElement)(makeDotProps(0));
+
+    expect(getElementProps(element).r).toBe(radius);
+  });
+
   it('resolves auto radius from the final effective line width', () => {
     const resolved = resolveLineDot(
       { r: 'auto' },
@@ -245,6 +252,23 @@ describe('line dot resolution', () => {
     const element = (resolved as (props: DotItemDotProps) => ReactElement)(makeDotProps(0));
 
     expect(getElementProps(element).r).toBe(3);
+  });
+});
+
+describe('active dot resolution', () => {
+  it('keeps booleans unchanged and resolves only auto radius', () => {
+    expect(resolveLineActiveDot(false, 4)).toBe(false);
+    expect(resolveLineActiveDot(true, 4)).toBe(true);
+    expect(resolveLineActiveDot({ r: 'auto' }, 4)).toEqual({ r: 2 });
+    expect(resolveLineActiveDot({ r: 3, stroke: '#008060' }, 4)).toEqual({ r: 3, stroke: '#008060' });
+    expect(resolveLineActiveDot({ r: '3' }, 4)).toEqual({ r: '3' });
+  });
+
+  it('does not modify the active dot options object', () => {
+    const activeDot: ChartActiveDotOptions = { r: 'auto', stroke: '#008060' };
+
+    expect(resolveLineActiveDot(activeDot, 6)).toEqual({ r: 3, stroke: '#008060' });
+    expect(activeDot).toEqual({ r: 'auto', stroke: '#008060' });
   });
 });
 

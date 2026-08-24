@@ -116,8 +116,8 @@ interface ChartDotOptions {
     clipDot?: boolean;
     show?: 'all' | 'isolated' | 'none';
 }
-interface ChartActiveDotOptions extends Omit<ChartDotOptions, 'show' | 'r'> {
-    r?: number | string;
+interface ChartActiveDotOptions extends Omit<ChartDotOptions, 'show'> {
+    r?: number | string | 'auto';
     fill?: string;
     stroke?: string;
     strokeWidth?: number;

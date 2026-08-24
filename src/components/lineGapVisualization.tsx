@@ -2,7 +2,7 @@ import type { ComponentProps, ReactElement } from 'react';
 import { Dot } from 'recharts';
 import type { DotItemDotProps } from 'recharts';
 
-import type { ChartDotOptions, ChartGapConnectorOptions } from '../types';
+import type { ChartActiveDotOptions, ChartDotOptions, ChartGapConnectorOptions } from '../types';
 import type { LineGapSegment } from './lineGapUtils';
 
 export const GAP_CONNECTOR_DATA_KEY_PREFIX = '__standhigher_gap__';
@@ -91,7 +91,9 @@ function renderLineDot(
     const defaultDotProps = props as unknown as ComponentProps<typeof Dot>;
     const clipDot = (props as DotItemDotProps & { clipDot?: boolean }).clipDot;
     const radius = onlyIsolated
-      ? effectiveStrokeWidth / 2
+      ? dot.r === undefined || dot.r === 'auto'
+        ? effectiveStrokeWidth / 2
+        : dot.r
       : dot.r === 'auto'
         ? effectiveStrokeWidth / 2
         : dot.r ?? props.r;
@@ -129,6 +131,19 @@ export function resolveLineDot(
   }
 
   return renderLineDot(dot, options, dot.show === 'isolated');
+}
+
+export function resolveLineActiveDot(
+  activeDot: boolean | ChartActiveDotOptions | undefined,
+  effectiveStrokeWidth: number
+): boolean | ChartActiveDotOptions | undefined {
+  if (activeDot === undefined || typeof activeDot === 'boolean') {
+    return activeDot;
+  }
+
+  return activeDot.r === 'auto'
+    ? { ...activeDot, r: effectiveStrokeWidth / 2 }
+    : { ...activeDot };
 }
 
 export interface ResolvedGapConnectorProps {
