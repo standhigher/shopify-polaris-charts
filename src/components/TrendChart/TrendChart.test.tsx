@@ -121,6 +121,31 @@ describe('TrendChart', () => {
     expect(paths[1].getAttribute('d')).toContain('M');
   });
 
+  it('keeps non-gap extrema in the Y-axis domain when rendering a connector', () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: null },
+      { date: '2026-08-03', value: 3 },
+      { date: '2026-08-04', value: 1000 }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        series={[{ connectGaps: true, data, id: 'value', label: 'Value' }]}
+        xKey="date"
+      />
+    );
+
+    const paths = [...container.querySelectorAll('.recharts-line-curve')];
+    const realLinePath = paths[paths.length - 1]?.getAttribute('d') ?? '';
+    const yCoordinates = [...realLinePath.matchAll(/,(-?\d+(?:\.\d+)?)/g)].map((match) => Number(match[1]));
+
+    expect(paths).toHaveLength(2);
+    expect(Math.min(...yCoordinates)).toBeGreaterThanOrEqual(0);
+    expect(Math.min(...yCoordinates)).toBeLessThanOrEqual(10);
+  });
+
   it('filters gap connectors from custom tooltip payloads', async () => {
     const data = [
       { date: '2026-08-01', value: 1 },

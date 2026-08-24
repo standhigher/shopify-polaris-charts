@@ -45,7 +45,7 @@ import {
   getXAxisRechartsProps,
   getYAxisRechartsProps
 } from '../cartesianRechartsProps';
-import type { LineDataKey } from '../lineGapUtils';
+import type { LineDataKey, LineGapSegment } from '../lineGapUtils';
 import { analyzeLineGaps } from '../lineGapUtils';
 import {
   GAP_CONNECTOR_DATA_KEY_PREFIX,
@@ -326,6 +326,26 @@ const toChartValue = (value: unknown): ChartValue => {
 
 const getDatumValue = <TDatum extends object>(datum: TDatum | undefined, key: string) =>
   datum ? (datum as Record<string, unknown>)[key] : undefined;
+
+const createFullLengthGapConnectorData = <TDatum extends object>(
+  data: readonly TDatum[],
+  segment: LineGapSegment<TDatum>,
+  dataKey: LineDataKey<TDatum>,
+  xKey: LineDataKey<TDatum>,
+  internalDataKey: string
+): Array<TDatum & Record<string, unknown>> => {
+  const endpointData = createGapConnectorData(segment, dataKey, xKey, internalDataKey);
+
+  return data.map((datum, index) => ({
+    ...datum,
+    [internalDataKey]:
+      index === segment.startIndex
+        ? endpointData[0][internalDataKey]
+        : index === segment.endIndex
+          ? endpointData[1][internalDataKey]
+          : null
+  }));
+};
 
 const formatCategoryValue = (
   value: string | number | Date | null | undefined,
@@ -621,7 +641,13 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                   <Line
                     activeDot={false}
                     connectNulls
-                    data={createGapConnectorData(segment, item.id, xKey, internalDataKey)}
+                    data={createFullLengthGapConnectorData(
+                      lineData,
+                      segment,
+                      item.id as LineDataKey<TDatum>,
+                      xKey,
+                      internalDataKey
+                    )}
                     dataKey={internalDataKey}
                     dot={false}
                     isAnimationActive={false}
