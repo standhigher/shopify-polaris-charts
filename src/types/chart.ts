@@ -163,7 +163,8 @@ export interface ChartDotOptions {
   show?: 'all' | 'isolated' | 'none';
 }
 
-export interface ChartActiveDotOptions extends ChartDotOptions {
+export interface ChartActiveDotOptions extends Omit<ChartDotOptions, 'show' | 'r'> {
+  r?: number | string;
   fill?: string;
   stroke?: string;
   strokeWidth?: number;

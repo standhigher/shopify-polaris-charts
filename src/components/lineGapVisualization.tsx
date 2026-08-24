@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import type { ComponentProps, ReactElement } from 'react';
 import { Dot } from 'recharts';
 import type { DotItemDotProps } from 'recharts';
 
@@ -88,18 +88,25 @@ function renderLineDot(
     }
 
     const effectiveStrokeWidth = resolveEffectiveStrokeWidth(options.effectiveStrokeWidth);
-    const radius = dot.r === 'auto' ? effectiveStrokeWidth / 2 : dot.r ?? props.r;
+    const defaultDotProps = props as unknown as ComponentProps<typeof Dot>;
+    const clipDot = (props as DotItemDotProps & { clipDot?: boolean }).clipDot;
+    const radius = onlyIsolated
+      ? effectiveStrokeWidth / 2
+      : dot.r === 'auto'
+        ? effectiveStrokeWidth / 2
+        : dot.r ?? props.r;
 
     return (
       <Dot
-        className={dot.className}
-        clipDot={dot.clipDot}
+        {...defaultDotProps}
+        className={dot.className ?? props.className}
+        clipDot={dot.clipDot ?? clipDot}
         cx={dot.cx ?? props.cx}
         cy={dot.cy ?? props.cy}
-        fill={onlyIsolated ? options.seriesColor : undefined}
+        fill={onlyIsolated ? options.seriesColor : props.fill}
         r={radius}
-        stroke={onlyIsolated ? options.seriesColor : undefined}
-        strokeWidth={onlyIsolated ? 0 : undefined}
+        stroke={onlyIsolated ? options.seriesColor : props.stroke}
+        strokeWidth={onlyIsolated ? 0 : props.strokeWidth}
       />
     );
   };

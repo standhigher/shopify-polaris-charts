@@ -71,6 +71,21 @@ describe('public line gap types', () => {
 
     expect({ connector, dot, line, series }).toBeDefined();
   });
+
+  it('keeps show and auto radius exclusive to ordinary dots', () => {
+    const dot: ChartDotOptions = { r: 'auto', show: 'all' };
+    const activeDot: ChartActiveDotOptions = { r: '4' };
+    type ActiveDotRadiusExcludesAuto = Extract<NonNullable<ChartActiveDotOptions['r']>, 'auto'> extends never
+      ? true
+      : false;
+
+    // @ts-expect-error Active dots retain their original shape and do not accept show.
+    const invalidShow: ChartActiveDotOptions = { show: 'all' };
+
+    const activeDotRadiusExcludesAuto: ActiveDotRadiusExcludesAuto = true;
+
+    expect({ activeDot, activeDotRadiusExcludesAuto, dot, invalidShow }).toBeDefined();
+  });
 });
 
 describe('normalizeLineData', () => {
@@ -162,22 +177,62 @@ describe('line dot resolution', () => {
     expect(resolveLineDot({ r: 4, show: 'none' }, { seriesColor: '#008060' })).toBe(false);
   });
 
+  it('propagates Recharts dot props and adapter metadata for ordinary dots', () => {
+    const onClick = () => undefined;
+    const props = {
+      ...makeDotProps(0),
+      className: 'recharts-dot',
+      fill: '#111111',
+      onClick,
+      stroke: '#222222',
+      strokeWidth: 3
+    } as DotItemDotProps & { onClick: () => void };
+    const resolved = resolveLineDot({ show: 'all' }, { seriesColor: '#008060' });
+    const element = (resolved as (props: DotItemDotProps) => ReactElement)(props);
+
+    expect(getElementProps(element)).toEqual(
+      expect.objectContaining({
+        className: 'recharts-dot',
+        dataKey: 'value',
+        fill: '#111111',
+        onClick,
+        payload: props.payload,
+        stroke: '#222222',
+        strokeWidth: 3,
+        value: 42
+      })
+    );
+  });
+
   it('renders only isolated indexes and styles them as filled series-colored circles', () => {
+    const onClick = () => undefined;
+    const props = {
+      ...makeDotProps(1),
+      className: 'recharts-dot',
+      fill: '#111111',
+      onClick,
+      stroke: '#222222',
+      strokeWidth: 3
+    } as DotItemDotProps & { onClick: () => void };
     const resolved = resolveLineDot(
-      { className: 'isolated-dot', clipDot: false, r: 'auto', show: 'isolated' },
+      { clipDot: false, r: 'auto', show: 'isolated' },
       { effectiveStrokeWidth: 4, isolatedIndexes: new Set([1]), seriesColor: '#008060' }
     );
     const renderDot = resolved as (props: DotItemDotProps) => ReactElement | null;
 
     expect(renderDot(makeDotProps(0))).toBeNull();
-    expect(renderDot(makeDotProps(1))).toMatchObject({
+    expect(renderDot(props)).toMatchObject({
       props: expect.objectContaining({
-        className: 'isolated-dot',
+        className: 'recharts-dot',
         clipDot: false,
+        dataKey: 'value',
         fill: '#008060',
+        onClick,
+        payload: props.payload,
         r: 2,
         stroke: '#008060',
-        strokeWidth: 0
+        strokeWidth: 0,
+        value: 42
       })
     });
   });
