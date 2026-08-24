@@ -1,3 +1,5 @@
+export type LineDataKey<TDatum extends object> = keyof TDatum & string;
+
 export interface LineGapSegment<TDatum extends object> {
   startIndex: number;
   endIndex: number;
@@ -10,17 +12,17 @@ export interface LineGapAnalysis<TDatum extends object> {
   segments: ReadonlyArray<LineGapSegment<TDatum>>;
 }
 
+/**
+ * The product contract treats '' as empty. Adapters entering Recharts must normalize '' to null;
+ * NaN must be rejected or normalized per adapter policy to keep analysis and rendering consistent.
+ */
 export function isEmptyLineValue(value: unknown): boolean {
-  // NaN is intentionally outside this product contract; chart adapters must normalize or reject it.
   return value === null || value === undefined || value === '';
 }
 
-export function analyzeLineGaps<
-  TDatum extends object,
-  TKey extends keyof TDatum & string
->(
+export function analyzeLineGaps<TDatum extends object>(
   data: readonly TDatum[],
-  dataKey: TKey
+  dataKey: LineDataKey<TDatum>
 ): LineGapAnalysis<TDatum> {
   const isolatedIndexes = new Set<number>();
   const segments: LineGapSegment<TDatum>[] = [];
