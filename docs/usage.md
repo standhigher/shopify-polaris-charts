@@ -12,6 +12,66 @@ Use `ChartCard` as the standard dashboard card shell around a chart or compact a
 
 Use `TrendChart` when the user needs to see change over time, such as gross sales, net sales, sessions, orders, or customer count by day. Use the line mode for direct comparisons and the area mode when overall movement should carry more visual weight.
 
+### Visualize gaps in line data
+
+Gap visualization is available for `TrendChart` line mode. The adapter treats
+`null`, `undefined`, `''`, and `NaN` as empty values; `0` remains a valid value.
+Empty values are normalized for rendering without mutating the input data.
+
+Configure `connectGaps` independently for each series. `true` uses a dashed
+connector with the series color; an object lets that series override the
+connector color, dash pattern, width, or opacity:
+
+```tsx
+const data = [
+  { date: 'Mon', revenue: 120, benchmark: 100 },
+  { date: 'Tue', revenue: null, benchmark: 105 },
+  { date: 'Wed', revenue: 0, benchmark: 110 },
+  { date: 'Thu', revenue: 130, benchmark: null }
+];
+
+const revenueSeries = {
+  id: 'revenue',
+  label: 'Revenue',
+  data,
+  connectGaps: true
+};
+
+const benchmarkSeries = {
+  id: 'benchmark',
+  label: 'Benchmark',
+  data,
+  connectGaps: {
+    color: '#6d7175',
+    opacity: 0.72,
+    strokeDasharray: '3 4',
+    strokeWidth: 2
+  }
+};
+```
+
+Use `line.dot.show` to render `'all'`, `'isolated'`, or `'none'` dots. The
+`'isolated'` setting shows only the dots at the ends of contiguous non-empty
+segments. Set `r: 'auto'` on `dot` or `activeDot` to derive the radius from the
+effective line stroke width.
+
+```tsx
+<TrendChart
+  data={data}
+  line={{
+    activeDot: { r: 'auto' },
+    dot: { r: 'auto', show: 'isolated' }
+  }}
+  series={[revenueSeries, benchmarkSeries]}
+  xKey="date"
+/>
+```
+
+Connectors are internal rendering aids: they do not create legend entries,
+tooltip payload items, active dots, or additional axis-domain values. The
+feature applies only to line mode; area mode ignores gap connectors, and
+`ComboChart` bar series do not use them.
+
 For current-vs-previous revenue comparisons, set line styling on the individual
 series so the current period stays solid and the previous period is dashed:
 

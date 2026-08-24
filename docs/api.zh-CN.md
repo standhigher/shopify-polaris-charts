@@ -61,6 +61,7 @@ import {
   type ChartActiveDotOptions,
   type ChartDatum,
   type ChartDotOptions,
+  type ChartGapConnectorOptions,
   type ChartFormat,
   type ChartGridOptions,
   type ChartCardState,
@@ -150,6 +151,7 @@ import {
 | `ChartValue` | type | 共享可空展示值。 |
 | `ChartDatum` | type | 默认宽松 datum 形状。 |
 | `ChartSeries` | type | 共享 series 形状。 |
+| `ChartGapConnectorOptions` | type | 折线 gap connector 的视觉选项。 |
 | `ChartFormat` | type | 值格式 union。 |
 | `ChartCardState` | type | 卡片级状态 union。 |
 | `ChartContentState` | type | 共享图表区域状态 union。 |
@@ -204,6 +206,14 @@ interface ChartSeries<TDatum extends object = ChartDatum> {
   opacity?: number;
   strokeDasharray?: string | number;
   strokeWidth?: number;
+  connectGaps?: boolean | ChartGapConnectorOptions;
+}
+
+interface ChartGapConnectorOptions {
+  strokeDasharray?: string | number;
+  color?: string;
+  strokeWidth?: number;
+  opacity?: number;
 }
 
 type ChartFormat = 'number' | 'currency' | 'percent' | 'compact' | 'date';
@@ -301,11 +311,13 @@ interface ChartDotOptions {
   className?: string;
   cx?: number;
   cy?: number;
-  r?: number | string;
+  r?: number | string | 'auto';
   clipDot?: boolean;
+  show?: 'all' | 'isolated' | 'none';
 }
 
-interface ChartActiveDotOptions extends ChartDotOptions {
+interface ChartActiveDotOptions extends Omit<ChartDotOptions, 'show'> {
+  r?: number | string | 'auto';
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
@@ -325,6 +337,10 @@ interface ChartLineOptions {
 片段。`ChartSeries.strokeDasharray`、`strokeWidth` 和 `opacity` 可用于单条折线或
 面积图 series 的视觉覆盖，例如 current 为实线、previous 为虚线。当前公开 API 还不支持
 逐根柱子或逐个点单独设色。
+
+`ChartSeries.connectGaps` 用于 line 模式的 gap 可视化，可传 `true` 或
+`ChartGapConnectorOptions`。它是每条 series 独立配置的；`true` 使用默认虚线，传入
+对象时可单独覆盖颜色、虚线模式、线宽和透明度。
 
 `content` 可拿到 active 状态、label、带匹配 series 的 payload、全部 series 与图表
 format 配置。它支持 React 组件或渲染函数；自定义内容可调用 `formatLabel` 和
@@ -653,6 +669,51 @@ const chartFormatters = {
 | `reveal` | `boolean \| ChartRevealOptions` | No | - | 保持图表挂载，并在图表区域上方显示 reveal overlay。 |
 
 AI 生成代码时，应确保 `series[].id` 是 `data` 每项里的真实字段名。
+
+### 折线 gap 可视化
+
+在 `mode="line"` 中，`null`、`undefined`、`''` 和 `NaN` 都定义为空值；数值 `0`
+是有效值，不会产生 gap。line adapter 会把这些空值归一化为 `null`，且不会修改调用方
+传入的数据。
+
+`ChartLineOptions.dot.show` 控制折线点的显示范围：`'all'` 显示全部点，`'isolated'`
+只显示连续非空片段两端的点，`'none'` 不显示点。`dot` 和 `activeDot` 的
+`r: 'auto'` 会根据实际生效的折线线宽自动计算半径。
+
+```tsx
+<TrendChart
+  data={data}
+  line={{
+    activeDot: { r: 'auto' },
+    dot: { r: 'auto', show: 'isolated' }
+  }}
+  series={[
+    {
+      id: 'current',
+      label: 'Current period',
+      data,
+      connectGaps: true
+    },
+    {
+      id: 'previous',
+      label: 'Previous period',
+      data,
+      connectGaps: {
+        color: '#6d7175',
+        opacity: 0.72,
+        strokeDasharray: '3 4',
+        strokeWidth: 2
+      }
+    }
+  ]}
+  xKey="date"
+/>
+```
+
+`connectGaps: true` 默认使用 series 颜色、`5 5` 虚线模式、实际生效的折线线宽和
+完全不透明。对象只覆盖显式传入的 connector 选项。Connector 只是内部绘制辅助线，
+不会进入 legend、tooltip payload、activeDot 行为或坐标轴 domain 计算。在
+`mode="area"` 中会忽略 gap connector；`ComboChart` 的 bar series 也不会应用该能力。
 
 Revenue current/previous 虚线对比示例：
 

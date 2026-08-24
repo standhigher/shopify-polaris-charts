@@ -18,6 +18,63 @@ stale、permission 和 error 等状态。
 net sales、sessions、orders 或 customer count。需要直接比较时使用 line 模式；
 希望整体走势更突出时使用 area 模式。
 
+### 可视化折线数据中的 gap
+
+`TrendChart` 只在 line 模式提供 gap 可视化。adapter 将 `null`、`undefined`、`''`
+和 `NaN` 视为空值；`0` 仍然是有效值。空值只会在渲染适配过程中归一化，不会修改调用方
+传入的数据。
+
+`connectGaps` 可以对每条 series 独立配置。传入 `true` 时使用 series 颜色绘制虚线
+connector；传入对象时可以为该 series 单独覆盖 connector 颜色、虚线模式、线宽和透明度：
+
+```tsx
+const data = [
+  { date: 'Mon', revenue: 120, benchmark: 100 },
+  { date: 'Tue', revenue: null, benchmark: 105 },
+  { date: 'Wed', revenue: 0, benchmark: 110 },
+  { date: 'Thu', revenue: 130, benchmark: null }
+];
+
+const revenueSeries = {
+  id: 'revenue',
+  label: 'Revenue',
+  data,
+  connectGaps: true
+};
+
+const benchmarkSeries = {
+  id: 'benchmark',
+  label: 'Benchmark',
+  data,
+  connectGaps: {
+    color: '#6d7175',
+    opacity: 0.72,
+    strokeDasharray: '3 4',
+    strokeWidth: 2
+  }
+};
+```
+
+使用 `line.dot.show` 控制显示 `'all'`、`'isolated'` 或 `'none'` 点。`'isolated'`
+只显示连续非空片段两端的点。为 `dot` 或 `activeDot` 设置 `r: 'auto'`，可根据实际
+生效的折线线宽自动计算半径。
+
+```tsx
+<TrendChart
+  data={data}
+  line={{
+    activeDot: { r: 'auto' },
+    dot: { r: 'auto', show: 'isolated' }
+  }}
+  series={[revenueSeries, benchmarkSeries]}
+  xKey="date"
+/>
+```
+
+Connector 是内部绘制辅助线，不会产生 legend 项、tooltip payload 项、activeDot 或
+额外的坐标轴 domain 值。该能力只适用于 line 模式；area 模式会忽略 gap connector，
+`ComboChart` 的 bar series 也不会使用它们。
+
 Revenue 当前周期 vs 上一周期对比时，把线型配置放在单条 series 上：current 保持
 实线，previous 使用虚线。
 

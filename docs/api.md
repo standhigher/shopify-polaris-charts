@@ -62,6 +62,7 @@ import {
   type ChartActiveDotOptions,
   type ChartDatum,
   type ChartDotOptions,
+  type ChartGapConnectorOptions,
   type ChartFormat,
   type ChartGridOptions,
   type ChartCardState,
@@ -151,6 +152,7 @@ Runtime peer dependencies:
 | `ChartValue` | type | Shared nullable display value. |
 | `ChartDatum` | type | Default loose datum shape. |
 | `ChartSeries` | type | Shared series shape. |
+| `ChartGapConnectorOptions` | type | Visual options for line gap connectors. |
 | `ChartFormat` | type | Value format union. |
 | `ChartCardState` | type | Card-level state union. |
 | `ChartContentState` | type | Shared chart-area state union. |
@@ -220,6 +222,7 @@ interface ChartSeries<TDatum extends object = ChartDatum> {
   opacity?: number;
   strokeDasharray?: string | number;
   strokeWidth?: number;
+  connectGaps?: boolean | ChartGapConnectorOptions;
 }
 ```
 
@@ -232,6 +235,7 @@ interface ChartSeries<TDatum extends object = ChartDatum> {
 | `opacity` | `number` | No | Series-level opacity for Cartesian line and area renderers. |
 | `strokeDasharray` | `string \| number` | No | Series-level dashed stroke pattern, useful for current vs previous comparisons. |
 | `strokeWidth` | `number` | No | Series-level stroke width. Overrides the global `rechartsProps.line.strokeWidth` or `rechartsProps.area.strokeWidth`. |
+| `connectGaps` | `boolean \| ChartGapConnectorOptions` | No | `false` | Line-mode gap visualization. `true` uses a dashed connector; an object customizes the connector. |
 
 Important: `color` is currently series-level. Per-bar or per-point colors are
 not part of the public API yet.
@@ -342,15 +346,24 @@ interface ChartTooltipOptions<TDatum, TSeries> {
   className?: string;
 }
 
+interface ChartGapConnectorOptions {
+  strokeDasharray?: string | number;
+  color?: string;
+  strokeWidth?: number;
+  opacity?: number;
+}
+
 interface ChartDotOptions {
   className?: string;
   cx?: number;
   cy?: number;
-  r?: number | string;
+  r?: number | string | 'auto';
   clipDot?: boolean;
+  show?: 'all' | 'isolated' | 'none';
 }
 
-interface ChartActiveDotOptions extends ChartDotOptions {
+interface ChartActiveDotOptions extends Omit<ChartDotOptions, 'show'> {
+  r?: number | string | 'auto';
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
@@ -785,9 +798,66 @@ const data = [
 - Use `series[].strokeDasharray`, `series[].strokeWidth`, and `series[].opacity`
   for per-series comparison styling. These values override global line or area
   presentation from `rechartsProps`.
+- Use `series[].connectGaps` only for line-mode gap visualization. `true` uses a
+  dashed connector; pass `ChartGapConnectorOptions` for per-series color, dash
+  pattern, width, or opacity.
 - Use `state="error"` with `onRetry` for chart-area errors inside existing
   business cards. Use `ChartCard state="error"` only when the full card shell
   should be replaced by a card-level state.
+
+### Line gap visualization
+
+In `mode="line"`, a line value is considered empty when it is `null`,
+`undefined`, `''`, or `NaN`. A numeric `0` is a valid value and does not create a
+gap. Empty values are normalized to `null` for the line adapter without
+mutating the caller's data.
+
+`ChartLineOptions.dot.show` controls which line dots are rendered:
+
+- `'all'` renders all dots.
+- `'isolated'` renders only dots at the ends of contiguous non-empty segments.
+- `'none'` renders no dots.
+
+Set `r: 'auto'` on `dot` or `activeDot` to derive the radius from the effective
+line stroke width. These options can be set globally through `line`, while
+`connectGaps` is configured independently on each `ChartSeries`:
+
+```tsx
+<TrendChart
+  data={data}
+  line={{
+    activeDot: { r: 'auto' },
+    dot: { r: 'auto', show: 'isolated' }
+  }}
+  series={[
+    {
+      id: 'current',
+      label: 'Current period',
+      data,
+      connectGaps: true
+    },
+    {
+      id: 'previous',
+      label: 'Previous period',
+      data,
+      connectGaps: {
+        color: '#6d7175',
+        opacity: 0.72,
+        strokeDasharray: '3 4',
+        strokeWidth: 2
+      }
+    }
+  ]}
+  xKey="date"
+/>
+```
+
+`connectGaps: true` uses the series color, a `5 5` dash pattern, the effective
+line stroke width, and full opacity. An options object overrides only the
+provided connector values. Connector segments are internal rendering aids:
+they are excluded from the legend, tooltip payload, active-dot behavior, and
+axis domain calculations. Gap connectors are ignored in `mode="area"`; they
+are also not applied to `ComboChart` bar series.
 
 ### Revenue comparison with a dashed previous period
 
