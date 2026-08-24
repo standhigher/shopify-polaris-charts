@@ -17,7 +17,7 @@ const manifest = JSON.parse(
 
 describe('v1 compatibility contract', () => {
   it('pins the stable v1 package and runtime ranges', () => {
-    expect(manifest.version).toBe('1.0.0');
+    expect(manifest.version).toBe('1.1.0');
     expect(manifest.engines?.node).toBe('>=20 <25');
     expect(manifest.peerDependencies).toMatchObject({
       react: '>=18.3 <20',
