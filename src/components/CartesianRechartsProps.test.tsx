@@ -170,6 +170,22 @@ describe('controlled Recharts props escape hatch', () => {
     );
   });
 
+  it('preserves global line dot and activeDot precedence over TrendChart line options', () => {
+    render(
+      <TrendChart
+        data={trendData}
+        line={{ activeDot: { r: 'auto' }, dot: { show: 'isolated' } }}
+        rechartsProps={{ line: { activeDot: { r: 9 }, dot: false } }}
+        series={[{ id: 'grossSales', label: 'Gross sales', data: trendData }]}
+        xKey="date"
+      />
+    );
+
+    expect(rechartsMocks.line).toHaveBeenCalledWith(
+      expect.objectContaining({ activeDot: { r: 9 }, dot: false })
+    );
+  });
+
   it('allows each TrendChart series to override global line styling', () => {
     render(
       <TrendChart
@@ -243,6 +259,23 @@ describe('controlled Recharts props escape hatch', () => {
     );
     expect(rechartsMocks.area.mock.calls[0][0].stackId).toBeUndefined();
     expect(rechartsMocks.line).not.toHaveBeenCalled();
+  });
+
+  it('preserves global area dot and activeDot precedence over TrendChart line options', () => {
+    render(
+      <TrendChart
+        data={trendData}
+        line={{ activeDot: { r: 'auto' }, dot: { show: 'isolated' } }}
+        mode="area"
+        rechartsProps={{ area: { activeDot: { r: 9 }, dot: false } }}
+        series={[{ id: 'grossSales', label: 'Gross sales', data: trendData }]}
+        xKey="date"
+      />
+    );
+
+    expect(rechartsMocks.area).toHaveBeenCalledWith(
+      expect.objectContaining({ activeDot: { r: 9 }, dot: false })
+    );
   });
 
   it('forwards StackedBarChart props while retaining stacked bar bindings', () => {

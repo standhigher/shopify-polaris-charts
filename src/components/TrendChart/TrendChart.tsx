@@ -247,7 +247,8 @@ const styles: Record<string, CSSProperties> = {
   }
 };
 
-const isEmptyValue = (value: unknown) => value === null || value === undefined || value === '';
+const isEmptyValue = (value: unknown) =>
+  value === null || value === undefined || value === '' || Number.isNaN(value);
 
 const defaultActiveDot = { r: 4 };
 const defaultStrokeWidth = 2;
@@ -538,15 +539,21 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                 key={item.id}
                 {...getAreaRechartsProps(rechartsProps?.area)}
                 {...getSeriesPresentationProps(item)}
-                activeDot={resolveLineActiveDot(
-                  line?.activeDot ?? defaultActiveDot,
-                  getEffectiveStrokeWidth(item, rechartsProps?.area?.strokeWidth)
-                )}
+                activeDot={
+                  rechartsProps?.area?.activeDot ??
+                  resolveLineActiveDot(
+                    line?.activeDot ?? defaultActiveDot,
+                    getEffectiveStrokeWidth(item, rechartsProps?.area?.strokeWidth)
+                  )
+                }
                 dataKey={item.id}
-                dot={resolveAreaDot(
-                  line?.dot ?? false,
-                  getEffectiveStrokeWidth(item, rechartsProps?.area?.strokeWidth)
-                )}
+                dot={
+                  rechartsProps?.area?.dot ??
+                  resolveAreaDot(
+                    line?.dot ?? false,
+                    getEffectiveStrokeWidth(item, rechartsProps?.area?.strokeWidth)
+                  )
+                }
                 fill={item.color}
                 isAnimationActive={prefersReducedMotion ? false : rechartsProps?.area?.isAnimationActive}
                 name={item.label}
@@ -632,17 +639,20 @@ export function TrendChart<TDatum extends object = ChartDatum>({
               <Line
                 {...getLineRechartsProps(rechartsProps?.line)}
                 {...getSeriesPresentationProps(item)}
-                activeDot={resolveLineActiveDot(
-                  line?.activeDot ?? defaultActiveDot,
-                  effectiveStrokeWidth
-                )}
+                activeDot={
+                  rechartsProps?.line?.activeDot ??
+                  resolveLineActiveDot(line?.activeDot ?? defaultActiveDot, effectiveStrokeWidth)
+                }
                 connectNulls={false}
                 dataKey={dataKey}
-                dot={resolveLineDot(line?.dot ?? false, {
-                  effectiveStrokeWidth,
-                  isolatedIndexes: analysis.isolatedIndexes,
-                  seriesColor: item.color
-                })}
+                dot={
+                  rechartsProps?.line?.dot ??
+                  resolveLineDot(line?.dot ?? false, {
+                    effectiveStrokeWidth,
+                    isolatedIndexes: analysis.isolatedIndexes,
+                    seriesColor: item.color
+                  })
+                }
                 isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
                 key={item.id}
                 name={item.label}

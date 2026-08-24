@@ -195,6 +195,40 @@ describe('TrendChart', () => {
     expect(container.querySelectorAll('.recharts-dot')).toHaveLength(0);
   });
 
+  it('treats all NaN values as empty without showing NaN in the legend', () => {
+    const data = [
+      { date: '2026-08-01', value: Number.NaN },
+      { date: '2026-08-02', value: Number.NaN }
+    ];
+
+    render(
+      <TrendChart
+        data={data}
+        format="currency"
+        series={[{ data, id: 'value', label: 'Value' }]}
+        xKey="date"
+      />
+    );
+
+    expect(screen.getByText('No data available')).toBeVisible();
+    expect(screen.queryByText('NaN')).not.toBeInTheDocument();
+  });
+
+  it('keeps zero as valid data when checking empty state', () => {
+    const data = [{ date: '2026-08-01', value: 0 }];
+
+    render(
+      <TrendChart
+        data={data}
+        series={[{ data, id: 'value', label: 'Value' }]}
+        xKey="date"
+      />
+    );
+
+    expect(screen.queryByText('No data available')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Chart legend')).toHaveTextContent('0');
+  });
+
   it('renders line chart title, legend labels, and formatted values', () => {
     render(
       <TrendChart
