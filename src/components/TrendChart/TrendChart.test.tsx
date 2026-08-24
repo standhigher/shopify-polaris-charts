@@ -9,17 +9,192 @@ const revenueData = [
   { date: '2026-07-03', grossSales: 15890.75, orders: 171 }
 ];
 
-const activateTooltip = (container: HTMLElement) => {
+const activateTooltip = (container: HTMLElement, clientX = 320) => {
   const chart = container.querySelector('.recharts-wrapper');
 
   if (!chart) {
     throw new Error('Expected the Recharts chart wrapper to render');
   }
 
-  fireEvent.mouseMove(chart, { clientX: 320, clientY: 120 });
+  fireEvent.mouseMove(chart, { clientX, clientY: 120 });
 };
 
 describe('TrendChart', () => {
+  it('renders normalized gap connectors and isolated dots without mutating input data', () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: null },
+      { date: '2026-08-03', value: 3 },
+      { date: '2026-08-04', value: null },
+      { date: '2026-08-05', value: null },
+      { date: '2026-08-06', value: 8 }
+    ];
+    const originalData = data.map((datum) => ({ ...datum }));
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        line={{ dot: { r: 'auto', show: 'isolated' } }}
+        series={[
+          {
+            color: '#008060',
+            connectGaps: { opacity: 0.4, strokeDasharray: '2 3', strokeWidth: 3 },
+            data,
+            id: 'value',
+            label: 'Value'
+          }
+        ]}
+        xKey="date"
+      />
+    );
+
+    expect(data).toEqual(originalData);
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(3);
+    const dots = [...container.querySelectorAll('.recharts-line-dots .recharts-dot')];
+
+    expect(dots).toHaveLength(3);
+    expect(dots.every((dot) => dot.getAttribute('r') === '1')).toBe(true);
+    expect(dots.every((dot) => dot.getAttribute('fill') === '#008060')).toBe(true);
+    expect(dots.every((dot) => dot.getAttribute('stroke') === '#008060')).toBe(true);
+    expect(dots.every((dot) => dot.getAttribute('stroke-width') === '0')).toBe(true);
+  });
+
+  it('normalizes empty strings, undefined values, and NaN before gap analysis', () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: '' },
+      { date: '2026-08-03', value: Number.NaN },
+      { date: '2026-08-04', value: undefined },
+      { date: '2026-08-05', value: 5 }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        series={[{ connectGaps: true, data, id: 'value', label: 'Value' }]}
+        xKey="date"
+      />
+    );
+
+    expect(data[2].value).toBeNaN();
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(2);
+    expect(container.querySelector('.recharts-line-curve')?.getAttribute('d')).not.toContain('NaN');
+  });
+
+  it('renders configured bridge styling before the real line', () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: 2 },
+      { date: '2026-08-03', value: null },
+      { date: '2026-08-04', value: 4 },
+      { date: '2026-08-05', value: 5 }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        line={{ dot: true, activeDot: true }}
+        rechartsProps={{ line: { connectNulls: true } as never }}
+        series={[
+          {
+            color: '#008060',
+            connectGaps: { color: '#ff0000', opacity: 0.4, strokeDasharray: '2 3', strokeWidth: 4 },
+            data,
+            id: 'value',
+            label: 'Value',
+            strokeWidth: 6
+          }
+        ]}
+        xKey="date"
+      />
+    );
+
+    const paths = [...container.querySelectorAll('.recharts-line-curve')];
+
+    expect(paths).toHaveLength(2);
+    expect(paths[0]).toHaveAttribute('stroke', '#ff0000');
+    expect(paths[0]).toHaveAttribute('stroke-dasharray', '2 3');
+    expect(paths[0]).toHaveAttribute('stroke-width', '4');
+    expect(paths[0]).toHaveAttribute('opacity', '0.4');
+    expect(paths[1]).toHaveAttribute('stroke', '#008060');
+    expect(paths[1]).toHaveAttribute('stroke-width', '6');
+    expect(paths[1].getAttribute('d')).toContain('M');
+  });
+
+  it('filters gap connectors from custom tooltip payloads', async () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: null },
+      { date: '2026-08-03', value: 3 },
+      { date: '2026-08-04', value: 4 }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        series={[{ connectGaps: true, data, id: 'value', label: 'Value' }]}
+        tooltip={{
+          content: ({ payload }) => (
+            <div data-testid="gap-tooltip-payload">
+              {payload?.map((item) => item.dataKey).join(',')}
+            </div>
+          )
+        }}
+        xKey="date"
+      />
+    );
+
+    activateTooltip(container, 65);
+
+    const payload = await screen.findByTestId('gap-tooltip-payload');
+
+    expect(payload).toHaveTextContent('value');
+    expect(payload).not.toHaveTextContent('__standhigher_gap__');
+  });
+
+  it('keeps area mode free of gap connectors and line-only dot semantics', () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: null },
+      { date: '2026-08-03', value: 3 }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        line={{ dot: { r: 'auto', show: 'isolated' } }}
+        mode="area"
+        series={[{ connectGaps: true, data, id: 'value', label: 'Value' }]}
+        xKey="date"
+      />
+    );
+
+    expect(container.querySelectorAll('.recharts-area-curve')).toHaveLength(1);
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(0);
+    expect([...container.querySelectorAll('.recharts-dot')].every((dot) => dot.getAttribute('r') !== 'auto')).toBe(true);
+  });
+
+  it('does not render gap connectors or dots for an empty series', () => {
+    const data = [
+      { date: '2026-08-01', value: null },
+      { date: '2026-08-02', value: '' },
+      { date: '2026-08-03', value: undefined }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        line={{ dot: { show: 'isolated' } }}
+        series={[{ connectGaps: true, data, id: 'value', label: 'Value' }]}
+        xKey="date"
+      />
+    );
+
+    expect(screen.getByText('No data available')).toBeVisible();
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(0);
+    expect(container.querySelectorAll('.recharts-dot')).toHaveLength(0);
+  });
+
   it('renders line chart title, legend labels, and formatted values', () => {
     render(
       <TrendChart

@@ -69,6 +69,16 @@ const revenueComparisonData = [
   { date: '2026-07-07', current: 20480.6, previous: 16740.7 }
 ];
 
+const gapTrendData = [
+  { date: '2026-07-01', current: 12430.4 },
+  { date: '2026-07-02', current: null },
+  { date: '2026-07-03', current: 15890.75 },
+  { date: '2026-07-04', current: null },
+  { date: '2026-07-05', current: null },
+  { date: '2026-07-06', current: 19120.15 },
+  { date: '2026-07-07', current: 20480.6 }
+];
+
 const meta = {
   title: 'Components/TrendChart',
   component: TrendChart
@@ -89,6 +99,31 @@ export const Line: Story = {
           { id: 'grossSales', label: 'Gross sales', data: salesTrendData },
           { id: 'netSales', label: 'Net sales', data: salesTrendData }
         ]}
+        xKey="date"
+      />
+    </ChartCard>
+  )
+};
+
+export const GapsAndIsolatedDots: Story = {
+  render: () => (
+    <ChartCard title="Revenue data gaps" subtitle="Bridges and isolated observations" metric="$117.3K" state="ready">
+      <TrendChart
+        data={gapTrendData}
+        format="currency"
+        height={300}
+        line={{ activeDot: { r: 'auto' }, dot: { r: 'auto', show: 'isolated' } }}
+        series={[
+          {
+            color: '#008060',
+            connectGaps: { color: '#6d7175', opacity: 0.8, strokeDasharray: '5 4', strokeWidth: 2 },
+            data: gapTrendData,
+            id: 'current',
+            label: 'Current period'
+          }
+        ]}
+        showLegend={false}
+        xFormat="date"
         xKey="date"
       />
     </ChartCard>

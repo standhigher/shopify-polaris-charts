@@ -45,6 +45,17 @@ import {
   getXAxisRechartsProps,
   getYAxisRechartsProps
 } from '../cartesianRechartsProps';
+import type { LineDataKey } from '../lineGapUtils';
+import { analyzeLineGaps } from '../lineGapUtils';
+import {
+  GAP_CONNECTOR_DATA_KEY_PREFIX,
+  createGapConnectorData,
+  filterGapConnectorPayload,
+  normalizeLineData,
+  resolveGapConnectorProps,
+  resolveLineActiveDot,
+  resolveLineDot
+} from '../lineGapVisualization';
 
 type TrendMode = 'line' | 'area';
 
@@ -239,6 +250,7 @@ const styles: Record<string, CSSProperties> = {
 const isEmptyValue = (value: unknown) => value === null || value === undefined || value === '';
 
 const defaultActiveDot = { r: 4 };
+const defaultStrokeWidth = 2;
 
 const getSeriesPresentationProps = <TDatum extends object>(item: ChartSeries<TDatum>) => {
   const props: { opacity?: number; strokeDasharray?: string | number; strokeWidth?: number } = {};
@@ -256,6 +268,39 @@ const getSeriesPresentationProps = <TDatum extends object>(item: ChartSeries<TDa
   }
 
   return props;
+};
+
+const getEffectiveStrokeWidth = <TDatum extends object>(
+  item: ChartSeries<TDatum>,
+  configuredStrokeWidth: number | string | undefined
+) => {
+  const strokeWidth = item.strokeWidth ?? configuredStrokeWidth;
+
+  if (strokeWidth === undefined) {
+    return defaultStrokeWidth;
+  }
+
+  const numericStrokeWidth = typeof strokeWidth === 'number' ? strokeWidth : Number(strokeWidth);
+
+  return Number.isFinite(numericStrokeWidth) ? numericStrokeWidth : defaultStrokeWidth;
+};
+
+const resolveAreaDot = (
+  dot: ChartLineOptions['dot'],
+  effectiveStrokeWidth: number
+): ChartLineOptions['dot'] => {
+  if (dot === undefined || typeof dot === 'boolean') {
+    return dot;
+  }
+
+  const safeDot = { ...dot };
+  delete safeDot.show;
+
+  if (safeDot.r === 'auto') {
+    safeDot.r = effectiveStrokeWidth / 2;
+  }
+
+  return safeDot;
 };
 
 const resolveAxisTick = (axis?: CartesianAxisOptions) => ({
@@ -308,11 +353,13 @@ function TrendTooltip<TDatum extends object>({
   xFormat,
   xFormatOptions
 }: TrendTooltipProps<TDatum>) {
-  if (!active || !payload?.length) {
+  const visiblePayload = filterGapConnectorPayload(payload ?? [], (item) => item.dataKey);
+
+  if (!active || !visiblePayload.length) {
     return null;
   }
 
-  const payloadWithSeries: Array<ChartTooltipPayloadItem<TDatum>> = payload.map((item) => {
+  const payloadWithSeries: Array<ChartTooltipPayloadItem<TDatum>> = visiblePayload.map((item) => {
     const id = String(item.dataKey ?? item.name ?? '');
 
     return {
@@ -410,6 +457,34 @@ export function TrendChart<TDatum extends object = ChartDatum>({
     })),
     [series]
   );
+  const lineData = useMemo(() => {
+    if (mode === 'area') {
+      return data;
+    }
+
+    return seriesWithColor.reduce<TDatum[]>(
+      (normalizedData, item) =>
+        normalizeLineData(normalizedData, item.id as LineDataKey<TDatum>),
+      data
+    );
+  }, [data, mode, seriesWithColor]);
+  const lineSeries = useMemo(() => {
+    if (mode === 'area') {
+      return [];
+    }
+
+    return seriesWithColor.map((item) => {
+      const dataKey = item.id as LineDataKey<TDatum>;
+      const effectiveStrokeWidth = getEffectiveStrokeWidth(item, rechartsProps?.line?.strokeWidth);
+
+      return {
+        analysis: analyzeLineGaps(lineData, dataKey),
+        dataKey,
+        effectiveStrokeWidth,
+        item
+      };
+    });
+  }, [lineData, mode, rechartsProps?.line?.strokeWidth, seriesWithColor]);
   const hasData =
     data.length > 0 &&
     seriesWithColor.some((item) => data.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));
@@ -459,24 +534,30 @@ export function TrendChart<TDatum extends object = ChartDatum>({
             />
             {seriesWithColor.map((item) => (
               <Area
-                activeDot={line?.activeDot ?? defaultActiveDot}
-                dot={line?.dot ?? false}
                 fillOpacity={0.12}
                 key={item.id}
-                strokeWidth={2}
                 {...getAreaRechartsProps(rechartsProps?.area)}
                 {...getSeriesPresentationProps(item)}
+                activeDot={resolveLineActiveDot(
+                  line?.activeDot ?? defaultActiveDot,
+                  getEffectiveStrokeWidth(item, rechartsProps?.area?.strokeWidth)
+                )}
                 dataKey={item.id}
+                dot={resolveAreaDot(
+                  line?.dot ?? false,
+                  getEffectiveStrokeWidth(item, rechartsProps?.area?.strokeWidth)
+                )}
                 fill={item.color}
                 isAnimationActive={prefersReducedMotion ? false : rechartsProps?.area?.isAnimationActive}
                 name={item.label}
                 stroke={item.color}
+                strokeWidth={getEffectiveStrokeWidth(item, rechartsProps?.area?.strokeWidth)}
                 type="monotone"
               />
             ))}
           </AreaChart>
         ) : (
-          <LineChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>
+          <LineChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={lineData}>
             <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
             <XAxis
               axisLine={xAxis?.axisLine}
@@ -515,18 +596,58 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                 />
               }
             />
-            {seriesWithColor.map((item) => (
+            {lineSeries.flatMap(({ analysis, effectiveStrokeWidth, item }) => {
+              const connectorProps = resolveGapConnectorProps(
+                item.connectGaps,
+                item.color,
+                effectiveStrokeWidth
+              );
+
+              if (!connectorProps) {
+                return [];
+              }
+
+              return analysis.segments.map((segment, segmentIndex) => {
+                const internalDataKey = `${GAP_CONNECTOR_DATA_KEY_PREFIX}${item.id}-${segmentIndex}`;
+
+                return (
+                  <Line
+                    activeDot={false}
+                    connectNulls
+                    data={createGapConnectorData(segment, item.id, xKey, internalDataKey)}
+                    dataKey={internalDataKey}
+                    dot={false}
+                    isAnimationActive={false}
+                    key={internalDataKey}
+                    opacity={connectorProps.opacity}
+                    stroke={connectorProps.stroke}
+                    strokeDasharray={connectorProps.strokeDasharray}
+                    strokeWidth={connectorProps.strokeWidth}
+                    type="linear"
+                  />
+                );
+              });
+            })}
+            {lineSeries.map(({ analysis, dataKey, effectiveStrokeWidth, item }) => (
               <Line
-                activeDot={line?.activeDot ?? defaultActiveDot}
-                dot={line?.dot ?? false}
-                key={item.id}
-                strokeWidth={2}
                 {...getLineRechartsProps(rechartsProps?.line)}
                 {...getSeriesPresentationProps(item)}
-                dataKey={item.id}
+                activeDot={resolveLineActiveDot(
+                  line?.activeDot ?? defaultActiveDot,
+                  effectiveStrokeWidth
+                )}
+                connectNulls={false}
+                dataKey={dataKey}
+                dot={resolveLineDot(line?.dot ?? false, {
+                  effectiveStrokeWidth,
+                  isolatedIndexes: analysis.isolatedIndexes,
+                  seriesColor: item.color
+                })}
                 isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
+                key={item.id}
                 name={item.label}
                 stroke={item.color}
+                strokeWidth={effectiveStrokeWidth}
                 type="monotone"
               />
             ))}
