@@ -16,6 +16,13 @@ export interface ChartAccessibilityOptions {
   dataTable?: ReactNode;
 }
 
+export interface ChartGapConnectorOptions {
+  strokeDasharray?: string | number;
+  color?: string;
+  strokeWidth?: number;
+  opacity?: number;
+}
+
 export interface ChartSeries<TDatum extends object = ChartDatum> {
   id: string;
   label: string;
@@ -24,6 +31,7 @@ export interface ChartSeries<TDatum extends object = ChartDatum> {
   opacity?: number;
   strokeDasharray?: string | number;
   strokeWidth?: number;
+  connectGaps?: boolean | ChartGapConnectorOptions;
 }
 
 export type ChartFormat = 'number' | 'currency' | 'percent' | 'compact' | 'date';
@@ -150,8 +158,9 @@ export interface ChartDotOptions {
   className?: string;
   cx?: number;
   cy?: number;
-  r?: number | string;
+  r?: number | string | 'auto';
   clipDot?: boolean;
+  show?: 'all' | 'isolated' | 'none';
 }
 
 export interface ChartActiveDotOptions extends ChartDotOptions {

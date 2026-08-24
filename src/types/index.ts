@@ -7,6 +7,7 @@ export type {
   ChartDatum,
   ChartDotOptions,
   ChartFormat,
+  ChartGapConnectorOptions,
   ChartGridOptions,
   ChartInlineState,
   ChartLineOptions,
