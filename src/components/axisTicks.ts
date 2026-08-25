@@ -6,13 +6,35 @@ type RechartsAxisTicksConfig = {
   interval?: number | string;
 };
 
+/** Fallback chart width used when no layout measurement is available (SSR, jsdom). */
+export const DEFAULT_CHART_WIDTH = 640;
+
+/** Estimated average character width of a 12px axis tick label, in pixels. */
+const TICK_LABEL_CHAR_WIDTH = 7;
+
+/** Minimum horizontal space between two tick labels, in pixels. */
+const TICK_LABEL_HORIZONTAL_GAP = 24;
+
 /**
- * Default maximum number of x-axis category ticks. When the data contains more
- * points than this, the axis shows an evenly-spaced subset that always includes
- * the first and last point, so the endpoints are never dropped and the middle
- * ticks stay uniformly distributed across the chart.
+ * Resolves how many evenly-spaced x-axis ticks fit in the available width.
+ * The count is driven by the widest rendered label: longer labels (or a
+ * narrower chart) yield fewer ticks so labels never collide.
  */
-export const DEFAULT_MAX_X_TICKS = 10;
+export function resolveMaxTickCount(
+  values: readonly unknown[],
+  chartWidth: number,
+  formatLabel?: (value: unknown) => string
+): number {
+  const widestLabelLength = values.reduce<number>((widest, value) => {
+    const text = formatLabel ? formatLabel(value) : String(value);
+
+    return Math.max(widest, text.length);
+  }, 0);
+  const labelWidth = Math.max(widestLabelLength * TICK_LABEL_CHAR_WIDTH, 1);
+  const maxCount = Math.floor(chartWidth / (labelWidth + TICK_LABEL_HORIZONTAL_GAP));
+
+  return Math.max(2, Math.min(values.length, maxCount));
+}
 
 /**
  * Picks an evenly-spaced subset of values that always includes the first and
@@ -45,6 +67,13 @@ export function pickEvenValues<T>(values: readonly T[], maxCount: number): T[] {
   return ticks;
 }
 
+export interface XAxisTickResolutionOptions {
+  /** Rendered width of the chart container in pixels. */
+  chartWidth: number;
+  /** Formats a value the way the axis label renders it, to estimate label width. */
+  formatLabel?: (value: unknown) => string;
+}
+
 /**
  * Resolves the x-axis ticks for a categorical axis.
  *
@@ -52,14 +81,17 @@ export function pickEvenValues<T>(values: readonly T[], maxCount: number): T[] {
  *   returned untouched.
  * - An explicit `interval` (top-level or via the Recharts escape hatch) hands
  *   tick selection back to Recharts.
- * - Otherwise an evenly-spaced subset (first, last, and uniformly spread
- *   middle points) is computed so the axis always shows both endpoints.
+ * - Otherwise an evenly-spaced subset is computed whose size adapts to the
+ *   widest label and the available width. The first and last points are always
+ *   shown and the middle ticks stay uniformly distributed, dropping labels
+ *   only when they would otherwise collide.
  */
 export function resolveXAxisTicks<TDatum extends object>(
   data: readonly TDatum[],
   xKey: keyof TDatum & string,
   xAxis: CartesianAxisOptions | undefined,
-  rechartsAxis?: RechartsAxisTicksConfig
+  rechartsAxis?: RechartsAxisTicksConfig,
+  options: XAxisTickResolutionOptions = { chartWidth: DEFAULT_CHART_WIDTH }
 ): ReadonlyArray<number | string> | undefined {
   if (xAxis?.ticks || rechartsAxis?.ticks) {
     return xAxis?.ticks ?? rechartsAxis?.ticks;
@@ -70,6 +102,7 @@ export function resolveXAxisTicks<TDatum extends object>(
   }
 
   const values = data.map((datum) => datum[xKey]);
+  const maxCount = resolveMaxTickCount(values, options.chartWidth, options.formatLabel);
 
-  return pickEvenValues(values, DEFAULT_MAX_X_TICKS) as Array<number | string>;
+  return pickEvenValues(values, maxCount) as Array<number | string>;
 }

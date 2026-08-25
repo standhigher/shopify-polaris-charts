@@ -4,6 +4,7 @@ import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, 
 
 import { formatChartValue, type ChartValueFormatOptions } from '../../formatters';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
+import { useChartWidth } from '../../hooks/useChartWidth';
 import { chartTheme } from '../../theme';
 import type {
   CartesianAxisOptions,
@@ -46,7 +47,7 @@ import {
   resolveLineActiveDot,
   resolveLineDot
 } from '../lineGapVisualization';
-import { resolveXAxisTicks } from '../axisTicks';
+import { resolveXAxisTicks, DEFAULT_CHART_WIDTH } from '../axisTicks';
 import { brokenSmoothLineShape } from '../smoothCurvePath';
 
 export type ComboChartSeriesType = 'bar' | 'line';
@@ -453,9 +454,14 @@ export function ComboChart<TDatum extends object = ChartDatum>({
         }),
     [lineData, rechartsProps?.line?.strokeWidth, seriesWithColor]
   );
+  const { ref: chartWidthRef, width: chartWidth } = useChartWidth();
   const resolvedXTicks = useMemo(
-    () => resolveXAxisTicks(data, xKey, xAxis, rechartsProps?.xAxis),
-    [data, xAxis, rechartsProps?.xAxis, xKey]
+    () =>
+      resolveXAxisTicks(data, xKey, xAxis, rechartsProps?.xAxis, {
+        chartWidth: chartWidth > 0 ? chartWidth : DEFAULT_CHART_WIDTH,
+        formatLabel: (value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)
+      }),
+    [chartWidth, data, rechartsProps?.xAxis, xAxis, xFormat, xFormatOptions, xKey]
   );
   const resolvedXInterval =
     xAxis?.interval !== undefined ? xAxis?.interval : resolvedXTicks ? 0 : undefined;
@@ -485,7 +491,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
         state={resolvedState}
       >
         <>
-          <div onMouseDown={onChartMouse} style={{ height, width: '100%' }}>
+          <div onMouseDown={onChartMouse} ref={chartWidthRef} style={{ height, width: '100%' }}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
               <ComposedChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>
                 <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />

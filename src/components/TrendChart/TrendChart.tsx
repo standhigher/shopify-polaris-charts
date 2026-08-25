@@ -14,6 +14,7 @@ import {
 
 import { formatChartValue, type ChartValueFormatOptions } from '../../formatters';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
+import { useChartWidth } from '../../hooks/useChartWidth';
 import { chartTheme } from '../../theme';
 import type {
   CartesianAxisOptions,
@@ -56,7 +57,7 @@ import {
   resolveLineActiveDot,
   resolveLineDot
 } from '../lineGapVisualization';
-import { resolveXAxisTicks } from '../axisTicks';
+import { resolveXAxisTicks, DEFAULT_CHART_WIDTH } from '../axisTicks';
 import { brokenSmoothLineShape } from '../smoothCurvePath';
 
 type TrendMode = 'line' | 'area';
@@ -488,9 +489,14 @@ export function TrendChart<TDatum extends object = ChartDatum>({
       };
     });
   }, [lineData, mode, rechartsProps?.line?.strokeWidth, seriesWithColor]);
+  const { ref: chartWidthRef, width: chartWidth } = useChartWidth();
   const resolvedXTicks = useMemo(
-    () => resolveXAxisTicks(data, xKey, xAxis, rechartsProps?.xAxis),
-    [data, xAxis, rechartsProps?.xAxis, xKey]
+    () =>
+      resolveXAxisTicks(data, xKey, xAxis, rechartsProps?.xAxis, {
+        chartWidth: chartWidth > 0 ? chartWidth : DEFAULT_CHART_WIDTH,
+        formatLabel: (value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)
+      }),
+    [chartWidth, data, rechartsProps?.xAxis, xAxis, xFormat, xFormatOptions, xKey]
   );
   const resolvedXInterval =
     xAxis?.interval !== undefined ? xAxis?.interval : resolvedXTicks ? 0 : undefined;
@@ -499,7 +505,11 @@ export function TrendChart<TDatum extends object = ChartDatum>({
     seriesWithColor.some((item) => data.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));
   const resolvedState = state === 'ready' && !hasData ? 'empty' : state;
   const renderChart = () => (
-    <div onMouseDown={onChartMouse} style={{ height, position: 'relative', width: '100%' }}>
+    <div
+      onMouseDown={onChartMouse}
+      ref={chartWidthRef}
+      style={{ height, position: 'relative', width: '100%' }}
+    >
       <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
         {mode === 'area' ? (
           <AreaChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>

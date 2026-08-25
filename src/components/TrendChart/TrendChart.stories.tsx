@@ -49,6 +49,11 @@ const salesTrendData = [
   { date: '2026-07-07', grossSales: 20480.6, netSales: 18920.7 }
 ];
 
+const monthTrendData = Array.from({ length: 30 }, (_, index) => ({
+  date: `2026-07-${String(index + 1).padStart(2, '0')}`,
+  grossSales: Math.round(11000 + Math.sin(index / 2.5) * 3200 + index * 260)
+}));
+
 const orderTrendData = [
   { date: '2026-07-01', onlineStore: 138, pointOfSale: 42 },
   { date: '2026-07-02', onlineStore: 156, pointOfSale: 48 },
@@ -123,6 +128,21 @@ export const GapsAndIsolatedDots: Story = {
           }
         ]}
         showLegend={false}
+        xFormat="date"
+        xKey="date"
+      />
+    </ChartCard>
+  )
+};
+
+export const MonthlyTrend: Story = {
+  render: () => (
+    <ChartCard title="Revenue trend" subtitle="Last 30 days" metric="$117.3K" trendLabel="+12.4%" state="ready">
+      <TrendChart
+        data={monthTrendData}
+        format="currency"
+        height={300}
+        series={[{ data: monthTrendData, id: 'grossSales', label: 'Gross sales' }]}
         xFormat="date"
         xKey="date"
       />

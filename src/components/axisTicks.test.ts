@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import type { CartesianAxisOptions } from '../types';
 import {
-  DEFAULT_MAX_X_TICKS,
+  DEFAULT_CHART_WIDTH,
   pickEvenValues,
+  resolveMaxTickCount,
   resolveXAxisTicks
 } from './axisTicks';
 
@@ -28,9 +29,9 @@ describe('pickEvenValues', () => {
 
   it('always includes the first and last values for larger lists', () => {
     const values = Array.from({ length: 20 }, (_, index) => index);
-    const ticks = pickEvenValues(values, DEFAULT_MAX_X_TICKS);
+    const ticks = pickEvenValues(values, 10);
 
-    expect(ticks).toHaveLength(DEFAULT_MAX_X_TICKS);
+    expect(ticks).toHaveLength(10);
     expect(ticks[0]).toBe(0);
     expect(ticks[ticks.length - 1]).toBe(19);
   });
@@ -47,6 +48,36 @@ describe('pickEvenValues', () => {
 
     expect(pickEvenValues(values, 10)).toEqual(['a', 'b', 'c']);
     expect(values).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('resolveMaxTickCount', () => {
+  it('shows all values when they fit comfortably', () => {
+    const values = Array.from({ length: 6 }, (_, index) => index);
+
+    expect(resolveMaxTickCount(values, 640)).toBe(6);
+  });
+
+  it('drops labels when the widest label does not fit', () => {
+    const values = Array.from({ length: 30 }, (_, index) => index);
+
+    // 10-char labels (~70px) on a 640px chart leave room for 6-7 ticks.
+    expect(resolveMaxTickCount(values, DEFAULT_CHART_WIDTH)).toBeGreaterThanOrEqual(2);
+    expect(resolveMaxTickCount(values, DEFAULT_CHART_WIDTH)).toBeLessThan(30);
+  });
+
+  it('keeps at least the first and last labels', () => {
+    const values = Array.from({ length: 30 }, (_, index) => index);
+
+    expect(resolveMaxTickCount(values, 1)).toBe(2);
+  });
+
+  it('fits more ticks on a wider chart and with shorter labels', () => {
+    const values = Array.from({ length: 30 }, (_, index) => index);
+    const shortLabels = resolveMaxTickCount(values, 1280, () => 'abc');
+    const longLabels = resolveMaxTickCount(values, 1280, () => 'a-very-long-label');
+
+    expect(shortLabels).toBeGreaterThan(longLabels);
   });
 });
 
@@ -74,7 +105,8 @@ describe('resolveXAxisTicks', () => {
     expect(ticks).toBeDefined();
     expect(ticks?.[0]).toBe('2026-07-01');
     expect(ticks?.[ticks.length - 1]).toBe('2026-07-20');
-    expect(ticks?.length).toBeLessThanOrEqual(DEFAULT_MAX_X_TICKS);
+    expect(ticks?.length).toBeLessThanOrEqual(data.length);
+    expect(ticks?.length).toBeGreaterThanOrEqual(2);
   });
 
   it('computes an even subset that mirrors small data sets completely', () => {
