@@ -49,6 +49,21 @@ async function expectStoryLoaded(page: Page, storyId: string): Promise<boolean> 
 }
 
 test.describe('line gap visualization stories', () => {
+  test('mouse clicks do not focus the chart surface while keyboard focus remains available', async ({ page }) => {
+    await page.goto(trendGapUrl);
+    await expect(page.getByRole('region', { name: 'Revenue data gaps' })).toBeVisible();
+
+    const chartSurface = page.locator('.standhigher-chart-surface');
+    const svgSurface = page.locator('svg.recharts-surface');
+
+    await expect(svgSurface).toHaveAttribute('tabindex', '0');
+    await chartSurface.click({ position: { x: 120, y: 120 } });
+    await expect(svgSurface).not.toBeFocused();
+
+    await svgSurface.focus();
+    await expect(svgSurface).toBeFocused();
+  });
+
   test('TrendChart renders dashed connectors below the solid line and activates isolated-point tooltip', async ({ page }) => {
     await page.goto(trendGapUrl);
     await expect(page.getByRole('region', { name: 'Revenue data gaps' })).toBeVisible();

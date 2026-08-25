@@ -116,6 +116,94 @@ describe('controlled Recharts props escape hatch', () => {
     });
   });
 
+  it('shares line animation settings with TrendChart gap connectors', () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: null },
+      { date: '2026-08-03', value: 3 }
+    ];
+
+    render(
+      <TrendChart
+        data={data}
+        rechartsProps={{
+          line: {
+            animationBegin: 50,
+            animationDuration: 600,
+            animationEasing: 'ease-in-out',
+            isAnimationActive: true
+          }
+        }}
+        series={[{ connectGaps: true, data, id: 'value', label: 'Value' }]}
+        xKey="date"
+      />
+    );
+
+    expect(rechartsMocks.line).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        animationBegin: 50,
+        animationDuration: 600,
+        animationEasing: 'ease-in-out',
+        dataKey: expect.stringContaining('__standhigher_gap__'),
+        isAnimationActive: true
+      })
+    );
+    expect(rechartsMocks.line).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        animationBegin: 50,
+        animationDuration: 600,
+        animationEasing: 'ease-in-out',
+        dataKey: 'value',
+        isAnimationActive: true
+      })
+    );
+  });
+
+  it('shares line animation settings with ComboChart gap connectors', () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: null },
+      { date: '2026-08-03', value: 3 }
+    ];
+
+    render(
+      <ComboChart
+        data={data}
+        rechartsProps={{
+          line: {
+            animationBegin: 50,
+            animationDuration: 600,
+            animationEasing: 'ease-in-out',
+            isAnimationActive: true
+          }
+        }}
+        series={[{ connectGaps: true, data, id: 'value', label: 'Value', type: 'line' }]}
+        xKey="date"
+      />
+    );
+
+    expect(rechartsMocks.line).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        animationBegin: 50,
+        animationDuration: 600,
+        animationEasing: 'ease-in-out',
+        dataKey: expect.stringContaining('__standhigher_gap__'),
+        isAnimationActive: true
+      })
+    );
+    expect(rechartsMocks.line).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        animationBegin: 50,
+        animationDuration: 600,
+        animationEasing: 'ease-in-out',
+        dataKey: 'value',
+        isAnimationActive: true
+      })
+    );
+  });
+
   it('forwards TrendChart line props while retaining chart bindings', () => {
     const unsafeTooltipContent = <div>Unsafe tooltip</div>;
     const unsafeRechartsProps = {

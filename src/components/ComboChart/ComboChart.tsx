@@ -26,6 +26,7 @@ import type {
 import { ChartAccessibilityRegion } from '../ChartAccessibility';
 import { ChartStateRegion } from '../ChartState';
 import { useChartLocalization } from '../ChartLocalization';
+import { chartSurfaceProps } from '../chartSurface';
 import {
   getBarRechartsProps,
   getCartesianGridRechartsProps,
@@ -497,7 +498,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
         state={resolvedState}
       >
         <>
-          <div style={{ height, width: '100%' }}>
+          <div style={{ height, width: '100%' }} {...chartSurfaceProps}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
               <ComposedChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>
                 <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
@@ -576,6 +577,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
 
                     return (
                       <Line
+                        {...getLineRechartsProps(rechartsProps?.line)}
                         activeDot={false}
                         connectNulls
                         data={createFullLengthGapConnectorData(
@@ -587,7 +589,7 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                         )}
                         dataKey={internalDataKey}
                         dot={false}
-                        isAnimationActive={false}
+                        isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
                         key={internalDataKey}
                         opacity={connectorProps.opacity}
                         stroke={connectorProps.stroke}

@@ -25,6 +25,7 @@ import type {
 import { ChartAccessibilityRegion } from '../ChartAccessibility';
 import { ChartStateRegion } from '../ChartState';
 import { useChartLocalization } from '../ChartLocalization';
+import { chartSurfaceProps } from '../chartSurface';
 import {
   getBarRechartsProps,
   getCartesianGridRechartsProps,
@@ -326,7 +327,7 @@ export function StackedBarChart<TDatum extends object = ChartDatum>({
         state={resolvedState}
       >
         <>
-          <div style={{ height, width: '100%' }}>
+          <div style={{ height, width: '100%' }} {...chartSurfaceProps}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
               <BarChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>
                 <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />

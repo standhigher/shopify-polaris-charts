@@ -36,6 +36,7 @@ import type {
 import { ChartAccessibilityRegion } from '../ChartAccessibility';
 import { ChartStateRegion } from '../ChartState';
 import { useChartLocalization } from '../ChartLocalization';
+import { chartSurfaceProps } from '../chartSurface';
 import {
   getAreaRechartsProps,
   getCartesianGridRechartsProps,
@@ -511,7 +512,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
     seriesWithColor.some((item) => data.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));
   const resolvedState = state === 'ready' && !hasData ? 'empty' : state;
   const renderChart = () => (
-    <div style={{ height, position: 'relative', width: '100%' }}>
+    <div style={{ height, position: 'relative', width: '100%' }} {...chartSurfaceProps}>
       <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
         {mode === 'area' ? (
           <AreaChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>
@@ -639,6 +640,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
 
                 return (
                   <Line
+                    {...getLineRechartsProps(rechartsProps?.line)}
                     activeDot={false}
                     connectNulls
                     data={createFullLengthGapConnectorData(
@@ -650,7 +652,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                     )}
                     dataKey={internalDataKey}
                     dot={false}
-                    isAnimationActive={false}
+                    isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
                     key={internalDataKey}
                     opacity={connectorProps.opacity}
                     stroke={connectorProps.stroke}

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, createEvent, fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { TrendChart } from './TrendChart';
@@ -20,6 +20,40 @@ const activateTooltip = (container: HTMLElement, clientX = 320) => {
 };
 
 describe('TrendChart', () => {
+  it('prevents mouse clicks from taking chart focus while preserving keyboard focusability', () => {
+    const { container } = render(
+      <TrendChart
+        data={revenueData}
+        series={[{ data: revenueData, id: 'grossSales', label: 'Gross sales' }]}
+        xKey="date"
+      />
+    );
+    const chartSurface = container.querySelector('.standhigher-chart-surface');
+    const svgSurface = container.querySelector('svg.recharts-surface');
+
+    expect(chartSurface).toBeInTheDocument();
+    expect(svgSurface).toHaveAttribute('tabindex', '0');
+
+    act(() => {
+      (svgSurface as SVGSVGElement).focus();
+    });
+    expect(document.activeElement).toBe(svgSurface);
+
+    const mouseDown = createEvent.mouseDown(chartSurface as HTMLElement);
+
+    act(() => {
+      fireEvent(chartSurface as HTMLElement, mouseDown);
+    });
+
+    expect(mouseDown.defaultPrevented).toBe(true);
+    expect(document.activeElement).not.toBe(svgSurface);
+
+    act(() => {
+      (svgSurface as SVGSVGElement).focus();
+    });
+    expect(document.activeElement).toBe(svgSurface);
+  });
+
   it('renders normalized gap connectors and isolated dots without mutating input data', () => {
     const data = [
       { date: '2026-08-01', value: 1 },
@@ -94,7 +128,7 @@ describe('TrendChart', () => {
       <TrendChart
         data={data}
         line={{ dot: true, activeDot: true }}
-        rechartsProps={{ line: { connectNulls: true } as never }}
+        rechartsProps={{ line: { connectNulls: true, isAnimationActive: false } as never }}
         series={[
           {
             color: '#008060',

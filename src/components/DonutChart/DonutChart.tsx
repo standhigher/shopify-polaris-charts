@@ -17,6 +17,7 @@ import type {
 import { ChartAccessibilityRegion } from '../ChartAccessibility';
 import { ChartStateRegion } from '../ChartState';
 import { useChartLocalization } from '../ChartLocalization';
+import { chartSurfaceProps } from '../chartSurface';
 
 export interface DonutChartProps<TDatum extends object = ChartDatum> {
   accessibility?: ChartAccessibilityOptions;
@@ -242,7 +243,7 @@ export function DonutChart<TDatum extends object = ChartDatum>({
         state={resolvedState}
       >
         <>
-          <div style={{ ...styles.chartWrap, height }}>
+          <div style={{ ...styles.chartWrap, height }} {...chartSurfaceProps}>
             <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
               <PieChart accessibilityLayer>
                 <Pie
