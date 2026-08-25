@@ -1,3 +1,5 @@
+import type { MouseEvent } from 'react';
+
 const chartBindingProps = ['accessibilityLayer', 'children', 'data', 'dataKey', 'layout'];
 const axisBindingProps = ['children', 'dataKey', 'tickFormatter', 'type', 'xAxisId', 'yAxisId'];
 const gridBindingProps = ['children', 'xAxisId', 'yAxisId'];
@@ -28,6 +30,10 @@ const barBindingProps = [
   'xAxisId',
   'yAxisId'
 ];
+
+export const onChartMouse = (event: MouseEvent<HTMLElement>) => {
+  event.preventDefault();
+};
 
 function omitBindingProps<TProps extends object>(props: TProps | undefined, blockedProps: readonly string[]) {
   if (!props) {

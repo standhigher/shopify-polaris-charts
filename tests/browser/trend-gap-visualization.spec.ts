@@ -53,7 +53,7 @@ test.describe('line gap visualization stories', () => {
     await page.goto(trendGapUrl);
     await expect(page.getByRole('region', { name: 'Revenue data gaps' })).toBeVisible();
 
-    const chartSurface = page.locator('.standhigher-chart-surface');
+    const chartSurface = page.locator('.recharts-wrapper');
     const svgSurface = page.locator('svg.recharts-surface');
 
     await expect(svgSurface).toHaveAttribute('tabindex', '0');

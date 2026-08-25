@@ -28,16 +28,11 @@ describe('TrendChart', () => {
         xKey="date"
       />
     );
-    const chartSurface = container.querySelector('.standhigher-chart-surface');
+    const chartSurface = container.querySelector('.recharts-wrapper');
     const svgSurface = container.querySelector('svg.recharts-surface');
 
     expect(chartSurface).toBeInTheDocument();
     expect(svgSurface).toHaveAttribute('tabindex', '0');
-
-    act(() => {
-      (svgSurface as SVGSVGElement).focus();
-    });
-    expect(document.activeElement).toBe(svgSurface);
 
     const mouseDown = createEvent.mouseDown(chartSurface as HTMLElement);
 

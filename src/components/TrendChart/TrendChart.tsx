@@ -36,7 +36,6 @@ import type {
 import { ChartAccessibilityRegion } from '../ChartAccessibility';
 import { ChartStateRegion } from '../ChartState';
 import { useChartLocalization } from '../ChartLocalization';
-import { chartSurfaceProps } from '../chartSurface';
 import {
   getAreaRechartsProps,
   getCartesianGridRechartsProps,
@@ -44,7 +43,8 @@ import {
   getLineRechartsProps,
   getTooltipRechartsProps,
   getXAxisRechartsProps,
-  getYAxisRechartsProps
+  getYAxisRechartsProps,
+  onChartMouse
 } from '../cartesianRechartsProps';
 import type { LineDataKey, LineGapSegment } from '../lineGapUtils';
 import { analyzeLineGaps } from '../lineGapUtils';
@@ -512,7 +512,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
     seriesWithColor.some((item) => data.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));
   const resolvedState = state === 'ready' && !hasData ? 'empty' : state;
   const renderChart = () => (
-    <div style={{ height, position: 'relative', width: '100%' }} {...chartSurfaceProps}>
+    <div onMouseDown={onChartMouse} style={{ height, position: 'relative', width: '100%' }}>
       <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
         {mode === 'area' ? (
           <AreaChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>
