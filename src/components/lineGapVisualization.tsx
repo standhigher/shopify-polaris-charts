@@ -3,7 +3,6 @@ import { Dot } from 'recharts';
 import type { DotItemDotProps } from 'recharts';
 
 import type { ChartActiveDotOptions, ChartDotOptions, ChartGapConnectorOptions } from '../types';
-import type { LineGapSegment } from './lineGapUtils';
 
 export const GAP_CONNECTOR_DATA_KEY_PREFIX = '__standhigher_gap__';
 
@@ -36,29 +35,6 @@ export function normalizeLineData<TDatum extends object, TKey extends keyof TDat
 
     return { ...datum };
   });
-}
-
-export function createGapConnectorData<TDatum extends object>(
-  segment: LineGapSegment<TDatum>,
-  dataKey: string,
-  xKey: string,
-  internalDataKey: string
-): [TDatum & Record<string, unknown>, TDatum & Record<string, unknown>] {
-  const start = segment.start as TDatum & Record<string, unknown>;
-  const end = segment.end as TDatum & Record<string, unknown>;
-
-  return [
-    {
-      ...segment.start,
-      [xKey]: start[xKey],
-      [internalDataKey]: start[dataKey]
-    },
-    {
-      ...segment.end,
-      [xKey]: end[xKey],
-      [internalDataKey]: end[dataKey]
-    }
-  ];
 }
 
 export interface LineDotResolutionOptions {

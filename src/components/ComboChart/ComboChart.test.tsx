@@ -51,7 +51,7 @@ describe('ComboChart', () => {
     );
 
     expect(data).toEqual(originalData);
-    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(3);
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(2);
     const dots = [...container.querySelectorAll('.recharts-line-dots .recharts-dot')];
 
     expect(dots).toHaveLength(3);
