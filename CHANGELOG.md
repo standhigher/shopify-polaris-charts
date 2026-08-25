@@ -4,6 +4,13 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning.
 
+## 1.1.1 - 2026-08-25
+
+### Fixed
+
+- Prevented mouse clicks on accessible charts from leaving a browser focus outline while preserving keyboard focus.
+- Synchronized TrendChart and ComboChart dashed gap connectors with the corresponding line animation settings.
+
 ## 1.1.0 - 2026-08-24
 
 ### Added
