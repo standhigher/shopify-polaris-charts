@@ -444,12 +444,20 @@ export function ComboChart<TDatum extends object = ChartDatum>({
         .filter((item) => item.type === 'line')
         .map((item) => {
           const dataKey = item.id as LineDataKey<TDatum>;
+          const effectiveStrokeWidth = getEffectiveStrokeWidth(item, rechartsProps?.line?.strokeWidth);
+          const analysis = analyzeLineGaps(lineData, dataKey);
+          const internalDataKey = `${GAP_CONNECTOR_DATA_KEY_PREFIX}${item.id}-overlay`;
 
           return {
-            analysis: analyzeLineGaps(lineData, dataKey),
+            analysis,
             dataKey,
-            effectiveStrokeWidth: getEffectiveStrokeWidth(item, rechartsProps?.line?.strokeWidth),
-            item
+            effectiveStrokeWidth,
+            internalDataKey,
+            item,
+            overlayData:
+              analysis.segments.length > 0 && item.connectGaps
+                ? lineData.map((datum) => ({ ...datum, [internalDataKey]: datum[dataKey] }))
+                : undefined
           };
         }),
     [lineData, rechartsProps?.line?.strokeWidth, seriesWithColor]
@@ -554,28 +562,23 @@ export function ComboChart<TDatum extends object = ChartDatum>({
                     />
                   }
                 />
-                {lineSeries.flatMap(({ analysis, dataKey, effectiveStrokeWidth, item }) => {
+                {lineSeries.flatMap(({ dataKey, effectiveStrokeWidth, internalDataKey, item, overlayData }) => {
                   const connectorProps = resolveGapConnectorProps(
                     item.connectGaps,
                     item.color,
                     effectiveStrokeWidth
                   );
 
-                  if (!connectorProps || analysis.segments.length === 0) {
+                  if (!connectorProps || !overlayData) {
                     return [];
                   }
-
-                  const internalDataKey = `${GAP_CONNECTOR_DATA_KEY_PREFIX}${item.id}-overlay`;
 
                   return [
                     <Line
                       {...getLineRechartsProps(rechartsProps?.line)}
                       activeDot={false}
                       connectNulls
-                      data={lineData.map((datum) => ({
-                        ...datum,
-                        [internalDataKey]: datum[dataKey]
-                      }))}
+                      data={overlayData}
                       dataKey={internalDataKey}
                       dot={false}
                       isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}

@@ -222,7 +222,7 @@ export function brokenSmoothLineShape(props: LineDrawShapeProps): ReactElement |
   });
 
   const d = buildBrokenSmoothPath(smoothPoints);
-  let strokeDasharray: string | undefined = props.strokeDasharray as string | undefined;
+  let strokeDasharray: string | number | undefined = props.strokeDasharray;
 
   if (props.visibleLength != null) {
     const totalLength = getTotalLength(props.pathRef?.current ?? null);
