@@ -66,9 +66,12 @@ function renderLineDot(
     const effectiveStrokeWidth = resolveEffectiveStrokeWidth(options.effectiveStrokeWidth);
     const defaultDotProps = props as unknown as ComponentProps<typeof Dot>;
     const clipDot = (props as DotItemDotProps & { clipDot?: boolean }).clipDot;
+    // Isolated single observations are emphasized with twice the line width so
+    // they stay visible next to the solid line; ordinary dots keep the line-width
+    // derived radius.
     const radius = onlyIsolated
       ? dot.r === undefined || dot.r === 'auto'
-        ? effectiveStrokeWidth / 2
+        ? effectiveStrokeWidth
         : dot.r
       : dot.r === 'auto'
         ? effectiveStrokeWidth / 2

@@ -206,7 +206,7 @@ describe('line dot resolution', () => {
         fill: '#008060',
         onClick,
         payload: props.payload,
-        r: 2,
+        r: 4,
         stroke: '#008060',
         strokeWidth: 0,
         value: 42

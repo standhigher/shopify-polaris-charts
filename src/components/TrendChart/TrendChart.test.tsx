@@ -82,7 +82,7 @@ describe('TrendChart', () => {
     const dots = [...container.querySelectorAll('.recharts-line-dots .recharts-dot')];
 
     expect(dots).toHaveLength(3);
-    expect(dots.every((dot) => dot.getAttribute('r') === '1')).toBe(true);
+    expect(dots.every((dot) => dot.getAttribute('r') === '2')).toBe(true);
     expect(dots.every((dot) => dot.getAttribute('fill') === '#008060')).toBe(true);
     expect(dots.every((dot) => dot.getAttribute('stroke') === '#008060')).toBe(true);
     expect(dots.every((dot) => dot.getAttribute('stroke-width') === '0')).toBe(true);
@@ -124,7 +124,40 @@ describe('TrendChart', () => {
     expect(overlayPath).toContain('M');
     expect(solidPath).toContain('M');
     expect(overlayPath).not.toContain('Z');
-    expect(solidPath).toContain('Z');
+    // The solid line is broken into one subpath per valid run.
+    expect(solidPath.match(/M/g) ?? []).toHaveLength(3);
+    expect(solidPath).not.toContain('Z');
+  });
+
+  it('keeps solid segments on the same smooth curve as the dashed overlay', () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: null },
+      { date: '2026-08-03', value: 3 },
+      { date: '2026-08-04', value: 4 }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        rechartsProps={{ line: { isAnimationActive: false } }}
+        series={[{ connectGaps: true, data, id: 'value', label: 'Value' }]}
+        xKey="date"
+      />
+    );
+
+    const paths = [...container.querySelectorAll('.recharts-line-curve')];
+    const [overlay, solid] = paths;
+    const overlayPath = overlay.getAttribute('d') ?? '';
+    const solidPath = solid.getAttribute('d') ?? '';
+    const solidSubpaths = solidPath.split('M').filter(Boolean);
+
+    expect(solidSubpaths).toHaveLength(2);
+    expect(overlayPath).not.toContain('Z');
+
+    for (const subpath of solidSubpaths) {
+      expect(overlayPath).toContain(subpath.replace(/^M/, ''));
+    }
   });
 
   it('renders one dashed overlay per series when multiple series have gaps', () => {

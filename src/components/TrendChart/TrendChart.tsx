@@ -57,6 +57,7 @@ import {
   resolveLineDot
 } from '../lineGapVisualization';
 import { resolveXAxisTicks } from '../axisTicks';
+import { brokenSmoothLineShape } from '../smoothCurvePath';
 
 type TrendMode = 'line' | 'area';
 
@@ -644,32 +645,37 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                 />
               ];
             })}
-            {lineSeries.map(({ analysis, dataKey, effectiveStrokeWidth, item }) => (
-              <Line
-                {...getLineRechartsProps(rechartsProps?.line)}
-                {...getSeriesPresentationProps(item)}
-                activeDot={
-                  rechartsProps?.line?.activeDot ??
-                  resolveLineActiveDot(line?.activeDot ?? defaultActiveDot, effectiveStrokeWidth)
-                }
-                connectNulls={false}
-                dataKey={dataKey}
-                dot={
-                  rechartsProps?.line?.dot ??
-                  resolveLineDot(line?.dot ?? false, {
-                    effectiveStrokeWidth,
-                    isolatedIndexes: analysis.isolatedIndexes,
-                    seriesColor: item.color
-                  })
-                }
-                isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
-                key={item.id}
-                name={item.label}
-                stroke={item.color}
-                strokeWidth={effectiveStrokeWidth}
-                type="monotone"
-              />
-            ))}
+            {lineSeries.map(({ analysis, dataKey, effectiveStrokeWidth, item }) => {
+              const hasGaps = analysis.segments.length > 0;
+
+              return (
+                <Line
+                  {...getLineRechartsProps(rechartsProps?.line)}
+                  {...getSeriesPresentationProps(item)}
+                  activeDot={
+                    rechartsProps?.line?.activeDot ??
+                    resolveLineActiveDot(line?.activeDot ?? defaultActiveDot, effectiveStrokeWidth)
+                  }
+                  connectNulls={false}
+                  dataKey={dataKey}
+                  dot={
+                    rechartsProps?.line?.dot ??
+                    resolveLineDot(line?.dot ?? false, {
+                      effectiveStrokeWidth,
+                      isolatedIndexes: analysis.isolatedIndexes,
+                      seriesColor: item.color
+                    })
+                  }
+                  isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
+                  key={item.id}
+                  name={item.label}
+                  shape={hasGaps ? brokenSmoothLineShape : undefined}
+                  stroke={item.color}
+                  strokeWidth={effectiveStrokeWidth}
+                  type="monotone"
+                />
+              );
+            })}
           </LineChart>
         )}
       </ResponsiveContainer>

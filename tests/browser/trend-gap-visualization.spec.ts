@@ -70,6 +70,9 @@ test.describe('line gap visualization stories', () => {
     const mainLine = page.locator('path.recharts-line-curve[stroke="#008060"]');
     await expect(mainLine).toHaveCount(1);
     await expect(mainLine).not.toHaveAttribute('stroke-dasharray', /\S+/);
+    // Wait for the line entrance animation to settle so the overlay carries its
+    // final dash pattern before the geometry is read.
+    await expect(page.locator('path.recharts-line-curve[stroke-dasharray="5 4"]')).toHaveCount(1);
 
     const geometry = await page.locator('svg').first().evaluate((svg) => {
       const paths = Array.from(svg.querySelectorAll<SVGPathElement>('path.recharts-line-curve'));
