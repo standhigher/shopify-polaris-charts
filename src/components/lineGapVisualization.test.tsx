@@ -11,7 +11,6 @@ import type {
 } from '../types';
 import {
   GAP_CONNECTOR_DATA_KEY_PREFIX,
-  createGapConnectorData,
   filterGapConnectorPayload,
   isGapConnectorDataKey,
   normalizeLineData,
@@ -19,7 +18,6 @@ import {
   resolveLineActiveDot,
   resolveLineDot
 } from './lineGapVisualization';
-import type { LineGapSegment } from './lineGapUtils';
 
 interface TestDatum {
   date: string;
@@ -128,24 +126,6 @@ describe('gap connector payload helpers', () => {
     expect(filterGapConnectorPayload(payload, (item) => item.dataKey)).toEqual([ordinary, { dataKey: 'other' }]);
     expect(filterGapConnectorPayload([], () => undefined)).toEqual([]);
   });
-
-  it('creates copied endpoint data with the x key and original valid values under the internal key', () => {
-    const start: TestDatum = { date: '2026-08-01', label: 'Start', value: 2 };
-    const end: TestDatum = { date: '2026-08-03', label: 'End', value: 6 };
-    const segment: LineGapSegment<TestDatum> = { end, endIndex: 3, start, startIndex: 1 };
-    const internalDataKey = `${GAP_CONNECTOR_DATA_KEY_PREFIX}value`;
-
-    const [connectorStart, connectorEnd] = createGapConnectorData(segment, 'value', 'date', internalDataKey);
-
-    expect(connectorStart).toEqual({ ...start, [internalDataKey]: 2 });
-    expect(connectorEnd).toEqual({ ...end, [internalDataKey]: 6 });
-    expect(connectorStart.date).toBe(start.date);
-    expect(connectorEnd.date).toBe(end.date);
-    expect(start).toEqual({ date: '2026-08-01', label: 'Start', value: 2 });
-    expect(end).toEqual({ date: '2026-08-03', label: 'End', value: 6 });
-    expect(connectorStart).not.toBe(start);
-    expect(connectorEnd).not.toBe(end);
-  });
 });
 
 describe('line dot resolution', () => {
@@ -226,7 +206,7 @@ describe('line dot resolution', () => {
         fill: '#008060',
         onClick,
         payload: props.payload,
-        r: 2,
+        r: 4,
         stroke: '#008060',
         strokeWidth: 0,
         value: 42

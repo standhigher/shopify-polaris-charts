@@ -4,6 +4,19 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning.
 
+## 1.2.0 - 2026-08-25
+
+### Added
+
+- Added a single full-length dashed overlay line under gapped line series when breakpoint connection is enabled, so gaps read as smooth dashed bridges while the solid line keeps its breaks (`TrendChart`, `ComboChart`).
+- Added width-aware x-axis tick density: the axis always shows the first and last points and spaces the middle ticks evenly based on label width and chart width, dropping labels only when they would collide.
+- Added a monthly (30-day) demo story and browser coverage for endpoint-anchored, collision-free x-axis ticks.
+
+### Changed
+
+- Solid line segments of gapped series now follow the full-data smooth monotone curve (matching the dashed overlay) instead of straight two-point lines, and keep the entrance draw-in animation.
+- Isolated single observations render with a dot radius equal to the line width (previously half), so they stay visible next to the line.
+
 ## 1.1.1 - 2026-08-25
 
 ### Fixed

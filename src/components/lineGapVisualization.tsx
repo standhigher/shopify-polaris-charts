@@ -3,7 +3,6 @@ import { Dot } from 'recharts';
 import type { DotItemDotProps } from 'recharts';
 
 import type { ChartActiveDotOptions, ChartDotOptions, ChartGapConnectorOptions } from '../types';
-import type { LineGapSegment } from './lineGapUtils';
 
 export const GAP_CONNECTOR_DATA_KEY_PREFIX = '__standhigher_gap__';
 
@@ -38,29 +37,6 @@ export function normalizeLineData<TDatum extends object, TKey extends keyof TDat
   });
 }
 
-export function createGapConnectorData<TDatum extends object>(
-  segment: LineGapSegment<TDatum>,
-  dataKey: string,
-  xKey: string,
-  internalDataKey: string
-): [TDatum & Record<string, unknown>, TDatum & Record<string, unknown>] {
-  const start = segment.start as TDatum & Record<string, unknown>;
-  const end = segment.end as TDatum & Record<string, unknown>;
-
-  return [
-    {
-      ...segment.start,
-      [xKey]: start[xKey],
-      [internalDataKey]: start[dataKey]
-    },
-    {
-      ...segment.end,
-      [xKey]: end[xKey],
-      [internalDataKey]: end[dataKey]
-    }
-  ];
-}
-
 export interface LineDotResolutionOptions {
   seriesColor?: string;
   effectiveStrokeWidth?: number;
@@ -90,9 +66,12 @@ function renderLineDot(
     const effectiveStrokeWidth = resolveEffectiveStrokeWidth(options.effectiveStrokeWidth);
     const defaultDotProps = props as unknown as ComponentProps<typeof Dot>;
     const clipDot = (props as DotItemDotProps & { clipDot?: boolean }).clipDot;
+    // Isolated single observations are emphasized with twice the line width so
+    // they stay visible next to the solid line; ordinary dots keep the line-width
+    // derived radius.
     const radius = onlyIsolated
       ? dot.r === undefined || dot.r === 'auto'
-        ? effectiveStrokeWidth / 2
+        ? effectiveStrokeWidth
         : dot.r
       : dot.r === 'auto'
         ? effectiveStrokeWidth / 2

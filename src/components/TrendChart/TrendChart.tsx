@@ -14,6 +14,7 @@ import {
 
 import { formatChartValue, type ChartValueFormatOptions } from '../../formatters';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
+import { useChartWidth } from '../../hooks/useChartWidth';
 import { chartTheme } from '../../theme';
 import type {
   CartesianAxisOptions,
@@ -46,17 +47,18 @@ import {
   getYAxisRechartsProps,
   onChartMouse
 } from '../cartesianRechartsProps';
-import type { LineDataKey, LineGapSegment } from '../lineGapUtils';
+import type { LineDataKey } from '../lineGapUtils';
 import { analyzeLineGaps } from '../lineGapUtils';
 import {
   GAP_CONNECTOR_DATA_KEY_PREFIX,
-  createGapConnectorData,
   filterGapConnectorPayload,
   normalizeLineData,
   resolveGapConnectorProps,
   resolveLineActiveDot,
   resolveLineDot
 } from '../lineGapVisualization';
+import { resolveXAxisTicks, DEFAULT_CHART_WIDTH } from '../axisTicks';
+import { brokenSmoothLineShape } from '../smoothCurvePath';
 
 type TrendMode = 'line' | 'area';
 
@@ -328,26 +330,6 @@ const toChartValue = (value: unknown): ChartValue => {
 const getDatumValue = <TDatum extends object>(datum: TDatum | undefined, key: string) =>
   datum ? (datum as Record<string, unknown>)[key] : undefined;
 
-const createFullLengthGapConnectorData = <TDatum extends object>(
-  data: readonly TDatum[],
-  segment: LineGapSegment<TDatum>,
-  dataKey: LineDataKey<TDatum>,
-  xKey: LineDataKey<TDatum>,
-  internalDataKey: string
-): Array<TDatum & Record<string, unknown>> => {
-  const endpointData = createGapConnectorData(segment, dataKey, xKey, internalDataKey);
-
-  return data.map((datum, index) => ({
-    ...datum,
-    [internalDataKey]:
-      index === segment.startIndex
-        ? endpointData[0][internalDataKey]
-        : index === segment.endIndex
-          ? endpointData[1][internalDataKey]
-          : null
-  }));
-};
-
 const formatCategoryValue = (
   value: string | number | Date | null | undefined,
   format: ChartFormat | undefined,
@@ -498,33 +480,55 @@ export function TrendChart<TDatum extends object = ChartDatum>({
     return seriesWithColor.map((item) => {
       const dataKey = item.id as LineDataKey<TDatum>;
       const effectiveStrokeWidth = getEffectiveStrokeWidth(item, rechartsProps?.line?.strokeWidth);
+      const analysis = analyzeLineGaps(lineData, dataKey);
+      const internalDataKey = `${GAP_CONNECTOR_DATA_KEY_PREFIX}${item.id}-overlay`;
 
       return {
-        analysis: analyzeLineGaps(lineData, dataKey),
+        analysis,
         dataKey,
         effectiveStrokeWidth,
-        item
+        internalDataKey,
+        item,
+        overlayData:
+          analysis.segments.length > 0 && item.connectGaps
+            ? lineData.map((datum) => ({ ...datum, [internalDataKey]: datum[dataKey] }))
+            : undefined
       };
     });
   }, [lineData, mode, rechartsProps?.line?.strokeWidth, seriesWithColor]);
+  const { ref: chartWidthRef, width: chartWidth } = useChartWidth();
+  const resolvedXTicks = useMemo(
+    () =>
+      resolveXAxisTicks(data, xKey, xAxis, rechartsProps?.xAxis, {
+        chartWidth: chartWidth > 0 ? chartWidth : DEFAULT_CHART_WIDTH,
+        formatLabel: (value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)
+      }),
+    [chartWidth, data, rechartsProps?.xAxis, xAxis, xFormat, xFormatOptions, xKey]
+  );
+  const resolvedXInterval =
+    xAxis?.interval !== undefined ? xAxis?.interval : resolvedXTicks ? 0 : undefined;
   const hasData =
     data.length > 0 &&
     seriesWithColor.some((item) => data.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));
   const resolvedState = state === 'ready' && !hasData ? 'empty' : state;
   const renderChart = () => (
-    <div onMouseDown={onChartMouse} style={{ height, position: 'relative', width: '100%' }}>
+    <div
+      onMouseDown={onChartMouse}
+      ref={chartWidthRef}
+      style={{ height, position: 'relative', width: '100%' }}
+    >
       <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
         {mode === 'area' ? (
           <AreaChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>
             <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
             <XAxis
               axisLine={xAxis?.axisLine}
-              interval={xAxis?.interval}
+              interval={resolvedXInterval}
               minTickGap={xAxis?.minTickGap}
               stroke={chartTheme.axis.lineColor}
               tick={resolveAxisTick(xAxis)}
               tickLine={xAxis?.tickLine}
-              ticks={xAxis?.ticks}
+              ticks={resolvedXTicks}
               {...getXAxisRechartsProps(rechartsProps?.xAxis)}
               dataKey={xKey as never}
               tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
@@ -589,12 +593,12 @@ export function TrendChart<TDatum extends object = ChartDatum>({
             <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
             <XAxis
               axisLine={xAxis?.axisLine}
-              interval={xAxis?.interval}
+              interval={resolvedXInterval}
               minTickGap={xAxis?.minTickGap}
               stroke={chartTheme.axis.lineColor}
               tick={resolveAxisTick(xAxis)}
               tickLine={xAxis?.tickLine}
-              ticks={xAxis?.ticks}
+              ticks={resolvedXTicks}
               {...getXAxisRechartsProps(rechartsProps?.xAxis)}
               dataKey={xKey as never}
               tickFormatter={(value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)}
@@ -624,71 +628,66 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                 />
               }
             />
-            {lineSeries.flatMap(({ analysis, effectiveStrokeWidth, item }) => {
+            {lineSeries.flatMap(({ dataKey, effectiveStrokeWidth, internalDataKey, item, overlayData }) => {
               const connectorProps = resolveGapConnectorProps(
                 item.connectGaps,
                 item.color,
                 effectiveStrokeWidth
               );
 
-              if (!connectorProps) {
+              if (!connectorProps || !overlayData) {
                 return [];
               }
 
-              return analysis.segments.map((segment, segmentIndex) => {
-                const internalDataKey = `${GAP_CONNECTOR_DATA_KEY_PREFIX}${item.id}-${segmentIndex}`;
-
-                return (
-                  <Line
-                    {...getLineRechartsProps(rechartsProps?.line)}
-                    activeDot={false}
-                    connectNulls
-                    data={createFullLengthGapConnectorData(
-                      lineData,
-                      segment,
-                      item.id as LineDataKey<TDatum>,
-                      xKey,
-                      internalDataKey
-                    )}
-                    dataKey={internalDataKey}
-                    dot={false}
-                    isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
-                    key={internalDataKey}
-                    opacity={connectorProps.opacity}
-                    stroke={connectorProps.stroke}
-                    strokeDasharray={connectorProps.strokeDasharray}
-                    strokeWidth={connectorProps.strokeWidth}
-                    type="linear"
-                  />
-                );
-              });
+              return [
+                <Line
+                  {...getLineRechartsProps(rechartsProps?.line)}
+                  activeDot={false}
+                  connectNulls
+                  data={overlayData}
+                  dataKey={internalDataKey}
+                  dot={false}
+                  isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
+                  key={internalDataKey}
+                  opacity={connectorProps.opacity}
+                  stroke={connectorProps.stroke}
+                  strokeDasharray={connectorProps.strokeDasharray}
+                  strokeWidth={connectorProps.strokeWidth}
+                  type="monotone"
+                />
+              ];
             })}
-            {lineSeries.map(({ analysis, dataKey, effectiveStrokeWidth, item }) => (
-              <Line
-                {...getLineRechartsProps(rechartsProps?.line)}
-                {...getSeriesPresentationProps(item)}
-                activeDot={
-                  rechartsProps?.line?.activeDot ??
-                  resolveLineActiveDot(line?.activeDot ?? defaultActiveDot, effectiveStrokeWidth)
-                }
-                connectNulls={false}
-                dataKey={dataKey}
-                dot={
-                  rechartsProps?.line?.dot ??
-                  resolveLineDot(line?.dot ?? false, {
-                    effectiveStrokeWidth,
-                    isolatedIndexes: analysis.isolatedIndexes,
-                    seriesColor: item.color
-                  })
-                }
-                isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
-                key={item.id}
-                name={item.label}
-                stroke={item.color}
-                strokeWidth={effectiveStrokeWidth}
-                type="monotone"
-              />
-            ))}
+            {lineSeries.map(({ analysis, dataKey, effectiveStrokeWidth, item }) => {
+              const hasGaps = analysis.segments.length > 0;
+
+              return (
+                <Line
+                  {...getLineRechartsProps(rechartsProps?.line)}
+                  {...getSeriesPresentationProps(item)}
+                  activeDot={
+                    rechartsProps?.line?.activeDot ??
+                    resolveLineActiveDot(line?.activeDot ?? defaultActiveDot, effectiveStrokeWidth)
+                  }
+                  connectNulls={false}
+                  dataKey={dataKey}
+                  dot={
+                    rechartsProps?.line?.dot ??
+                    resolveLineDot(line?.dot ?? false, {
+                      effectiveStrokeWidth,
+                      isolatedIndexes: analysis.isolatedIndexes,
+                      seriesColor: item.color
+                    })
+                  }
+                  isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}
+                  key={item.id}
+                  name={item.label}
+                  shape={hasGaps ? brokenSmoothLineShape : undefined}
+                  stroke={item.color}
+                  strokeWidth={effectiveStrokeWidth}
+                  type="monotone"
+                />
+              );
+            })}
           </LineChart>
         )}
       </ResponsiveContainer>

@@ -49,7 +49,7 @@ describe('TrendChart', () => {
     expect(document.activeElement).toBe(svgSurface);
   });
 
-  it('renders normalized gap connectors and isolated dots without mutating input data', () => {
+  it('renders one dashed overlay per gapped series plus the solid line without mutating input data', () => {
     const data = [
       { date: '2026-08-01', value: 1 },
       { date: '2026-08-02', value: null },
@@ -78,14 +78,149 @@ describe('TrendChart', () => {
     );
 
     expect(data).toEqual(originalData);
-    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(3);
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(2);
     const dots = [...container.querySelectorAll('.recharts-line-dots .recharts-dot')];
 
     expect(dots).toHaveLength(3);
-    expect(dots.every((dot) => dot.getAttribute('r') === '1')).toBe(true);
+    expect(dots.every((dot) => dot.getAttribute('r') === '2')).toBe(true);
     expect(dots.every((dot) => dot.getAttribute('fill') === '#008060')).toBe(true);
     expect(dots.every((dot) => dot.getAttribute('stroke') === '#008060')).toBe(true);
     expect(dots.every((dot) => dot.getAttribute('stroke-width') === '0')).toBe(true);
+  });
+
+  it('draws a single full-length dashed overlay below the solid line per gapped series', () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: null },
+      { date: '2026-08-03', value: 3 },
+      { date: '2026-08-04', value: null },
+      { date: '2026-08-05', value: null },
+      { date: '2026-08-06', value: 8 }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        rechartsProps={{ line: { isAnimationActive: false } }}
+        series={[{ connectGaps: true, data, id: 'value', label: 'Value' }]}
+        xKey="date"
+      />
+    );
+
+    const paths = [...container.querySelectorAll('.recharts-line-curve')];
+
+    expect(paths).toHaveLength(2);
+    const [overlay, solid] = paths;
+
+    expect(overlay).toHaveAttribute('stroke-dasharray', '5 5');
+    expect(overlay).toHaveAttribute('stroke', solid.getAttribute('stroke'));
+    expect(overlay).toHaveAttribute('stroke-width', '2');
+    expect(overlay).toHaveAttribute('opacity', '1');
+    expect(solid).not.toHaveAttribute('stroke-dasharray', /\S+/);
+
+    const overlayPath = overlay.getAttribute('d') ?? '';
+    const solidPath = solid.getAttribute('d') ?? '';
+
+    expect(overlayPath).toContain('M');
+    expect(solidPath).toContain('M');
+    expect(overlayPath).not.toContain('Z');
+    // The solid line is broken into one subpath per valid run.
+    expect(solidPath.match(/M/g) ?? []).toHaveLength(3);
+    expect(solidPath).not.toContain('Z');
+  });
+
+  it('keeps solid segments on the same smooth curve as the dashed overlay', () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: null },
+      { date: '2026-08-03', value: 3 },
+      { date: '2026-08-04', value: 4 }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        rechartsProps={{ line: { isAnimationActive: false } }}
+        series={[{ connectGaps: true, data, id: 'value', label: 'Value' }]}
+        xKey="date"
+      />
+    );
+
+    const paths = [...container.querySelectorAll('.recharts-line-curve')];
+    const [overlay, solid] = paths;
+    const overlayPath = overlay.getAttribute('d') ?? '';
+    const solidPath = solid.getAttribute('d') ?? '';
+    const solidSubpaths = solidPath.split('M').filter(Boolean);
+
+    expect(solidSubpaths).toHaveLength(2);
+    expect(overlayPath).not.toContain('Z');
+
+    for (const subpath of solidSubpaths) {
+      expect(overlayPath).toContain(subpath.replace(/^M/, ''));
+    }
+  });
+
+  it('renders one dashed overlay per series when multiple series have gaps', () => {
+    const data = [
+      { date: '2026-08-01', current: 1, previous: 10 },
+      { date: '2026-08-02', current: null, previous: null },
+      { date: '2026-08-03', current: 3, previous: 8 }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        rechartsProps={{ line: { isAnimationActive: false } }}
+        series={[
+          { connectGaps: true, data, id: 'current', label: 'Current' },
+          { connectGaps: true, data, id: 'previous', label: 'Previous' }
+        ]}
+        xKey="date"
+      />
+    );
+
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(4);
+    expect(container.querySelectorAll('path.recharts-line-curve[stroke-dasharray]')).toHaveLength(2);
+  });
+
+  it('keeps the dashed overlay off when breakpoint connection is disabled', () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: null },
+      { date: '2026-08-03', value: 3 }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        rechartsProps={{ line: { isAnimationActive: false } }}
+        series={[{ data, id: 'value', label: 'Value' }]}
+        xKey="date"
+      />
+    );
+
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(1);
+    expect(container.querySelector('path.recharts-line-curve[stroke-dasharray]')).not.toBeInTheDocument();
+  });
+
+  it('keeps the dashed overlay off for a continuous series without breakpoints', () => {
+    const data = [
+      { date: '2026-08-01', value: 1 },
+      { date: '2026-08-02', value: 2 },
+      { date: '2026-08-03', value: 3 }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        rechartsProps={{ line: { isAnimationActive: false } }}
+        series={[{ connectGaps: true, data, id: 'value', label: 'Value' }]}
+        xKey="date"
+      />
+    );
+
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(1);
+    expect(container.querySelector('path.recharts-line-curve[stroke-dasharray]')).not.toBeInTheDocument();
   });
 
   it('normalizes empty strings, undefined values, and NaN before gap analysis', () => {
@@ -340,6 +475,44 @@ describe('TrendChart', () => {
 
     expect(screen.getByText('New customers')).toBeVisible();
     expect(screen.getByText('Returning customers')).toBeVisible();
+  });
+
+  it('renders exactly the x-axis ticks provided through xAxis.ticks', () => {
+    render(
+      <TrendChart
+        title="Tick ladder"
+        data={[
+          { date: '2026-07-01', grossSales: 1 },
+          { date: '2026-07-02', grossSales: 2 },
+          { date: '2026-07-03', grossSales: 3 }
+        ]}
+        series={[{ id: 'grossSales', label: 'Gross sales', data: [] }]}
+        xAxis={{ ticks: ['2026-07-01', '2026-07-03'] }}
+        xKey="date"
+      />
+    );
+
+    expect(screen.getByText('2026-07-01')).toBeVisible();
+    expect(screen.getByText('2026-07-03')).toBeVisible();
+    expect(screen.queryByText('2026-07-02')).not.toBeInTheDocument();
+  });
+
+  it('applies the evenly-spaced default ticks that keep both x-axis endpoints', () => {
+    const data = Array.from({ length: 30 }, (_, index) => ({
+      date: `2026-07-${String(index + 1).padStart(2, '0')}`,
+      grossSales: index
+    }));
+
+    render(
+      <TrendChart
+        data={data}
+        series={[{ id: 'grossSales', label: 'Gross sales', data }]}
+        xKey="date"
+      />
+    );
+
+    expect(screen.getAllByText('2026-07-01').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('2026-07-30').length).toBeGreaterThan(0);
   });
 
   it('hides the built-in legend when showLegend is false', () => {

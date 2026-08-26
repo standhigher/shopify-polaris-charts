@@ -51,11 +51,11 @@ describe('ComboChart', () => {
     );
 
     expect(data).toEqual(originalData);
-    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(3);
+    expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(2);
     const dots = [...container.querySelectorAll('.recharts-line-dots .recharts-dot')];
 
     expect(dots).toHaveLength(3);
-    expect(dots.every((dot) => dot.getAttribute('r') === '1')).toBe(true);
+    expect(dots.every((dot) => dot.getAttribute('r') === '2')).toBe(true);
     expect(dots.every((dot) => dot.getAttribute('fill') === '#008060')).toBe(true);
   });
 

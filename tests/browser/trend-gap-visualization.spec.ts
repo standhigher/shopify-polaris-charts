@@ -64,12 +64,15 @@ test.describe('line gap visualization stories', () => {
     await expect(svgSurface).toBeFocused();
   });
 
-  test('TrendChart renders dashed connectors below the solid line and activates isolated-point tooltip', async ({ page }) => {
+  test('TrendChart renders one dashed overlay below the solid line and activates isolated-point tooltip', async ({ page }) => {
     await page.goto(trendGapUrl);
     await expect(page.getByRole('region', { name: 'Revenue data gaps' })).toBeVisible();
     const mainLine = page.locator('path.recharts-line-curve[stroke="#008060"]');
     await expect(mainLine).toHaveCount(1);
     await expect(mainLine).not.toHaveAttribute('stroke-dasharray', /\S+/);
+    // Wait for the line entrance animation to settle so the overlay carries its
+    // final dash pattern before the geometry is read.
+    await expect(page.locator('path.recharts-line-curve[stroke-dasharray="5 4"]')).toHaveCount(1);
 
     const geometry = await page.locator('svg').first().evaluate((svg) => {
       const paths = Array.from(svg.querySelectorAll<SVGPathElement>('path.recharts-line-curve'));
@@ -103,7 +106,7 @@ test.describe('line gap visualization stories', () => {
       };
     });
 
-    expect(geometry.connectorPaths).toHaveLength(2);
+    expect(geometry.connectorPaths).toHaveLength(1);
     expect(geometry.mainPath).not.toBeNull();
     expect(geometry.connectorPaths.every((path) => path.strokeDasharray === '5 4')).toBe(true);
     expect(geometry.connectorPaths.every((path) => path.stroke === '#6d7175')).toBe(true);
@@ -161,7 +164,7 @@ test.describe('line gap visualization stories', () => {
     const rightLineData = await rightLine.getAttribute('d');
 
     const rightConnectors = page.locator('path.recharts-line-curve[stroke-dasharray="3 3"][stroke="#8da9d8"]');
-    await expect(rightConnectors).toHaveCount(2);
+    await expect(rightConnectors).toHaveCount(1);
 
     const rightLinePoints = pathPoints(rightLineData);
     const connectorPaths = await rightConnectors.evaluateAll((elements) =>
