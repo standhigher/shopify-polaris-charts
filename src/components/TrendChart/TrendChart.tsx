@@ -628,7 +628,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                 />
               }
             />
-            {lineSeries.flatMap(({ dataKey, effectiveStrokeWidth, internalDataKey, item, overlayData }) => {
+            {lineSeries.flatMap(({ effectiveStrokeWidth, internalDataKey, item, overlayData }) => {
               const connectorProps = resolveGapConnectorProps(
                 item.connectGaps,
                 item.color,
