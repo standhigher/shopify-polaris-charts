@@ -13,3 +13,4 @@ playwright-report/
 !.env.example
 
 .playwright-browsers/
+.npm-cache/
