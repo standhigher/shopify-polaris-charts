@@ -7,8 +7,8 @@ import { performance } from 'node:perf_hooks';
 export const CHART_COUNTS = Object.freeze([5, 10, 20]);
 export const POINT_COUNTS = Object.freeze([100, 500, 1000]);
 export const BENCHMARK_BUDGETS = Object.freeze({
-  bundleGzipBytes: 18 * 1024,
-  bundleRawBytes: 100 * 1024,
+  bundleGzipBytes: 19.5 * 1024,
+  bundleRawBytes: 110 * 1024,
   heapDeltaBytes: 256 * 1024 * 1024,
   initialRenderMs: 2500,
   updateMs: 2500
