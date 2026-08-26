@@ -129,77 +129,12 @@ function getTotalLength(path: SVGPathElement | null): number {
 }
 
 /**
- * Generates a simple stroke-dasharray string for animating a line draw effect.
- * Mirrors Recharts' `LineDrawShape` so custom shapes animate like native lines.
+ * Computes the stroke-dasharray for a line's entrance draw-in animation:
+ * reveals exactly `visibleLength` pixels of the path. Mirrors Recharts'
+ * `LineDrawShape` behavior for the common (non-custom-dash) case.
  */
-function generateSimpleStrokeDasharray(totalLength: number, length: number): string {
-  return `${length}px ${totalLength}px`;
-}
-
-/** Normalizes a dash pattern to the even-length sequence used by SVG renderers. */
-function normalizeDashPattern(lines: number[]): number[] {
-  return lines.length % 2 !== 0 ? [...lines, ...lines] : lines;
-}
-
-function repeat(lines: number[], count: number): number[] {
-  const result: number[] = [];
-
-  for (let i = 0; i < count; i += 1) {
-    result.push(...lines);
-  }
-
-  return result;
-}
-
-/**
- * Computes a stroke-dasharray string that reveals exactly `length` pixels of a
- * user-specified dash pattern, followed by a gap of `totalLength`.
- */
-function getStrokeDasharray(length: number, totalLength: number, lines: number[]): string {
-  const normalizedLines = normalizeDashPattern(lines);
-  const lineLength = normalizedLines.reduce((sum, value) => sum + value, 0);
-
-  if (!lineLength) {
-    return generateSimpleStrokeDasharray(totalLength, length);
-  }
-
-  const count = Math.floor(length / lineLength);
-  const remainLength = length % lineLength;
-  let remainLines: number[] = [];
-
-  for (let i = 0, sum = 0; i < normalizedLines.length; sum += normalizedLines[i] ?? 0, i += 1) {
-    const lineValue = normalizedLines[i];
-
-    if (lineValue != null && sum + lineValue > remainLength) {
-      remainLines = [...normalizedLines.slice(0, i), remainLength - sum];
-      break;
-    }
-  }
-
-  const emptyLines = remainLines.length % 2 === 0 ? [0, totalLength] : [totalLength];
-
-  return [...repeat(normalizedLines, count), ...remainLines, ...emptyLines]
-    .map((line) => `${line}px`)
-    .join(', ');
-}
-
-/**
- * Computes the animated stroke-dasharray for a line's entrance animation.
- */
-function computeAnimatedStrokeDasharray(
-  userStrokeDasharray: unknown,
-  totalLength: number,
-  visibleLength: number
-): string {
-  if (userStrokeDasharray) {
-    const lines = String(userStrokeDasharray)
-      .split(/[,\s]+/gim)
-      .map((num) => Number.parseFloat(num));
-
-    return getStrokeDasharray(visibleLength, totalLength, lines);
-  }
-
-  return generateSimpleStrokeDasharray(totalLength, visibleLength);
+function computeAnimatedStrokeDasharray(totalLength: number, visibleLength: number): string {
+  return `${visibleLength}px ${totalLength}px`;
 }
 
 /**
@@ -227,7 +162,7 @@ export function brokenSmoothLineShape(props: LineDrawShapeProps): ReactElement |
   if (props.visibleLength != null) {
     const totalLength = getTotalLength(props.pathRef?.current ?? null);
 
-    strokeDasharray = computeAnimatedStrokeDasharray(props.strokeDasharray, totalLength, props.visibleLength);
+    strokeDasharray = computeAnimatedStrokeDasharray(totalLength, props.visibleLength);
   }
 
   return <Curve {...props} points={[]} path={d} strokeDasharray={strokeDasharray} />;
