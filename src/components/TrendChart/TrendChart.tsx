@@ -330,6 +330,51 @@ const toChartValue = (value: unknown): ChartValue => {
 const getDatumValue = <TDatum extends object>(datum: TDatum | undefined, key: string) =>
   datum ? (datum as Record<string, unknown>)[key] : undefined;
 
+const toDateSortValue = (value: ChartValue) => {
+  if (value instanceof Date) {
+    return value.valueOf();
+  }
+
+  if (typeof value === 'string' || typeof value === 'number') {
+    const timestamp = new Date(value).valueOf();
+
+    return Number.isNaN(timestamp) ? undefined : timestamp;
+  }
+
+  return undefined;
+};
+
+const compareDateValues = (left: ChartValue, right: ChartValue) => {
+  if (left === right) {
+    return 0;
+  }
+
+  const leftTimestamp = toDateSortValue(left);
+  const rightTimestamp = toDateSortValue(right);
+
+  if (leftTimestamp !== undefined && rightTimestamp !== undefined) {
+    return leftTimestamp - rightTimestamp;
+  }
+
+  const leftText = left instanceof Date ? left.toISOString() : String(left ?? '');
+  const rightText = right instanceof Date ? right.toISOString() : String(right ?? '');
+
+  return leftText.localeCompare(rightText);
+};
+
+const sortDateSeries = <TDatum extends object>(data: readonly TDatum[], xKey: keyof TDatum & string) =>
+  [...data]
+    .map((datum, index) => ({ datum, index }))
+    .sort((left, right) => {
+      const comparison = compareDateValues(
+        getDatumValue(left.datum, xKey) as ChartValue,
+        getDatumValue(right.datum, xKey) as ChartValue
+      );
+
+      return comparison !== 0 ? comparison : left.index - right.index;
+    })
+    .map(({ datum }) => datum);
+
 const formatCategoryValue = (
   value: string | number | Date | null | undefined,
   format: ChartFormat | undefined,
@@ -461,17 +506,21 @@ export function TrendChart<TDatum extends object = ChartDatum>({
     })),
     [series]
   );
+  const chartData = useMemo(
+    () => (xFormat === 'date' ? sortDateSeries(data, xKey) : data),
+    [data, xFormat, xKey]
+  );
   const lineData = useMemo(() => {
     if (mode === 'area') {
-      return data;
+      return chartData;
     }
 
     return seriesWithColor.reduce<TDatum[]>(
       (normalizedData, item) =>
         normalizeLineData(normalizedData, item.id as LineDataKey<TDatum>),
-      data
+      chartData
     );
-  }, [data, mode, seriesWithColor]);
+  }, [chartData, mode, seriesWithColor]);
   const lineSeries = useMemo(() => {
     if (mode === 'area') {
       return [];
@@ -499,17 +548,17 @@ export function TrendChart<TDatum extends object = ChartDatum>({
   const { ref: chartWidthRef, width: chartWidth } = useChartWidth();
   const resolvedXTicks = useMemo(
     () =>
-      resolveXAxisTicks(data, xKey, xAxis, rechartsProps?.xAxis, {
+      resolveXAxisTicks(chartData, xKey, xAxis, rechartsProps?.xAxis, {
         chartWidth: chartWidth > 0 ? chartWidth : DEFAULT_CHART_WIDTH,
         formatLabel: (value) => formatCategoryValue(toChartValue(value), xFormat, xFormatOptions)
       }),
-    [chartWidth, data, rechartsProps?.xAxis, xAxis, xFormat, xFormatOptions, xKey]
+    [chartWidth, chartData, rechartsProps?.xAxis, xAxis, xFormat, xFormatOptions, xKey]
   );
   const resolvedXInterval =
     xAxis?.interval !== undefined ? xAxis?.interval : resolvedXTicks ? 0 : undefined;
   const hasData =
-    data.length > 0 &&
-    seriesWithColor.some((item) => data.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));
+    chartData.length > 0 &&
+    seriesWithColor.some((item) => chartData.some((datum) => !isEmptyValue(getDatumValue(datum, item.id))));
   const resolvedState = state === 'ready' && !hasData ? 'empty' : state;
   const renderChart = () => (
     <div
@@ -519,7 +568,12 @@ export function TrendChart<TDatum extends object = ChartDatum>({
     >
       <ResponsiveContainer height="100%" initialDimension={{ height, width: 640 }} width="100%">
         {mode === 'area' ? (
-          <AreaChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={data}>
+          <AreaChart
+            margin={margin}
+            {...getChartRechartsProps(rechartsProps?.chart)}
+            accessibilityLayer
+            data={chartData}
+          >
             <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
             <XAxis
               axisLine={xAxis?.axisLine}
@@ -589,7 +643,12 @@ export function TrendChart<TDatum extends object = ChartDatum>({
             ))}
           </AreaChart>
         ) : (
-          <LineChart margin={margin} {...getChartRechartsProps(rechartsProps?.chart)} accessibilityLayer data={lineData}>
+          <LineChart
+            margin={margin}
+            {...getChartRechartsProps(rechartsProps?.chart)}
+            accessibilityLayer
+            data={lineData}
+          >
             <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
             <XAxis
               axisLine={xAxis?.axisLine}
@@ -700,7 +759,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
         {showLegend ? (
           <div aria-label={localization.messages.chartLegend} style={styles.legend}>
             {seriesWithColor.map((item) => {
-              const firstDatum = data.find((datum) => !isEmptyValue(getDatumValue(datum, item.id)));
+              const firstDatum = chartData.find((datum) => !isEmptyValue(getDatumValue(datum, item.id)));
 
               return (
                 <span key={item.id} style={styles.legendItem}>

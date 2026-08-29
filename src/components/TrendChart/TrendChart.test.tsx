@@ -515,6 +515,39 @@ describe('TrendChart', () => {
     expect(screen.getAllByText('2026-07-30').length).toBeGreaterThan(0);
   });
 
+  it('renders date-category data chronologically even when caller data arrives out of order', async () => {
+    const data = [
+      { date: '2026-08-04', averageUpsellValueMinor: 40 },
+      { date: '2026-08-01', averageUpsellValueMinor: 10 },
+      { date: '2026-08-03', averageUpsellValueMinor: 30 },
+      { date: '2026-08-02', averageUpsellValueMinor: 20 }
+    ];
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        format="currency"
+        series={[{ data, id: 'averageUpsellValueMinor', label: 'Average upsell value' }]}
+        tooltip={{
+          labelFormatter: (label) => `Tooltip date: ${label}`,
+          valueFormatter: (value) => `Tooltip value: ${value}`
+        }}
+        xFormat="date"
+        xKey="date"
+      />
+    );
+
+    const earliestTick = screen.getByText('Aug 1, 2026');
+    const latestTick = screen.getByText('Aug 4, 2026');
+
+    expect(earliestTick.compareDocumentPosition(latestTick) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    activateTooltip(container, 65);
+
+    expect(await screen.findByText('Tooltip date: 2026-08-01')).toBeVisible();
+    expect(screen.getByText('Tooltip value: 10')).toBeVisible();
+  });
+
   it('hides the built-in legend when showLegend is false', () => {
     render(
       <TrendChart

@@ -4,6 +4,12 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning.
 
+## 1.2.1 - 2026-08-29
+
+### Fixed
+
+- Fixed date-axis trend charts so unsorted date input is rendered chronologically, and hover/tooltip dates stay aligned with the visible point sequence.
+
 ## 1.2.0 - 2026-08-25
 
 ### Added
