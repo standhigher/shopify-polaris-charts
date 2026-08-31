@@ -1,5 +1,5 @@
 export const packageName = '@standhigher/charts';
-export const packageVersion = '1.2.1';
+export const packageVersion = '1.2.2';
 
 export * from './formatters';
 export * from './presets';
