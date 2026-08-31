@@ -125,6 +125,46 @@ describe('ComboChart', () => {
     expect(container.querySelectorAll('.recharts-yAxis')).toHaveLength(2);
   });
 
+  it('keeps sampled date-category ticks chronological when rendering a line gap connector', () => {
+    const data = Array.from({ length: 30 }, (_, index) => {
+      const date = new Date(Date.UTC(2026, 7, 2 + index)).toISOString().slice(0, 10);
+      const valuesByDate: Record<string, number> = {
+        '2026-08-05': 12,
+        '2026-08-12': 3,
+        '2026-08-19': 6,
+        '2026-08-29': 9
+      };
+
+      return {
+        date,
+        orders: index + 1,
+        revenue: valuesByDate[date]
+      };
+    });
+
+    const { container } = render(
+      <ComboChart
+        data={data}
+        rechartsProps={{ line: { isAnimationActive: false } }}
+        series={[
+          { data, id: 'orders', label: 'Orders', type: 'bar' },
+          { connectGaps: true, data, id: 'revenue', label: 'Revenue', type: 'line' }
+        ]}
+        xAxis={{ interval: 'preserveStartEnd' }}
+        xFormat="date"
+        xKey="date"
+      />
+    );
+
+    const dateTicks = [...container.querySelectorAll('svg text.recharts-cartesian-axis-tick-value')]
+      .map((tick) => tick.textContent ?? '')
+      .filter((text) => text.includes('2026') && !text.startsWith('$'));
+    const timestamps = dateTicks.map((text) => new Date(text).valueOf());
+
+    expect(dateTicks.length).toBeGreaterThan(2);
+    expect(timestamps).toEqual([...timestamps].sort((left, right) => left - right));
+  });
+
   it('keeps non-gap extrema in the Y-axis domain while rendering connectors', () => {
     const data = [
       { date: '2026-08-01', orders: 10, revenue: 1 },

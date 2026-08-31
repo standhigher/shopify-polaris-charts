@@ -51,6 +51,7 @@ import type { LineDataKey } from '../lineGapUtils';
 import { analyzeLineGaps } from '../lineGapUtils';
 import {
   GAP_CONNECTOR_DATA_KEY_PREFIX,
+  attachGapConnectorData,
   filterGapConnectorPayload,
   normalizeLineData,
   resolveGapConnectorProps,
@@ -537,14 +538,32 @@ export function TrendChart<TDatum extends object = ChartDatum>({
         dataKey,
         effectiveStrokeWidth,
         internalDataKey,
-        item,
-        overlayData:
-          analysis.segments.length > 0 && item.connectGaps
-            ? lineData.map((datum) => ({ ...datum, [internalDataKey]: datum[dataKey] }))
-            : undefined
+        item
       };
     });
   }, [lineData, mode, rechartsProps?.line?.strokeWidth, seriesWithColor]);
+  const lineChartData = useMemo(() => {
+    if (mode === 'area') {
+      return chartData;
+    }
+
+    return attachGapConnectorData(
+      lineData,
+      lineSeries.flatMap(({ analysis, dataKey, internalDataKey, item, effectiveStrokeWidth }) => {
+        const connectorProps = resolveGapConnectorProps(
+          item.connectGaps,
+          item.color,
+          effectiveStrokeWidth
+        );
+
+        if (!connectorProps || analysis.segments.length === 0) {
+          return [];
+        }
+
+        return [{ dataKey, internalDataKey }];
+      })
+    );
+  }, [chartData, lineData, lineSeries, mode]);
   const { ref: chartWidthRef, width: chartWidth } = useChartWidth();
   const resolvedXTicks = useMemo(
     () =>
@@ -647,7 +666,7 @@ export function TrendChart<TDatum extends object = ChartDatum>({
             margin={margin}
             {...getChartRechartsProps(rechartsProps?.chart)}
             accessibilityLayer
-            data={lineData}
+            data={lineChartData}
           >
             <CartesianGrid {...resolveGridProps(grid)} {...getCartesianGridRechartsProps(rechartsProps?.cartesianGrid)} />
             <XAxis
@@ -687,14 +706,14 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                 />
               }
             />
-            {lineSeries.flatMap(({ effectiveStrokeWidth, internalDataKey, item, overlayData }) => {
+            {lineSeries.flatMap(({ effectiveStrokeWidth, internalDataKey, item, analysis }) => {
               const connectorProps = resolveGapConnectorProps(
                 item.connectGaps,
                 item.color,
                 effectiveStrokeWidth
               );
 
-              if (!connectorProps || !overlayData) {
+              if (!connectorProps || analysis.segments.length === 0) {
                 return [];
               }
 
@@ -703,7 +722,6 @@ export function TrendChart<TDatum extends object = ChartDatum>({
                   {...getLineRechartsProps(rechartsProps?.line)}
                   activeDot={false}
                   connectNulls
-                  data={overlayData}
                   dataKey={internalDataKey}
                   dot={false}
                   isAnimationActive={prefersReducedMotion ? false : rechartsProps?.line?.isAnimationActive}

@@ -54,6 +54,11 @@ const monthTrendData = Array.from({ length: 30 }, (_, index) => ({
   grossSales: Math.round(11000 + Math.sin(index / 2.5) * 3200 + index * 260)
 }));
 
+const monthGapTrendData = monthTrendData.map((datum, index) => ({
+  ...datum,
+  grossSales: index === 8 || index === 9 || index === 19 ? null : datum.grossSales
+}));
+
 const orderTrendData = [
   { date: '2026-07-01', onlineStore: 138, pointOfSale: 42 },
   { date: '2026-07-02', onlineStore: 156, pointOfSale: 48 },
@@ -143,6 +148,32 @@ export const MonthlyTrend: Story = {
         format="currency"
         height={300}
         series={[{ data: monthTrendData, id: 'grossSales', label: 'Gross sales' }]}
+        xFormat="date"
+        xKey="date"
+      />
+    </ChartCard>
+  )
+};
+
+export const MonthlyTrendWithGaps: Story = {
+  render: () => (
+    <ChartCard title="Revenue data gaps" subtitle="Last 30 days" metric="$117.3K" state="ready">
+      <TrendChart
+        data={monthGapTrendData}
+        format="currency"
+        height={300}
+        line={{ activeDot: { r: 'auto' }, dot: { r: 'auto', show: 'isolated' } }}
+        series={[
+          {
+            color: '#008060',
+            connectGaps: { color: '#6d7175', opacity: 0.8, strokeDasharray: '5 4', strokeWidth: 2 },
+            data: monthGapTrendData,
+            id: 'grossSales',
+            label: 'Gross sales'
+          }
+        ]}
+        showLegend={false}
+        xAxis={{ interval: 'preserveStartEnd' }}
         xFormat="date"
         xKey="date"
       />

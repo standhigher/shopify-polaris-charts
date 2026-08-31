@@ -132,6 +132,11 @@ export interface ResolvedGapConnectorProps {
   opacity: number;
 }
 
+export interface GapConnectorDataOptions {
+  dataKey: string;
+  internalDataKey: string;
+}
+
 export function resolveGapConnectorProps(
   connectGaps: boolean | ChartGapConnectorOptions | undefined,
   seriesColor: string | undefined,
@@ -149,4 +154,23 @@ export function resolveGapConnectorProps(
     strokeDasharray: options.strokeDasharray ?? '5 5',
     strokeWidth: options.strokeWidth ?? effectiveStrokeWidth
   };
+}
+
+export function attachGapConnectorData<TDatum extends object>(
+  data: readonly TDatum[],
+  connectors: readonly GapConnectorDataOptions[]
+): TDatum[] {
+  if (!connectors.length) {
+    return data.map((datum) => ({ ...datum }));
+  }
+
+  return data.map((datum) => {
+    const nextDatum = { ...datum } as Record<string, unknown>;
+
+    for (const connector of connectors) {
+      nextDatum[connector.internalDataKey] = nextDatum[connector.dataKey];
+    }
+
+    return nextDatum as TDatum;
+  });
 }

@@ -548,6 +548,43 @@ describe('TrendChart', () => {
     expect(screen.getByText('Tooltip value: 10')).toBeVisible();
   });
 
+  it('keeps sampled date-category ticks chronological when rendering a gap connector line', () => {
+    const data = Array.from({ length: 30 }, (_, index) => {
+      const date = new Date(Date.UTC(2026, 6, 31 + index)).toISOString().slice(0, 10);
+      const valuesByDate: Record<string, number> = {
+        '2026-08-05': 12,
+        '2026-08-12': 3,
+        '2026-08-19': 6,
+        '2026-08-29': 9
+      };
+
+      return {
+        date,
+        value: valuesByDate[date]
+      };
+    });
+
+    const { container } = render(
+      <TrendChart
+        data={data}
+        format="number"
+        rechartsProps={{ line: { isAnimationActive: false } }}
+        series={[{ connectGaps: true, data, id: 'value', label: 'Value' }]}
+        xAxis={{ interval: 'preserveStartEnd' }}
+        xFormat="date"
+        xKey="date"
+      />
+    );
+
+    const dateTicks = [...container.querySelectorAll('svg text.recharts-cartesian-axis-tick-value')]
+      .map((tick) => tick.textContent ?? '')
+      .filter((text) => text.includes('2026') && !text.startsWith('$'));
+    const timestamps = dateTicks.map((text) => new Date(text).valueOf());
+
+    expect(dateTicks.length).toBeGreaterThan(2);
+    expect(timestamps).toEqual([...timestamps].sort((left, right) => left - right));
+  });
+
   it('hides the built-in legend when showLegend is false', () => {
     render(
       <TrendChart
