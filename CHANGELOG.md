@@ -4,6 +4,14 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning.
 
+## 1.2.3 - 2026-09-08
+
+### Added
+
+- Added a standhigher Products page with BestTrack and BestUpsell recommendations.
+- Added package-specific UTM attribution from the published README through to
+  the Shopify App Store links.
+
 ## 1.2.1 - 2026-08-29
 
 ### Fixed

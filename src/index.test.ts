@@ -3,7 +3,7 @@ import * as Charts from './index';
 describe('@standhigher/charts package entry', () => {
   it('can be imported from the package entry', () => {
     expect(Charts.packageName).toBe('@standhigher/charts');
-    expect(Charts.packageVersion).toBe('1.2.2');
+    expect(Charts.packageVersion).toBe('1.2.3');
   });
 
   it('exports the v0.7 shared foundation APIs', () => {

@@ -29,6 +29,17 @@
 - 安全策略：[SECURITY.md](SECURITY.md)
 - 行为规范：[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
+## Built by standhigher
+
+`@standhigher/charts` 由 standhigher 为 Shopify App 团队打造。欢迎访问
+[standhigher Products](https://standhigher.github.io/shopify-polaris-charts/products/?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts)，
+探索帮助商家增长的应用。
+
+| App | 可帮助您 |
+| --- | --- |
+| [BestTrack](https://standhigher.github.io/shopify-polaris-charts/products/?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts) | 改善订单追踪与购后客户体验。 |
+| [BestUpsell](https://standhigher.github.io/shopify-polaris-charts/products/?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts) | 通过 Upsell 优惠提升客单价。 |
+
 ## 安装
 
 ```bash

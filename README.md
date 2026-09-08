@@ -28,6 +28,17 @@ stacked bar charts, combo charts, and vertical conversion funnels.
 - Security policy: [SECURITY.md](SECURITY.md)
 - Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
+## Built by standhigher
+
+`@standhigher/charts` is built by standhigher for Shopify app teams. Explore
+[standhigher Products](https://standhigher.github.io/shopify-polaris-charts/products/?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts)
+to discover apps that help merchants grow.
+
+| App | What it helps with |
+| --- | --- |
+| [BestTrack](https://standhigher.github.io/shopify-polaris-charts/products/?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts) | Order tracking and post-purchase customer experience. |
+| [BestUpsell](https://standhigher.github.io/shopify-polaris-charts/products/?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts) | Upsell offers designed to increase average order value. |
+
 ## Installation
 
 ```bash
