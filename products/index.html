@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Shopify apps from standhigher that help merchants improve post-purchase experiences and grow revenue."
+    />
+    <title>Products by standhigher</title>
+    <style>
+      :root {
+        color: #202223;
+        background: #f6f6f7;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body { margin: 0; }
+
+      main {
+        width: min(100% - 32px, 880px);
+        margin: 0 auto;
+        padding: 72px 0;
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: #6d7175;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1 { margin: 0; font-size: clamp(36px, 6vw, 56px); letter-spacing: -0.04em; }
+
+      .intro {
+        max-width: 660px;
+        margin: 20px 0 40px;
+        color: #4a4e52;
+        font-size: 19px;
+        line-height: 1.55;
+      }
+
+      .products { display: grid; gap: 20px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+      article {
+        display: flex;
+        min-height: 270px;
+        flex-direction: column;
+        padding: 28px;
+        border: 1px solid #dcdfe4;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+      }
+
+      .product-heading {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .product-logo {
+        width: 64px;
+        height: 64px;
+        flex: 0 0 auto;
+        border-radius: 14px;
+        object-fit: cover;
+      }
+
+      h2 { margin: 0; font-size: 28px; }
+
+      article p { color: #4a4e52; line-height: 1.5; }
+
+      .cta {
+        display: inline-flex;
+        width: fit-content;
+        margin-top: auto;
+        padding: 11px 16px;
+        border-radius: 8px;
+        color: #fff;
+        background: #008060;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .cta:hover, .cta:focus { background: #006e52; }
+
+      footer { margin-top: 40px; color: #6d7175; font-size: 14px; }
+
+      @media (max-width: 640px) {
+        main { padding: 48px 0; }
+        .products { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Built by standhigher</p>
+      <h1>Shopify apps for growth</h1>
+      <p class="intro">
+        Discover focused tools that make post-purchase experiences better and help merchants grow their stores.
+      </p>
+      <section class="products" aria-label="standhigher Shopify apps">
+        <article>
+          <div class="product-heading">
+            <img
+              class="product-logo"
+              src="assets/besttrack.webp"
+              alt="BestTrack logo"
+              width="64"
+              height="64"
+            />
+            <h2>BestTrack</h2>
+          </div>
+          <p>Give customers a clearer order tracking experience and keep them engaged after checkout.</p>
+          <a
+            class="cta"
+            data-product="besttrack"
+            href="https://apps.shopify.com/besttrack?utm_source=GitHub&utm_medium=social"
+          >View BestTrack on Shopify</a>
+        </article>
+        <article>
+          <div class="product-heading">
+            <img
+              class="product-logo"
+              src="assets/bestupsell.webp"
+              alt="BestUpsell logo"
+              width="64"
+              height="64"
+            />
+            <h2>BestUpsell</h2>
+          </div>
+          <p>Present relevant upsell offers that help merchants increase average order value.</p>
+          <a
+            class="cta"
+            data-product="bestupsell"
+            href="https://apps.shopify.com/bestupsellapp?utm_source=GitHub&utm_medium=social"
+          >View BestUpsell on Shopify</a>
+        </article>
+      </section>
+      <footer>Built by standhigher for Shopify merchants and app teams.</footer>
+    </main>
+  </body>
+</html>
