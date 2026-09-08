@@ -38,7 +38,7 @@ to discover apps that help merchants grow.
 | --- | --- |
 | [BestTrack](https://apps.shopify.com/besttrack?utm_source=GitHub&utm_medium=social) | Order tracking and post-purchase customer experience. |
 | [BestUpsell](https://apps.shopify.com/bestupsellapp?utm_source=GitHub&utm_medium=social) | Upsell offers designed to increase average order value. |
-| [BestBundle](https://apps.shopify.com/bestbundle?utm_source=GitHub&utm_medium=social) | Product bundles and offers that encourage larger orders. |
+| [BestFeed AI](https://apps.shopify.com/bestfeed?locale=zh-CN&utm_source=GitHub&utm_medium=social) | AI-assisted product feeds that help products perform across channels. |
 | [SonarFulfill](https://apps.shopify.com/sonarfulfill?locale=zh-CN&utm_source=GitHub&utm_medium=social) | Fulfillment workflows that help keep orders moving. |
 
 ## Installation

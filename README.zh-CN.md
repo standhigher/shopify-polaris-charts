@@ -39,7 +39,7 @@
 | --- | --- |
 | [BestTrack](https://apps.shopify.com/besttrack?utm_source=GitHub&utm_medium=social) | 改善订单追踪与购后客户体验。 |
 | [BestUpsell](https://apps.shopify.com/bestupsellapp?utm_source=GitHub&utm_medium=social) | 通过 Upsell 优惠提升客单价。 |
-| [BestBundle](https://apps.shopify.com/bestbundle?utm_source=GitHub&utm_medium=social) | 通过商品捆绑与优惠鼓励更高的订单金额。 |
+| [BestFeed AI](https://apps.shopify.com/bestfeed?locale=zh-CN&utm_source=GitHub&utm_medium=social) | 通过 AI 辅助商品 Feed，帮助商品在各渠道获得更好表现。 |
 | [SonarFulfill](https://apps.shopify.com/sonarfulfill?locale=zh-CN&utm_source=GitHub&utm_medium=social) | 通过履约工作流帮助订单持续流转。 |
 
 ## 安装

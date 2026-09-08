@@ -4,6 +4,13 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning.
 
+## 1.2.6 - 2026-09-08
+
+### Changed
+
+- Replaced the BestBundle recommendation with BestFeed AI and its Shopify App
+  Store destination.
+
 ## 1.2.5 - 2026-09-08
 
 ### Added
