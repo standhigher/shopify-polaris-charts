@@ -57,6 +57,20 @@
         box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
       }
 
+      .product-heading {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .product-logo {
+        width: 64px;
+        height: 64px;
+        flex: 0 0 auto;
+        border-radius: 14px;
+        object-fit: cover;
+      }
+
       h2 { margin: 0; font-size: 28px; }
 
       article p { color: #4a4e52; line-height: 1.5; }
@@ -92,37 +106,43 @@
       </p>
       <section class="products" aria-label="standhigher Shopify apps">
         <article>
-          <h2>BestTrack</h2>
+          <div class="product-heading">
+            <img
+              class="product-logo"
+              src="assets/besttrack.webp"
+              alt="BestTrack logo"
+              width="64"
+              height="64"
+            />
+            <h2>BestTrack</h2>
+          </div>
           <p>Give customers a clearer order tracking experience and keep them engaged after checkout.</p>
           <a
             class="cta"
             data-product="besttrack"
-            href="https://apps.shopify.com/besttrack?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts"
+            href="https://apps.shopify.com/besttrack?utm_source=GitHub&utm_medium=social"
           >View BestTrack on Shopify</a>
         </article>
         <article>
-          <h2>BestUpsell</h2>
+          <div class="product-heading">
+            <img
+              class="product-logo"
+              src="assets/bestupsell.webp"
+              alt="BestUpsell logo"
+              width="64"
+              height="64"
+            />
+            <h2>BestUpsell</h2>
+          </div>
           <p>Present relevant upsell offers that help merchants increase average order value.</p>
           <a
             class="cta"
             data-product="bestupsell"
-            href="https://apps.shopify.com/bestupsellapp?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts"
+            href="https://apps.shopify.com/bestupsellapp?utm_source=GitHub&utm_medium=social"
           >View BestUpsell on Shopify</a>
         </article>
       </section>
       <footer>Built by standhigher for Shopify merchants and app teams.</footer>
     </main>
-    <script>
-      const allowed = /^[a-z0-9][a-z0-9_-]{0,99}$/i;
-      const incomingContent = new URLSearchParams(window.location.search).get('utm_content');
-
-      if (incomingContent && allowed.test(incomingContent)) {
-        document.querySelectorAll('[data-product]').forEach((link) => {
-          const destination = new URL(link.href);
-          destination.searchParams.set('utm_content', incomingContent);
-          link.href = destination.toString();
-        });
-      }
-    </script>
   </body>
 </html>

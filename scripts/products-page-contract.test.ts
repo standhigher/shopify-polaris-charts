@@ -16,11 +16,13 @@ describe('standhigher Products referral contract', () => {
     expect(readme).toContain('[BestUpsell]');
   });
 
-  it('preserves the package-specific attribution through the Products page', () => {
+  it('uses the designated Shopify App Store destinations', () => {
     const page = readFileSync(new URL('../public/products/index.html', import.meta.url), 'utf8');
 
-    expect(page).toContain('https://apps.shopify.com/besttrack?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts');
-    expect(page).toContain('https://apps.shopify.com/bestupsellapp?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts');
-    expect(page).toContain("destination.searchParams.set('utm_content', incomingContent)");
+    expect(page).toContain('src="assets/besttrack.webp"');
+    expect(page).toContain('src="assets/bestupsell.webp"');
+    expect(page).toContain('https://apps.shopify.com/besttrack?utm_source=GitHub&utm_medium=social');
+    expect(page).toContain('https://apps.shopify.com/bestupsellapp?utm_source=GitHub&utm_medium=social');
+    expect(page).not.toContain('utm_content=standhigher-charts');
   });
 });

@@ -4,6 +4,13 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning.
 
+## 1.2.4 - 2026-09-08
+
+### Fixed
+
+- Added BestTrack and BestUpsell logos to the Products page and corrected the
+  two Shopify App Store destinations.
+
 ## 1.2.3 - 2026-09-08
 
 ### Added
