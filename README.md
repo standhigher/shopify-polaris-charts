@@ -36,8 +36,10 @@ to discover apps that help merchants grow.
 
 | App | What it helps with |
 | --- | --- |
-| [BestTrack](https://standhigher.github.io/shopify-polaris-charts/products/?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts) | Order tracking and post-purchase customer experience. |
-| [BestUpsell](https://standhigher.github.io/shopify-polaris-charts/products/?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts) | Upsell offers designed to increase average order value. |
+| [BestTrack](https://apps.shopify.com/besttrack?utm_source=GitHub&utm_medium=social) | Order tracking and post-purchase customer experience. |
+| [BestUpsell](https://apps.shopify.com/bestupsellapp?utm_source=GitHub&utm_medium=social) | Upsell offers designed to increase average order value. |
+| [BestBundle](https://apps.shopify.com/bestbundle?utm_source=GitHub&utm_medium=social) | Product bundles and offers that encourage larger orders. |
+| [SonarFulfill](https://apps.shopify.com/sonarfulfill?locale=zh-CN&utm_source=GitHub&utm_medium=social) | Fulfillment workflows that help keep orders moving. |
 
 ## Installation
 

@@ -4,6 +4,13 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning.
 
+## 1.2.5 - 2026-09-08
+
+### Added
+
+- Added BestBundle and SonarFulfill to the standhigher Products page and the
+  README recommendations, with direct Shopify App Store links.
+
 ## 1.2.4 - 2026-09-08
 
 ### Fixed

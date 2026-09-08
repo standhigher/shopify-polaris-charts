@@ -37,8 +37,10 @@
 
 | App | 可帮助您 |
 | --- | --- |
-| [BestTrack](https://standhigher.github.io/shopify-polaris-charts/products/?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts) | 改善订单追踪与购后客户体验。 |
-| [BestUpsell](https://standhigher.github.io/shopify-polaris-charts/products/?utm_source=GitHub&utm_medium=social&utm_content=standhigher-charts) | 通过 Upsell 优惠提升客单价。 |
+| [BestTrack](https://apps.shopify.com/besttrack?utm_source=GitHub&utm_medium=social) | 改善订单追踪与购后客户体验。 |
+| [BestUpsell](https://apps.shopify.com/bestupsellapp?utm_source=GitHub&utm_medium=social) | 通过 Upsell 优惠提升客单价。 |
+| [BestBundle](https://apps.shopify.com/bestbundle?utm_source=GitHub&utm_medium=social) | 通过商品捆绑与优惠鼓励更高的订单金额。 |
+| [SonarFulfill](https://apps.shopify.com/sonarfulfill?locale=zh-CN&utm_source=GitHub&utm_medium=social) | 通过履约工作流帮助订单持续流转。 |
 
 ## 安装
 
