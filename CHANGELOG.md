@@ -10,6 +10,8 @@ This project follows semantic versioning.
 
 - Added `HorizontalBarChart` for horizontal category distributions with
   percentage input normalization, per-bar colors, and shared chart states.
+- Raised the raw bundle release ceiling to account for the new public chart
+  entry and updated the gzip ceiling to account for its compressed footprint.
 
 ## 1.2.6 - 2026-09-08
 
