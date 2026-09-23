@@ -30,3 +30,4 @@ export type {
   StackedBarChartRechartsProps,
   TrendChartRechartsProps
 } from './recharts';
+export type { HorizontalBarDatum, HorizontalBarChartProps } from '../components/HorizontalBarChart';

@@ -20,6 +20,7 @@ import {
   ConversionChart,
   DonutChart,
   FunnelChart,
+  HorizontalBarChart,
   MetricCard,
   StackedBarChart,
   TrendChart,
@@ -54,6 +55,8 @@ import {
   type FunnelChartProps,
   type FunnelDatum,
   type FunnelPercentageInput,
+  type HorizontalBarChartProps,
+  type HorizontalBarDatum,
   type AnalyticsAxisPreset,
   type AnalyticsFunnelPreset,
   type AnalyticsSeriesPreset,
@@ -111,6 +114,7 @@ Runtime peer dependencies:
 | `FunnelChart` | component | Accessible vertical funnel with per-stage value, conversion, and drop-off details. |
 | `DonutChart` | component | Donut chart for parts-of-a-whole data. |
 | `StackedBarChart` | component | Stacked bar chart for category composition. |
+| `HorizontalBarChart` | component | Horizontal category distribution bars with percentage formatting and per-bar colors. |
 | `ComboChart` | component | Combined bar and line chart. |
 | `createAnalyticsSeries` | function | Converts an `AnalyticsSeries` definition into a shared `ChartSeries`. |
 | `normalizePercentageData` | function | Immutably normalizes selected percent fields to ratios. |
@@ -143,6 +147,8 @@ Runtime peer dependencies:
 | `AnalyticsAxisPreset`, `AnalyticsFunnelPreset`, `AnalyticsSeriesPreset`, `AnalyticsTrendPreset` | types | Presentation-preset contracts. |
 | `DonutChartProps` | type | Props for `DonutChart`. |
 | `StackedBarChartProps` | type | Props for `StackedBarChart`. |
+| `HorizontalBarChartProps` | type | Props for `HorizontalBarChart`. |
+| `HorizontalBarDatum` | type | Category label, value, and optional per-bar color. |
 | `ComboChartProps` | type | Props for `ComboChart`. |
 | `TrendChartRechartsProps` | type | Controlled Recharts props for `TrendChart`. |
 | `StackedBarChartRechartsProps` | type | Controlled Recharts props for `StackedBarChart`. |
@@ -1110,6 +1116,38 @@ const data = [
 - `series[].color` changes one stack segment color across all categories.
 - Per-category segment colors are not supported by the current public API.
 
+## HorizontalBarChart
+
+`HorizontalBarChart` renders one horizontal bar per category. Percentage values
+use ratio input by default (`0.78` means `78%`); set `percentageInput="percent"`
+for source values on a 0–100 scale. Zero and missing values keep their category
+labels.
+
+| Prop | Type | Required | Default | Description |
+|---|---|---:|---|---|
+| `data` | `HorizontalBarDatum[]` | Yes | - | Category labels, values, and optional per-bar colors. |
+| `format` | `ChartFormat` | No | `'number'` | X-axis and tooltip value format. |
+| `percentageInput` | `'ratio' \| 'percent'` | No | `'ratio'` | Percentage input basis when `format="percent"`. |
+| `xAxis` | `CartesianAxisOptions` | No | - | Numeric X-axis options such as domain and ticks. |
+| `yAxis` | `CartesianAxisOptions` | No | - | Category Y-axis tick and width options. |
+| `grid` | `ChartGridOptions` | No | - | Grid direction and stroke options. |
+| `margin` | `ChartMargin` | No | - | Recharts chart margin. |
+| `height` | `number` | No | `280` | Chart height in pixels. |
+| `barSize` | `number` | No | - | Bar thickness in pixels. |
+| `radius` | `number \| [number, number, number, number]` | No | `[0, 6, 6, 0]` | Bar corner radius. |
+| `showLegend` | `boolean` | No | `false` | Whether to render the category legend. |
+| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip cursor, formatting, and styling. |
+| `state` | `ChartContentState` | No | `'ready'` | Shared chart-area state. |
+
+```ts
+interface HorizontalBarDatum {
+  label: string;
+  value: number | null | undefined;
+  color?: string;
+  id?: string;
+}
+```
+
 ## ComboChart
 
 Use `ComboChart` when related bar and line measures should be read together.
@@ -1415,7 +1453,7 @@ Important fields:
 ### Accessibility
 
 `TrendChart`, `ComparisonChart`, `ConversionChart`, `ComboChart`,
-`StackedBarChart`, `DonutChart`, and `FunnelChart` accept:
+`StackedBarChart`, `HorizontalBarChart`, `DonutChart`, and `FunnelChart` accept:
 
 ```ts
 interface ChartAccessibilityOptions {

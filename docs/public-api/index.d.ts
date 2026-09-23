@@ -173,6 +173,40 @@ interface ComboChartRechartsProps extends CartesianRechartsProps {
     line?: ControlledLineProps;
 }
 
+interface HorizontalBarDatum {
+    label: string;
+    value: number | null | undefined;
+    color?: string;
+    id?: string;
+}
+interface HorizontalBarChartProps {
+    accessibility?: ChartAccessibilityOptions;
+    title?: ReactNode;
+    data: HorizontalBarDatum[];
+    format?: ChartFormat;
+    formatOptions?: ChartValueFormatOptions;
+    percentageInput?: 'percent' | 'ratio';
+    xAxis?: CartesianAxisOptions;
+    yAxis?: CartesianAxisOptions;
+    grid?: ChartGridOptions;
+    margin?: ChartMargin;
+    tooltip?: ChartTooltipOptions;
+    height?: number;
+    barSize?: number;
+    radius?: number | [number, number, number, number];
+    showLegend?: boolean;
+    emptyMessage?: ReactNode;
+    errorMessage?: ReactNode;
+    loadingLabel?: ReactNode;
+    onRetry?: () => void;
+    retryAction?: ReactNode;
+    retryLabel?: ReactNode;
+    reveal?: boolean | ChartRevealOptions;
+    skeleton?: boolean | ChartSkeletonOptions;
+    state?: ChartContentState;
+}
+declare function HorizontalBarChart({ accessibility, barSize, data, emptyMessage, errorMessage, format, formatOptions: suppliedFormatOptions, grid, height, loadingLabel, margin, onRetry, percentageInput, radius, reveal, retryAction, retryLabel, showLegend, skeleton, state, title, tooltip, xAxis, yAxis }: HorizontalBarChartProps): react.JSX.Element;
+
 interface ChartNumberFormatOptions {
     locale?: string;
     notation?: 'standard' | 'compact';
@@ -593,6 +627,6 @@ interface ChartTheme {
 declare const chartTheme: ChartTheme;
 
 declare const packageName = "@standhigher/charts";
-declare const packageVersion = "1.2.6";
+declare const packageVersion = "1.3.0";
 
-export { type AnalyticsAxisPreset, type AnalyticsFunnelPreset, type AnalyticsSeries, type AnalyticsSeriesPreset, type AnalyticsTrendPreset, type CartesianAxisOptions, type ChartAccessibilityOptions, ChartAccessibilityRegion, type ChartAccessibilityRegionProps, type ChartActiveDotOptions, ChartCard, type ChartCardProps, type ChartCardState, type ChartContentState, type ChartCurrencyFormatOptions, type ChartDateFormatOptions, type ChartDatum, type ChartDotOptions, type ChartFormat, type ChartGapConnectorOptions, type ChartGridOptions, type ChartInlineState, type ChartLineOptions, ChartLocalizationProvider, type ChartLocalizationProviderProps, type ChartLocalizationValue, type ChartMargin, type ChartMessages, type ChartNumberFormatOptions, type ChartPercentFormatOptions, type ChartRevealOptions, ChartRevealRegion, type ChartRevealRegionProps, type ChartSeries, ChartSkeletonLayout, type ChartSkeletonLayoutProps, type ChartSkeletonOptions, type ChartState, ChartStateRegion, type ChartStateRegionProps, type ChartTheme, type ChartTooltipContentProps, type ChartTooltipContentRenderer, type ChartTooltipCursorOptions, type ChartTooltipOptions, type ChartTooltipPayloadItem, type ChartValue, type ChartValueFormatOptions, ComboChart, type ComboChartProps, type ComboChartRechartsProps, type ComboChartSeries, type ComboChartSeriesType, ComparisonChart, type ComparisonChartProps, ConversionChart, type ConversionChartProps, type ConversionTarget, DonutChart, type DonutChartProps, type FormatCompactNumberOptions, type FormatDateOptions, type FormatMoneyOptions, type FormatNumberOptions, type FormatPercentageOptions, FunnelChart, type FunnelChartProps, type FunnelDatum, type FunnelPercentageInput, MetricCard, type MetricCardProps, type MetricCardState, type MetricCardTrend, type MetricTrendDirection, type MetricTrendTone, type PercentageInput, StackedBarChart, type StackedBarChartProps, type StackedBarChartRechartsProps, TrendChart, type TrendChartProps, type TrendChartRechartsProps, type TrendChartRevealOptions, type TrendChartSkeletonOptions, chartFormatters, chartTheme, conversionTrendPreset, createAnalyticsSeries, customerTrendPreset, defaultChartMessages, formatChartCurrency, formatChartDate, formatChartNumber, formatChartPercent, formatChartValue, formatCompactNumber, formatDate, formatMoney, formatNumber, formatPercentage, funnelPreset, normalizeFunnelData, normalizePercentageData, orderTrendPreset, packageName, packageVersion, revenueTrendPreset, upsellConversionPreset, useChartLocalization };
+export { type AnalyticsAxisPreset, type AnalyticsFunnelPreset, type AnalyticsSeries, type AnalyticsSeriesPreset, type AnalyticsTrendPreset, type CartesianAxisOptions, type ChartAccessibilityOptions, ChartAccessibilityRegion, type ChartAccessibilityRegionProps, type ChartActiveDotOptions, ChartCard, type ChartCardProps, type ChartCardState, type ChartContentState, type ChartCurrencyFormatOptions, type ChartDateFormatOptions, type ChartDatum, type ChartDotOptions, type ChartFormat, type ChartGapConnectorOptions, type ChartGridOptions, type ChartInlineState, type ChartLineOptions, ChartLocalizationProvider, type ChartLocalizationProviderProps, type ChartLocalizationValue, type ChartMargin, type ChartMessages, type ChartNumberFormatOptions, type ChartPercentFormatOptions, type ChartRevealOptions, ChartRevealRegion, type ChartRevealRegionProps, type ChartSeries, ChartSkeletonLayout, type ChartSkeletonLayoutProps, type ChartSkeletonOptions, type ChartState, ChartStateRegion, type ChartStateRegionProps, type ChartTheme, type ChartTooltipContentProps, type ChartTooltipContentRenderer, type ChartTooltipCursorOptions, type ChartTooltipOptions, type ChartTooltipPayloadItem, type ChartValue, type ChartValueFormatOptions, ComboChart, type ComboChartProps, type ComboChartRechartsProps, type ComboChartSeries, type ComboChartSeriesType, ComparisonChart, type ComparisonChartProps, ConversionChart, type ConversionChartProps, type ConversionTarget, DonutChart, type DonutChartProps, type FormatCompactNumberOptions, type FormatDateOptions, type FormatMoneyOptions, type FormatNumberOptions, type FormatPercentageOptions, FunnelChart, type FunnelChartProps, type FunnelDatum, type FunnelPercentageInput, HorizontalBarChart, type HorizontalBarChartProps, type HorizontalBarDatum, MetricCard, type MetricCardProps, type MetricCardState, type MetricCardTrend, type MetricTrendDirection, type MetricTrendTone, type PercentageInput, StackedBarChart, type StackedBarChartProps, type StackedBarChartRechartsProps, TrendChart, type TrendChartProps, type TrendChartRechartsProps, type TrendChartRevealOptions, type TrendChartSkeletonOptions, chartFormatters, chartTheme, conversionTrendPreset, createAnalyticsSeries, customerTrendPreset, defaultChartMessages, formatChartCurrency, formatChartDate, formatChartNumber, formatChartPercent, formatChartValue, formatCompactNumber, formatDate, formatMoney, formatNumber, formatPercentage, funnelPreset, normalizeFunnelData, normalizePercentageData, orderTrendPreset, packageName, packageVersion, revenueTrendPreset, upsellConversionPreset, useChartLocalization };

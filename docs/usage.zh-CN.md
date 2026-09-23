@@ -203,6 +203,28 @@ ID，以及由调用方预先计算的数值。转化率和流失率默认使用
 fulfilled、pending 和 returned orders。它最适合每个类别共享同一组 series
 定义的场景。
 
+## HorizontalBarChart
+
+使用 `HorizontalBarChart` 展示按分类分布的横向条形图。分类显示在 Y 轴，数值显示在 X 轴；
+适合配送时长、转化区间或其他占比分析。百分比数据默认使用 ratio 输入，例如 `0.78` 表示 `78%`。
+如果源数据已经是 0–100 标度，设置 `percentageInput="percent"`。
+
+```tsx
+<HorizontalBarChart
+  data={[
+    { label: '0–3 天', value: 0, color: '#3B82F6' },
+    { label: '4–7 天', value: 0.78, color: '#3B82F6' },
+    { label: '8–15 天', value: 0.22, color: '#F59E0B' },
+    { label: '16–30 天', value: 0 },
+    { label: '31 天以上', value: 0 }
+  ]}
+  format="percent"
+  xAxis={{ domain: [0, 1], ticks: [0, 0.2, 0.4, 0.6, 0.8] }}
+/>
+```
+
+零值和缺失值分类仍会保留在 Y 轴；通过每条数据的 `color` 可以覆盖默认颜色。
+
 ## ComboChart
 
 当两个相关指标需要一起阅读时使用 `ComboChart`，例如订单量和转化率。通常用柱形
@@ -212,7 +234,7 @@ fulfilled、pending 和 returned orders。它最适合每个类别共享同一�
 ## 共享图表状态
 
 `TrendChart`、`ComparisonChart`、`ConversionChart`、`FunnelChart`、
-`ComboChart`、`StackedBarChart` 和 `DonutChart` 都提供相同的图表区域
+`ComboChart`、`StackedBarChart`、`HorizontalBarChart` 和 `DonutChart` 都提供相同的图表区域
 状态契约：`state`、`emptyMessage`、`errorMessage`、`loadingLabel`、`onRetry`、
 `retryLabel`、`retryAction`、`skeleton` 和 `reveal`。显式传入的 `loading`、`empty` 或 `error` 优先；
 默认 `state="ready"` 时，没有可渲染数值会自动解析为空状态。

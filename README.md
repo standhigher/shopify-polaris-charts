@@ -60,6 +60,7 @@ npm install @standhigher/charts react react-dom recharts
 | `FunnelChart` | Accessible vertical funnel with value, conversion, and drop-off details per stage. | Product, checkout, and upsell funnels. |
 | `DonutChart` | Category share visualization with optional legend controls. | Use for channel, market, source, or segment breakdowns. |
 | `StackedBarChart` | Stacked or grouped bar charts with axis, grid, tooltip, and margin customization. | Use for comparing multiple metrics across time or categories. |
+| `HorizontalBarChart` | Horizontal category bars with percentage input, per-bar colors, axes, grid, and tooltip customization. | Use for delivery duration, conversion ranges, or other distribution views. |
 | `ComboChart` | Bar plus line composition for mixed metric dashboards. | Use when volume and rate metrics need to be read together. |
 
 ## Compatibility
