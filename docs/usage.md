@@ -201,6 +201,31 @@ Use `DonutChart` for a small number of parts-of-a-whole categories, such as traf
 
 Use `StackedBarChart` when comparing category totals and their composition at the same time, such as fulfilled, pending, and returned orders by sales channel. It works best when every category shares the same series definitions.
 
+## HorizontalBarChart
+
+Use `HorizontalBarChart` for category distributions rendered as horizontal bars.
+Categories appear on the Y axis and values on the X axis, making it suitable for
+delivery duration, conversion ranges, and other share analyses. Percentage data
+uses ratio input by default, so `0.78` displays as `78%`; set
+`percentageInput="percent"` for source values on a 0–100 scale.
+
+```tsx
+<HorizontalBarChart
+  data={[
+    { label: '0–3 days', value: 0, color: '#3B82F6' },
+    { label: '4–7 days', value: 0.78, color: '#3B82F6' },
+    { label: '8–15 days', value: 0.22, color: '#F59E0B' },
+    { label: '16–30 days', value: 0 },
+    { label: '31+ days', value: 0 }
+  ]}
+  format="percent"
+  xAxis={{ domain: [0, 1], ticks: [0, 0.2, 0.4, 0.6, 0.8] }}
+/>
+```
+
+Zero and missing-value categories remain visible on the Y axis. Set `color` on
+individual data items to override the default bar palette.
+
 ## ComboChart
 
 Use `ComboChart` when two related measures need to be read together, such as order volume and conversion rate. Use bars for volume and a line for the rate or benchmark so the relationship is visible without implying both measures use the same scale.
@@ -208,7 +233,7 @@ Use `ComboChart` when two related measures need to be read together, such as ord
 ## Shared chart states
 
 `TrendChart`, `ComparisonChart`, `ConversionChart`, `FunnelChart`, `ComboChart`,
-`StackedBarChart`, and `DonutChart` expose the same
+`StackedBarChart`, `HorizontalBarChart`, and `DonutChart` expose the same
 chart-area state contract: `state`, `emptyMessage`, `errorMessage`,
 `loadingLabel`, `onRetry`, `retryLabel`, `retryAction`, `skeleton`, and `reveal`. An explicit
 `loading`, `empty`, or `error` state wins. With `state="ready"` (the default),

@@ -19,6 +19,7 @@ import {
   ConversionChart,
   DonutChart,
   FunnelChart,
+  HorizontalBarChart,
   MetricCard,
   StackedBarChart,
   TrendChart,
@@ -53,6 +54,8 @@ import {
   type FunnelChartProps,
   type FunnelDatum,
   type FunnelPercentageInput,
+  type HorizontalBarChartProps,
+  type HorizontalBarDatum,
   type AnalyticsAxisPreset,
   type AnalyticsFunnelPreset,
   type AnalyticsSeriesPreset,
@@ -110,6 +113,7 @@ import {
 | `FunnelChart` | component | 每阶段展示数量、转化率和流失率的可访问垂直漏斗。 |
 | `DonutChart` | component | 用于构成占比的环形图。 |
 | `StackedBarChart` | component | 用于类别组成对比的堆叠柱状图。 |
+| `HorizontalBarChart` | component | 用于分类分布的横向条形图，支持百分比格式和每条独立颜色。 |
 | `ComboChart` | component | 柱线组合图。 |
 | `createAnalyticsSeries` | function | 将 `AnalyticsSeries` 定义转换为共享 `ChartSeries`。 |
 | `normalizePercentageData` | function | 不可变地将选中的 percent 字段归一化为 ratio。 |
@@ -142,6 +146,8 @@ import {
 | `AnalyticsAxisPreset`、`AnalyticsFunnelPreset`、`AnalyticsSeriesPreset`、`AnalyticsTrendPreset` | type | 展示预设契约。 |
 | `DonutChartProps` | type | `DonutChart` props。 |
 | `StackedBarChartProps` | type | `StackedBarChart` props。 |
+| `HorizontalBarChartProps` | type | `HorizontalBarChart` props。 |
+| `HorizontalBarDatum` | type | 横向条形图的分类标签、数值和可选条形颜色。 |
 | `ComboChartProps` | type | `ComboChart` props。 |
 | `TrendChartRechartsProps` | type | `TrendChart` 的受控 Recharts props。 |
 | `StackedBarChartRechartsProps` | type | `StackedBarChart` 的受控 Recharts props。 |
@@ -919,6 +925,37 @@ function RevenueTooltip({ active, formatLabel, formatValue, label, payload }) {
 `series[].color` 会改变某个堆叠片段在所有类别中的颜色。当前 API 不支持同一个
 series 在不同类别下使用不同颜色。
 
+## HorizontalBarChart
+
+`HorizontalBarChart` 为每个分类渲染一条横向条形。百分比图默认使用 ratio 输入
+（`0.78` 表示 `78%`）；源数据已经是 0–100 标度时设置
+`percentageInput="percent"`。零值和缺失值仍会保留分类标签。
+
+| Prop | Type | Required | Default | 说明 |
+|---|---|---:|---|---|
+| `data` | `HorizontalBarDatum[]` | Yes | - | 分类标签、数值和可选的每条颜色。 |
+| `format` | `ChartFormat` | No | `'number'` | X 轴和 Tooltip 的数值格式。 |
+| `percentageInput` | `'ratio' \| 'percent'` | No | `'ratio'` | `format="percent"` 时的百分比输入基准。 |
+| `xAxis` | `CartesianAxisOptions` | No | - | 数值 X 轴选项，例如 domain 和 ticks。 |
+| `yAxis` | `CartesianAxisOptions` | No | - | 分类 Y 轴的 tick 和宽度选项。 |
+| `grid` | `ChartGridOptions` | No | - | 网格方向和线条样式。 |
+| `margin` | `ChartMargin` | No | - | Recharts 图表边距。 |
+| `height` | `number` | No | `280` | 图表高度，单位 px。 |
+| `barSize` | `number` | No | - | 条形厚度，单位 px。 |
+| `radius` | `number \| [number, number, number, number]` | No | `[0, 6, 6, 0]` | 条形圆角。 |
+| `showLegend` | `boolean` | No | `false` | 是否渲染分类 legend。 |
+| `tooltip` | `ChartTooltipOptions` | No | - | Tooltip cursor、格式化和样式。 |
+| `state` | `ChartContentState` | No | `'ready'` | 共享图表区域状态。 |
+
+```ts
+interface HorizontalBarDatum {
+  label: string;
+  value: number | null | undefined;
+  color?: string;
+  id?: string;
+}
+```
+
 ## ComboChart
 
 `ComboChart` 用于把相关的柱状指标和折线指标放在一起阅读。
@@ -993,7 +1030,7 @@ retry 及受控 Recharts 展示属性。
 ### 无障碍
 
 `TrendChart`、`ComparisonChart`、`ConversionChart`、`ComboChart`、
-`StackedBarChart`、`DonutChart`、`FunnelChart` 支持：
+`StackedBarChart`、`HorizontalBarChart`、`DonutChart`、`FunnelChart` 支持：
 
 ```ts
 interface ChartAccessibilityOptions {

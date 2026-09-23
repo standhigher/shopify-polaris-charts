@@ -4,6 +4,13 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning.
 
+## 1.3.0 - 2026-09-23
+
+### Added
+
+- Added `HorizontalBarChart` for horizontal category distributions with
+  percentage input normalization, per-bar colors, and shared chart states.
+
 ## 1.2.6 - 2026-09-08
 
 ### Changed

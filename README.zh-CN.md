@@ -61,6 +61,7 @@ npm install @standhigher/charts react react-dom recharts
 | `FunnelChart` | 每阶段展示数量、转化率和流失率的可访问垂直漏斗。 | 商品、结账和加购漏斗。 |
 | `DonutChart` | 分类占比图，支持图例开关。 | 渠道、市场、来源或分群占比。 |
 | `StackedBarChart` | 堆叠或分组柱状图，支持坐标轴、网格、提示框和边距配置。 | 对比不同时间或分类下的多指标。 |
+| `HorizontalBarChart` | 横向分类条形图，支持百分比输入、独立条形颜色、坐标轴、网格和提示框。 | 展示配送时长、转化区间或其他分类分布。 |
 | `ComboChart` | 柱状图和折线图组合。 | 同时查看数量类指标和比率类指标。 |
 
 ## 兼容性
