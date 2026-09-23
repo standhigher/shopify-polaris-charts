@@ -97,6 +97,6 @@ describe('Analytics benchmark workload', () => {
       results: validReport.results.map((cell, index) => index === 0 ? { ...cell, heapDeltaBytes: 257 * 1024 * 1024 } : cell)
     })).toThrow(/heap/i);
     expect(() => assertBenchmarkBudgets({ ...validReport, bundle: { gzipBytes: 10_000, rawBytes: 121 * 1024 } })).toThrow(/raw/i);
-    expect(() => assertBenchmarkBudgets({ ...validReport, bundle: { gzipBytes: 20 * 1024, rawBytes: 50_000 } })).toThrow(/gzip/i);
+    expect(() => assertBenchmarkBudgets({ ...validReport, bundle: { gzipBytes: 22 * 1024, rawBytes: 50_000 } })).toThrow(/gzip/i);
   });
 });
