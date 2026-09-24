@@ -75,6 +75,7 @@ export function formatChartCurrency(
 
   return new Intl.NumberFormat(options.locale ?? DEFAULT_LOCALE, {
     currency: options.currency ?? 'USD',
+    currencyDisplay: 'narrowSymbol',
     maximumFractionDigits: options.maximumFractionDigits,
     minimumFractionDigits: options.minimumFractionDigits,
     style: 'currency'
