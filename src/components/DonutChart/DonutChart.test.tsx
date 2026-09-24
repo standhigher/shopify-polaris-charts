@@ -13,7 +13,7 @@ const orderStatusData = [
 describe('DonutChart', () => {
   it('uses localization defaults unless explicit format options override them', () => {
     render(
-      <ChartLocalizationProvider currency="CAD">
+      <ChartLocalizationProvider currency="EUR">
         <DonutChart
           categoryKey="plan"
           data={[{ plan: 'Plus', revenue: 1200 }]}
@@ -23,7 +23,7 @@ describe('DonutChart', () => {
       </ChartLocalizationProvider>
     );
 
-    expect(screen.getByText('CA$1,200.00')).toBeVisible();
+    expect(screen.getByText('€1,200.00')).toBeVisible();
   });
 
   it('renders the shared error state with a retry action', () => {

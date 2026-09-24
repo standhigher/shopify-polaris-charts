@@ -4,6 +4,15 @@ All notable changes to `@standhigher/charts` are documented in this file.
 
 This project follows semantic versioning.
 
+## 1.3.1 - 2026-09-24
+
+### Fixed
+
+- Formatted currency with `Intl.NumberFormat` `currencyDisplay: "narrowSymbol"` so
+  values render a consistent narrow symbol (for example `¥` for `CNY`) instead of
+  the locale-dependent default symbol (for example `CN¥`), matching the rest of
+  the app's money formatting.
+
 ## 1.3.0 - 2026-09-23
 
 ### Added
